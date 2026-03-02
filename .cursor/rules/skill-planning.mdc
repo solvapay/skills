@@ -1,0 +1,74 @@
+---
+description: Architecture and planning guidance when creating new skills or restructuring existing ones
+alwaysApply: false
+---
+
+# Planning New Skills
+
+Use this guidance when designing a new skill or restructuring an existing one.
+
+## Skill Types
+
+Choose the right approach based on what the skill needs to do:
+
+**Behavioral / Guardrail skill** -- Steers agent preferences for topics it already knows.
+- Mostly prose, few or no code examples
+- Strong "prefer X over Y" and "never use Z" directives
+- Links to online docs as primary reference
+- Best for: well-known third-party integrations the agent has training knowledge about
+
+**Implementation / Guide skill** -- Teaches the agent something it doesn't know.
+- Bundled code examples, step-by-step guides, local reference files
+- Online docs with local fallback for Solvapay-specific APIs
+- Progressive disclosure through sub-files
+- Best for: Solvapay SDK/API integration, custom workflows, niche tools
+
+Most Solvapay skills will be implementation skills since the agent lacks training data about our APIs. A skill can combine both types -- implementation code for Solvapay parts, behavioral direction for well-known tools (Next.js, Supabase, Tailwind).
+
+## Directory Structure
+
+Each skill is a root-level directory containing a `SKILL.md` entry point:
+
+```
+skill-name/
+├── SKILL.md              # Entry point (loaded when triggered)
+├── guide.md              # Overview and navigation (if multi-step)
+├── reference.md          # API/SDK reference (loaded as needed)
+├── examples.md           # Usage examples (loaded as needed)
+└── framework-or-domain/  # Subdirs for framework/domain variants
+    ├── guide.md
+    ├── 01-step.md
+    └── 02-step.md
+```
+
+## Naming Conventions
+
+- Skill directory: `kebab-case`, gerund form preferred (`creating-checkout`, `processing-pdfs`)
+- Reference files: descriptive names (`form-validation-rules.md`, not `doc2.md`)
+- Sequential files: numbered prefixes (`01-setup.md`, `02-authentication.md`)
+
+## Progressive Disclosure Architecture
+
+Token-efficient design: bundle comprehensive resources but load only what's needed.
+
+1. **SKILL.md** acts as a router/table of contents
+2. **Sub-files** contain detailed implementation, loaded on demand
+3. **References stay one level deep** from SKILL.md -- never chain file->file->file
+4. **Domain-based splitting**: separate files per framework, domain, or feature area
+
+## Executable Scripts (If Applicable)
+
+If the skill includes utility scripts:
+
+- Scripts should handle errors explicitly, not punt to the agent
+- No magic numbers -- document all constants with rationale
+- List required packages in SKILL.md
+- Make execution intent clear: "Run `analyze.py`" (execute) vs "See `analyze.py`" (read)
+- Include validation scripts for destructive or batch operations
+
+## Evaluation-Driven Development
+
+1. Identify where the agent fails without the skill
+2. Write minimal content to address those gaps
+3. Test with real usage scenarios
+4. Iterate: observe agent behavior, refine content, re-test

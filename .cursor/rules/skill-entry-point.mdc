@@ -1,0 +1,75 @@
+---
+description: Structure and format rules for SKILL.md entry point files
+globs: "**/SKILL.md"
+alwaysApply: false
+---
+
+# SKILL.md Entry Point Format
+
+## Required YAML Frontmatter
+
+Every SKILL.md must start with:
+
+```yaml
+---
+name: skill-name-here
+description: What the skill does and when to use it. Use when...
+---
+```
+
+### `name` field
+- Max 64 characters
+- Lowercase letters, numbers, and hyphens only
+- Use gerund form preferred: `processing-pdfs`, `creating-checkout`
+- No reserved words: "anthropic", "claude"
+- No XML tags
+
+### `description` field
+- Max 1024 characters, non-empty
+- Write in third person ("Processes Excel files", not "I can help you process")
+- Include BOTH what the skill does AND when to trigger it
+- Include specific keywords users might say (e.g. "checkout", "payment", "billing")
+
+Bad: `description: Helps with documents`
+Good: `description: Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction.`
+
+## Body Structure
+
+- Keep under 500 lines. Split into reference files if approaching this limit.
+- Start with a brief heading and one-line summary.
+- Include a **Quick start** section or core concepts near the top.
+- Link to detailed reference files for advanced features: `See [FORMS.md](FORMS.md) for complete guide`
+- Include an **Implementation Checklist** with trackable progress:
+
+```
+Task Progress:
+- [ ] Step 1: ...
+- [ ] Step 2: ...
+```
+
+## Online Documentation References
+
+When a skill references external docs (Solvapay API docs, SDK docs), use the **online-first with local fallback** pattern:
+
+1. Link to live docs first so the agent fetches the latest version
+2. Bundle a **Fallback Reference** section or file with essential API details for when docs are unreachable
+3. Never rely solely on online docs -- the agent's runtime may lack network access
+
+```markdown
+## Documentation
+
+Fetch the latest docs before implementing:
+- **API Reference**: https://docs.solvapay.com/api/checkout
+
+If unavailable, use the fallback reference below (or in [reference.md](reference.md)).
+```
+
+For well-known third-party tools (Supabase, Tailwind), linking to their docs without a fallback is acceptable -- the agent already has training knowledge as a baseline.
+
+## Progressive Disclosure
+
+SKILL.md is a table of contents. It should overview and route, not contain everything.
+
+- Point to sub-files for detailed guides, reference docs, and examples
+- Keep references ONE level deep (SKILL.md -> reference.md, never reference.md -> details.md)
+- Name files descriptively: `form_validation_rules.md`, not `doc2.md`

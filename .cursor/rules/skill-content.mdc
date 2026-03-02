@@ -1,0 +1,87 @@
+---
+description: Rules for writing reference files, guides, and other markdown content within skills
+globs: "**/*.md"
+alwaysApply: false
+---
+
+# Writing Skill Content
+
+## File Organization
+
+Organize content by domain or feature, not by arbitrary numbering.
+
+- Good: `reference/finance.md`, `nextjs/guide.md`, `FORMS.md`
+- Bad: `docs/file1.md`, `docs/file2.md`
+
+For sequential guides, use numbered prefixes: `01-setup.md`, `02-authentication.md`.
+
+## Reference Files Over 100 Lines
+
+Include a table of contents at the top so the agent can see all available sections even during partial reads:
+
+```markdown
+# API Reference
+
+## Contents
+- Authentication and setup
+- Core methods (create, read, update, delete)
+- Error handling patterns
+- Code examples
+
+## Authentication and setup
+...
+```
+
+## Workflows and Checklists
+
+Break complex operations into clear sequential steps. Provide a copyable checklist:
+
+```
+Task Progress:
+- [ ] Step 1: Analyze inputs
+- [ ] Step 2: Create mapping
+- [ ] Step 3: Validate
+- [ ] Step 4: Execute
+- [ ] Step 5: Verify output
+```
+
+## Feedback Loops
+
+For quality-critical operations, include validate-then-fix cycles:
+
+1. Perform the operation
+2. Validate the result (run a script, check output, review)
+3. If validation fails, fix and validate again
+4. Only proceed when validation passes
+
+## Anti-Patterns and Guardrails
+
+Include explicit "never do X" rules in every skill. These are high-value, low-token additions that prevent the agent from using deprecated patterns or making common mistakes.
+
+- Use strong language: "Never", "Do not", "Always prefer X over Y"
+- Cover: deprecated APIs, insecure patterns, common misuses
+- Place guardrails near the top of the skill or in the relevant section, not buried at the end
+
+Example:
+
+```markdown
+## Guardrails
+- Never build custom payment forms. Always use the hosted checkout.
+- Never store `SOLVAPAY_SECRET_KEY` client-side or in public environment variables.
+- Always use `@solvapay/next` helpers over raw `fetch` calls when available.
+```
+
+## Code Examples
+
+- Provide concrete input/output pairs, not abstract descriptions
+- Show the recommended approach first, alternatives only when context genuinely differs
+- Include verification/troubleshooting steps after code blocks
+
+## Conditional Workflows
+
+Guide the agent through decision points explicitly:
+
+```markdown
+**Creating new content?** -> Follow "Creation workflow" below
+**Editing existing content?** -> Follow "Editing workflow" below
+```

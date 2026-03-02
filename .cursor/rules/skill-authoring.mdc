@@ -1,0 +1,51 @@
+---
+description: Core principles for authoring Cursor agent skills in this repository
+alwaysApply: true
+---
+
+# Skill Authoring Principles
+
+This is a skills repository. Every directory at the root (except `.cursor/`) is a skill. Follow these principles when creating or editing skills.
+
+## Conciseness is Critical
+
+The context window is shared with conversation history, other skills, and the system prompt. Every token must earn its place.
+
+- Assume the agent is already smart. Only include context it cannot infer.
+- Challenge each paragraph: "Does the agent really need this explanation?"
+- Remove boilerplate explanations of well-known concepts (e.g. don't explain what a PDF is).
+
+## Calibrate to Agent Knowledge
+
+The agent has deep training knowledge about popular tools (Stripe, React, Supabase) but knows little or nothing about Solvapay.
+
+- **Solvapay APIs/SDKs**: Must be taught with implementation code and bundled references. The agent cannot infer our SDK patterns.
+- **Well-known tools** (e.g. Next.js, Tailwind): Give behavioral direction, not tutorials. Steer preferences rather than explain basics.
+- Before adding content, ask: "Does the agent already know this from training data?" If yes, provide only corrections and preferences, not explanations.
+
+## Consistent Terminology
+
+Pick one term per concept and use it everywhere within a skill.
+
+- Bad: mixing "API endpoint", "URL", "route", "path" for the same thing
+- Good: always "API route" throughout the skill
+
+## No Time-Sensitive Information
+
+Never write "If you're doing this before August 2025..." or similar date-gated instructions. Use an "Old patterns" section with `<details>` tags for deprecated approaches.
+
+## Set Appropriate Degrees of Freedom
+
+Match specificity to fragility:
+
+- **High freedom** (text instructions): multiple valid approaches, context-dependent
+- **Medium freedom** (pseudocode/templates): preferred pattern with acceptable variation
+- **Low freedom** (exact scripts/commands): fragile operations, consistency critical
+
+## Avoid Offering Too Many Options
+
+Provide one recommended approach. Add alternatives only when the context genuinely differs (e.g. different frameworks). Never list multiple libraries for the same task without a clear default.
+
+## Forward Slashes Only
+
+Always use forward slashes in file paths, even on Windows: `scripts/helper.py`, not `scripts\helper.py`.
