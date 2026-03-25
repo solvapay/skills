@@ -20,7 +20,7 @@ Route user intent to the right domain guide and provide shared context.
 3. Read the matching domain guide:
    - [sdk-integration/guide.md](sdk-integration/guide.md) -- TypeScript SDK paywall, checkout, usage, webhooks
    - [website-checkout/guide.md](website-checkout/guide.md) -- hosted checkout and customer portal for web apps
-   - [provider-onboarding/guide.md](provider-onboarding/guide.md) -- SolvaPay Console setup from account creation through live mode
+   - [provider-onboarding/guide.md](provider-onboarding/guide.md) -- SolvaPay Console onboarding: account + onboarding form, first product with plans, then Stripe and go-live
 4. Follow the domain guide to completion.
 
 ## Documentation Sources

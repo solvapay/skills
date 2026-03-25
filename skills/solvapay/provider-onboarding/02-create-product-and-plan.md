@@ -13,7 +13,8 @@ Define the monetized surface area and pricing configuration.
 2. Add at least one plan within that product.
 3. Confirm product and plan references used by integration code.
 4. Choose integration path: Hosted MCP Pay (no-code) or SDK Integration.
-5. Document entitlement behavior for each plan (what unlocks, limits, period).
+5. Land on dashboard and continue with Stripe setup there (connect existing account or create a new one).
+6. Document entitlement behavior for each plan (what unlocks, limits, period).
 
 ## Acceptance Criteria
 

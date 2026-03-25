@@ -12,7 +12,7 @@ Agent skill for integrating SolvaPay SDK, onboarding providers, and adding hoste
 
 - "Protect my Express API with paywall checks" -> SDK integration (Express path)
 - "Add hosted checkout to my Next.js site" -> website checkout (Next.js path)
-- "Set up my provider account and go live" -> provider onboarding
+- "Set up my provider account, first product, and go live" -> provider onboarding
 - "Add usage metering to my MCP server" -> SDK integration (MCP server path)
 - "Not sure where to start" -> disambiguation and routing
 
@@ -68,7 +68,7 @@ solvapay/
 │   ├── guide.md                 # Entry point with stack support
 │   ├── nextjs/{guide,01-setup,02-auth,03-checkout}.md
 │   └── react/guide.md
-└── provider-onboarding/         # Account setup through go-live
+└── provider-onboarding/         # Account onboarding through go-live
     ├── guide.md                 # Entry point with step overview
-    └── {01-create-account,02-product-plan,03-sandbox,04-go-live}.md
+    └── {01-create-account,02-create-product-and-plan,03-test-in-sandbox,04-go-live}.md
 ```

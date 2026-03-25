@@ -9,8 +9,8 @@ Switch account mode only after sandbox checks pass.
 
 ## Required Preconditions
 
-- At least one plan exists
-- Stripe is connected and verified
+- At least one product exists with a plan configured in product setup
+- Stripe setup is complete from dashboard (existing account connected or new account created)
 - Sandbox integration tests are complete
 
 ## Actions
