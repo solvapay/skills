@@ -159,10 +159,10 @@ Serve these two JSON responses from your HTTP server.
 
 ```json
 {
-  "issuer": "<SOLVAPAY_OAUTH_BASE_URL>",
-  "authorization_endpoint": "<SOLVAPAY_OAUTH_BASE_URL>/v1/oauth/authorize",
-  "token_endpoint": "<SOLVAPAY_OAUTH_BASE_URL>/v1/oauth/token",
-  "registration_endpoint": "<SOLVAPAY_OAUTH_BASE_URL>/v1/oauth/register?product_ref=<SOLVAPAY_PRODUCT_REF>",
+  "issuer": "<SOLVAPAY_API_BASE_URL>",
+  "authorization_endpoint": "<SOLVAPAY_API_BASE_URL>/v1/customer/auth/authorize",
+  "token_endpoint": "<SOLVAPAY_API_BASE_URL>/v1/customer/auth/token",
+  "registration_endpoint": "<SOLVAPAY_API_BASE_URL>/v1/customer/auth/register?product_ref=<SOLVAPAY_PRODUCT_REF>",
   "token_endpoint_auth_methods_supported": ["client_secret_basic", "client_secret_post"],
   "response_types_supported": ["code"],
   "grant_types_supported": ["authorization_code", "refresh_token"],
@@ -180,7 +180,7 @@ async function resolveCustomerRef(authHeader?: string): Promise<string | null> {
   if (!authHeader?.startsWith('Bearer ')) return null
 
   const response = await fetch(
-    `${process.env.SOLVAPAY_OAUTH_BASE_URL}/v1/oauth/userinfo`,
+    `${process.env.SOLVAPAY_API_BASE_URL || 'https://api.solvapay.com'}/v1/customer/auth/userinfo`,
     { headers: { Authorization: authHeader } },
   )
   if (!response.ok) return null
@@ -217,7 +217,6 @@ WWW-Authenticate: Bearer resource_metadata="<MCP_PUBLIC_BASE_URL>/.well-known/oa
 | `SOLVAPAY_SECRET_KEY` | Yes | API secret key (`sk_...`) |
 | `SOLVAPAY_API_BASE_URL` | No | API base URL (defaults to `https://api.solvapay.com`) |
 | `SOLVAPAY_PRODUCT_REF` | Yes | Product reference for paywall and OAuth DCR |
-| `SOLVAPAY_OAUTH_BASE_URL` | Yes | SolvaPay OAuth server URL |
 | `MCP_PUBLIC_BASE_URL` | Yes | Your server's public origin |
 
 ## Verification checklist
