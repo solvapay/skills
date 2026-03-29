@@ -9,6 +9,8 @@ Use this file for TypeScript SDK operation patterns and minimal payload shapes.
 - Package map
 - Common operations
 - Operation templates
+  - Bootstrap MCP product
+  - Configure MCP plans
   - Create checkout session
   - Create customer session
   - Check limits
@@ -35,8 +37,103 @@ Use this file for TypeScript SDK operation patterns and minimal payload shapes.
 - Check subscription/purchase access
 - Record usage events
 - Verify webhooks
+- Bootstrap MCP product
+- Configure MCP plans
 
 ## Operation Templates
+
+### Bootstrap MCP Product
+
+Use when the user wants hosted MCP monetization setup in one API call.
+
+Request shape:
+
+```json
+{
+  "name": "Docs Assistant",
+  "originUrl": "https://origin.example.com/mcp",
+  "freePlan": {
+    "name": "Free",
+    "freeUnits": 0
+  },
+  "paidPlans": [
+    { "key": "pro", "name": "Pro", "price": 2000, "currency": "USD", "billingCycle": "monthly" }
+  ],
+  "tools": [
+    { "name": "list_docs", "planKeys": ["free", "pro"] },
+    { "name": "deep_research", "planKeys": ["pro"] }
+  ]
+}
+```
+
+Response shape:
+
+```json
+{
+  "product": { "reference": "prd_xxx" },
+  "mcpServer": { "mcpProxyUrl": "https://<slug>.mcp.solvapay.com/mcp" },
+  "planMap": {
+    "free": { "id": "plan_free_id", "reference": "pln_free" },
+    "pro": { "id": "plan_pro_id", "reference": "pln_pro" }
+  }
+}
+```
+
+Docs topic hint: `mcp pay bootstrap`, `create hosted mcp pay product`.
+
+### Configure MCP Plans
+
+Use after bootstrap to evolve pricing and tool mapping without recreating the product.
+
+Request shape (add or replace paid plans):
+
+```json
+{
+  "freePlan": { "name": "Free", "freeUnits": 100 },
+  "paidPlans": [
+    { "key": "pro", "name": "Pro", "price": 2000, "currency": "USD", "billingCycle": "monthly" }
+  ],
+  "toolMapping": [
+    { "name": "deep_research", "planKeys": ["pro"] },
+    { "name": "list_docs", "planKeys": ["free", "pro"] }
+  ]
+}
+```
+
+Request shape (revert to free-only):
+
+```json
+{
+  "freePlan": { "name": "Free", "freeUnits": 0 },
+  "paidPlans": []
+}
+```
+
+Request shape (remap only, keep plans unchanged):
+
+```json
+{
+  "freePlan": { "name": "Free", "freeUnits": 1000 },
+  "toolMapping": [
+    { "name": "deep_research", "planKeys": ["pro"] }
+  ]
+}
+```
+
+Response shape:
+
+```json
+{
+  "product": { "reference": "prd_xxx" },
+  "mcpServer": { "mcpProxyUrl": "https://<slug>.mcp.solvapay.com/mcp" },
+  "planMap": {
+    "free": { "id": "plan_free_id", "reference": "pln_free" },
+    "pro": { "id": "plan_pro_id", "reference": "pln_pro" }
+  }
+}
+```
+
+Docs topic hint: `configure mcp plans`.
 
 ### Create Checkout Session
 
