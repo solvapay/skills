@@ -225,6 +225,14 @@ Docs topic hint: `payment intents create` and `payment intents process`.
 
 ## Minimal Install (typical web app)
 
+Preferred setup (SDK integration):
+
+```bash
+npx solvapay init
+```
+
+Manual fallback (when CLI setup cannot run):
+
 ```bash
 npm install @solvapay/server@preview @solvapay/next@preview @solvapay/react@preview @solvapay/auth@preview @solvapay/react-supabase@preview @supabase/supabase-js
 ```
