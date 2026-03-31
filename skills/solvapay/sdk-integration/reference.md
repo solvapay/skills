@@ -234,7 +234,7 @@ npx solvapay init
 Manual fallback (when CLI setup cannot run):
 
 ```bash
-npm install @solvapay/server@preview @solvapay/next@preview @solvapay/react@preview @solvapay/auth@preview @solvapay/react-supabase@preview @supabase/supabase-js
+npm install @solvapay/server @solvapay/next @solvapay/react @solvapay/auth @solvapay/react-supabase @supabase/supabase-js
 ```
 
 ## Required Environment Variables (Typical)
