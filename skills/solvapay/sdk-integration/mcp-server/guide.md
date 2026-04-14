@@ -89,20 +89,6 @@ The adapter automatically:
 
 No manual `PaywallError` handling is needed.
 
-### Different plans per tool
-
-Create separate `payable` instances:
-
-```typescript
-const freeTier = solvaPay.payable({ product: productRef, plan: 'pln_free' })
-const proTier = solvaPay.payable({ product: productRef, plan: 'pln_pro' })
-
-const toolHandlers = {
-  list_tasks: freeTier.mcp(listTasks, { getCustomerRef }),
-  create_task: proTier.mcp(createTask, { getCustomerRef }),
-}
-```
-
 ## Register virtual tools
 
 Virtual tools provide self-service account management. They are **not** paywall-protected.

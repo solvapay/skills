@@ -40,7 +40,7 @@ If the user wants to self-host paywall checks in tool handlers, use
 
 ## Bootstrap an MCP Pay product
 
-Use `bootstrapMcpProduct` to create product, free plan, optional paid plans, MCP proxy config, and
+Use `bootstrapMcpProduct` to create product, plans (free and paid), MCP proxy config, and
 tool mapping in one call.
 
 ```typescript
@@ -59,10 +59,9 @@ Use this when you want to launch quickly with no paid plans yet:
 const bootstrap = await solvaPay.bootstrapMcpProduct({
   name: 'Docs Assistant',
   originUrl: 'https://origin.example.com/mcp',
-  freePlan: {
-    name: 'Free',
-    freeUnits: 0, // unlimited free usage
-  },
+  plans: [
+    { key: 'free', name: 'Free', price: 0, freeUnits: 0 },
+  ],
 })
 ```
 
@@ -74,12 +73,9 @@ Use this when you want tiered access from day one:
 const bootstrap = await solvaPay.bootstrapMcpProduct({
   name: 'Docs Assistant',
   originUrl: 'https://origin.example.com/mcp',
-  freePlan: {
-    name: 'Free',
-    freeUnits: 100,
-  },
-  paidPlans: [
-    { key: 'pro', name: 'Pro', price: 2000, currency: 'USD', billingCycle: 'monthly' },
+  plans: [
+    { key: 'free', name: 'Free', price: 0, freeUnits: 100 },
+    { key: 'pro', name: 'Pro', price: 2000, billingCycle: 'monthly' },
   ],
   tools: [
     { name: 'list_docs', planKeys: ['free', 'pro'] },
@@ -95,22 +91,19 @@ Save these values for follow-up operations:
 
 ## Configure plans after bootstrap
 
-Use `configureMcpPlans(productRef, params)` to update free-plan settings, paid plans, and tool
-mapping on an existing MCP product.
+Use `configureMcpPlans(productRef, params)` to update plans and tool mapping on an existing MCP
+product.
 
-`freePlan` is required by the request body. `paidPlans` is optional.
+`plans` is optional — send it to replace all plans, or omit to keep existing plans. `toolMapping` is optional.
 
-### Mode 1: replace paid plans
+### Mode 1: replace all plans
 
 ```typescript
 await solvaPay.configureMcpPlans(productRef, {
-  freePlan: {
-    name: 'Free',
-    freeUnits: 100,
-  },
-  paidPlans: [
-    { key: 'pro', name: 'Pro', price: 2000, currency: 'USD', billingCycle: 'monthly' },
-    { key: 'team', name: 'Team', price: 6000, currency: 'USD', billingCycle: 'monthly' },
+  plans: [
+    { key: 'free', name: 'Free', price: 0, freeUnits: 100 },
+    { key: 'pro', name: 'Pro', price: 2000, billingCycle: 'monthly' },
+    { key: 'team', name: 'Team', price: 6000, billingCycle: 'monthly' },
   ],
   toolMapping: [
     { name: 'list_docs', planKeys: ['free', 'pro', 'team'] },
@@ -123,11 +116,9 @@ await solvaPay.configureMcpPlans(productRef, {
 
 ```typescript
 await solvaPay.configureMcpPlans(productRef, {
-  freePlan: {
-    name: 'Free',
-    freeUnits: 0,
-  },
-  paidPlans: [],
+  plans: [
+    { key: 'free', name: 'Free', price: 0, freeUnits: 0 },
+  ],
 })
 ```
 
@@ -135,10 +126,6 @@ await solvaPay.configureMcpPlans(productRef, {
 
 ```typescript
 await solvaPay.configureMcpPlans(productRef, {
-  freePlan: {
-    name: 'Free',
-    freeUnits: 1000,
-  },
   toolMapping: [{ name: 'deep_research', planKeys: ['pro'] }],
 })
 ```
@@ -159,7 +146,7 @@ When MCP Pay is enabled, SolvaPay hosts:
 - [ ] Free users can call tools assigned to free/default access
 - [ ] Paid-only tools return paywall response before purchase
 - [ ] After adding paid plans, tool access matches `toolMapping`
-- [ ] Revert-to-free mode (`paidPlans: []`) removes paid access as expected
+- [ ] Revert-to-free mode (single `price: 0` plan) removes paid access as expected
 
 ## Docs discovery hints
 

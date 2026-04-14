@@ -16,21 +16,21 @@ Use SolvaPay paywall wrappers around Express business handlers.
 ## Recommended Flow
 
 1. Initialize SolvaPay server client.
-2. Create `payable` handler with product/plan configuration.
+2. Create `payable` handler with product configuration.
 3. Wrap routes with `payable.http(...)`.
 4. Pass stable customer reference from auth/header.
 5. Add usage tracking and failure-path responses.
 
 ## Route Protection Pattern
 
-Use one payable handler per pricing boundary:
+Use one payable handler per product:
 
 ```typescript
-const standard = solvaPay.payable({ product: 'prd_api', plan: 'pln_standard' })
-app.post('/v1/generate', standard.http(generateHandler))
+const payable = solvaPay.payable({ product: 'prd_api' })
+app.post('/v1/generate', payable.http(generateHandler))
 ```
 
-For mixed pricing, create multiple payable handlers with distinct plans.
+Plans are managed on the product in SolvaPay Console. The SDK resolves the correct plan from the customer's purchase automatically.
 
 ## Validation
 
