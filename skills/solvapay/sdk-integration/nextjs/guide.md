@@ -39,6 +39,10 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 - [ ] `/api/check-access` or equivalent implemented
 - [ ] UI redirects to hosted checkout/customer URLs
 - [ ] Webhook route verifies signatures and updates local state
+- [ ] `/api/cancel-renewal` implemented (if subscription management needed)
+- [ ] `/api/reactivate-renewal` implemented (if subscription management needed)
+- [ ] `/api/activate-plan` implemented (if free plans, credit activation, or plan switching needed)
+- [ ] `/api/list-plans` implemented (if plan selection UI needed)
 
 ## Verification
 
@@ -47,6 +51,8 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 3. Successful purchase unlocks premium route/component.
 4. Customer session redirects to portal successfully.
 5. At least one webhook event is received and processed.
+6. Cancel and reactivate renewal round-trips correctly (if implemented).
+7. Plan activation and switching works as expected (if implemented).
 
 ## Guardrails
 

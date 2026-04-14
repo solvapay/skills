@@ -24,7 +24,7 @@ Use this file for TypeScript SDK operation patterns and minimal payload shapes.
 ## Package Map
 
 - `@solvapay/server`: server SDK, paywall handlers, webhook verification
-- `@solvapay/next`: Next.js helpers for checkout/customer/access routes
+- `@solvapay/next`: Next.js helpers for checkout/customer/access/renewal/activation routes
 - `@solvapay/react`: UI provider/hooks for purchase and plan state
 - `@solvapay/react-supabase`: Supabase auth adapter for `@solvapay/react`
 - `@solvapay/auth`: auth utilities and adapters
@@ -39,6 +39,9 @@ Use this file for TypeScript SDK operation patterns and minimal payload shapes.
 - Verify webhooks
 - Bootstrap MCP product
 - Configure MCP plans
+- Cancel renewal
+- Reactivate renewal
+- Activate plan (including plan switching)
 
 ## Operation Templates
 
@@ -213,6 +216,81 @@ Request shape (conceptual):
 ```
 
 Docs topic hint: `usage record event` and `usage bulk`.
+
+### Cancel Renewal
+
+Use when customer wants to stop auto-renewal. Access continues until period end.
+
+`@solvapay/next` helper: `cancelRenewal(request, { purchaseRef, reason? })`
+`@solvapay/server` core: `cancelPurchaseCore(request, { purchaseRef, reason? })`
+
+API endpoint: `POST /v1/sdk/purchases/{purchaseRef}/cancel`
+
+Response shape:
+
+```json
+{
+  "success": true,
+  "purchase": { "reference": "pur_xxx", "status": "active", "cancelledAt": "..." }
+}
+```
+
+### Reactivate Renewal
+
+Use when customer wants to undo a pending cancellation. Only works while purchase is active and before period end.
+
+`@solvapay/next` helper: `reactivateRenewal(request, { purchaseRef })`
+`@solvapay/server` core: `reactivatePurchaseCore(request, { purchaseRef })`
+
+API endpoint: `POST /v1/sdk/purchases/{purchaseRef}/reactivate`
+
+Response shape:
+
+```json
+{
+  "success": true,
+  "purchase": { "reference": "pur_xxx", "status": "active", "cancelledAt": null }
+}
+```
+
+Preconditions: purchase must be `active`, have `cancelledAt` set, and `endDate` not yet passed.
+
+### Activate Plan
+
+Use to activate a product for a customer on a specific plan without checkout. Handles free units, credit balance, and plan switching.
+
+`@solvapay/next` helper: `activatePlan(request, { productRef, planRef })`
+`@solvapay/server` core: `activatePlanCore(request, { productRef, planRef })`
+
+API endpoint: `POST /v1/sdk/activate`
+
+Request shape:
+
+```json
+{
+  "customerRef": "cus_xxx",
+  "productRef": "prd_xxx",
+  "planRef": "pln_xxx"
+}
+```
+
+Response shape:
+
+```json
+{
+  "status": "activated",
+  "purchaseRef": "pur_xxx"
+}
+```
+
+Possible `status` values: `activated`, `already_active`, `topup_required`, `payment_required`, `invalid`.
+
+When `topup_required`: response includes `creditBalance`, `creditsPerUnit`, `currency`.
+When `payment_required`: response includes `checkoutUrl`, `checkoutSessionId`.
+
+Plan switching: if the customer already has an active purchase on a different plan for the same product, the old purchase is expired and a new one is created.
+
+Docs topic hint: `purchase management`, `activate plan`, `plan switching`.
 
 ### Create/Process Payment Intent (Embedded Only)
 

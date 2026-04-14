@@ -46,7 +46,7 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 
 | User intent | Trigger examples | Route to |
 | --- | --- | --- |
-| SDK integration | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "express", "MCP Server code integration", "nextjs sdk", "npx solvapay init", "cli", "init project", "scaffold" | [sdk-integration/guide.md](sdk-integration/guide.md) |
+| SDK integration | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "express", "MCP Server code integration", "nextjs sdk", "npx solvapay init", "cli", "init project", "scaffold", "cancel renewal", "reactivate", "activate plan", "switch plan" | [sdk-integration/guide.md](sdk-integration/guide.md) |
 | MCP Pay setup | "bootstrap mcp", "hosted mcp", "mcp pay", "monetize mcp server no-code", "mcp product bootstrap" | [mcp-pay/guide.md](mcp-pay/guide.md) |
 | Web app checkout | "add checkout to website", "hosted checkout", "customer portal", "nextjs checkout" | [website-checkout/guide.md](website-checkout/guide.md) |
 | Provider onboarding | "create account", "create product", "create plan", "sandbox test", "go live", "provider setup" | [provider-onboarding/guide.md](provider-onboarding/guide.md) |

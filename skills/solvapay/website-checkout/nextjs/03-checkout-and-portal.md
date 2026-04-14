@@ -15,6 +15,15 @@ Create server routes that return hosted URLs, then redirect on the client.
 - `POST /api/create-customer-session`
   - calls `createCustomerSession(...)`
   - returns `{ customerUrl }`
+- `POST /api/cancel-renewal`
+  - calls `cancelRenewal(request, { purchaseRef, reason? })`
+  - returns purchase object with `cancelledAt` set
+- `POST /api/reactivate-renewal`
+  - calls `reactivateRenewal(request, { purchaseRef })`
+  - returns purchase object with `cancelledAt` cleared
+- `POST /api/activate-plan`
+  - calls `activatePlan(request, { productRef, planRef })`
+  - returns `{ status, purchaseRef?, checkoutUrl? }` — use for free plans, credit activation, or plan switching
 
 ### Route Skeleton (Hosted Checkout)
 

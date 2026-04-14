@@ -74,10 +74,13 @@ Ask one question if any of these are missing:
 - Choose hosted checkout by default.
 - Use limits checks for metered flows and checkout session for upgrade path.
 - Return actionable errors (401/402) with upgrade guidance or checkout URL.
+- For free or credit-based plans, use `activatePlan` as an alternative to checkout.
+- For post-purchase lifecycle management, use `cancelRenewal` and `reactivateRenewal`.
+- For plan switching, call `activatePlan` with a different plan — the old purchase is automatically expired.
 
 ### Docs Discovery Hints
 
-- Topics: `checkout sessions`, `customer sessions`, `limits`, `usage`.
+- Topics: `checkout sessions`, `customer sessions`, `limits`, `usage`, `purchase management`, `activate plan`.
 - Retrieval hint: resolve API reference pages for exact request/response shapes.
 
 ## Stage 4: Webhooks and Sync
