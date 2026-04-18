@@ -242,7 +242,9 @@ extra props needed.
 
 ## Step 6 — Gate protected routes with `<PurchaseGate>`
 
-Wrap any route that requires a paid plan:
+`PurchaseGate` is a slot-based compound — you render one branch per state
+(`Loading`, `Allowed`, `Blocked`, `Error`) inside `PurchaseGate.Root`. Wrap any
+route that requires a paid plan:
 
 ```tsx
 import { PurchaseGate } from '@solvapay/react'
@@ -250,33 +252,58 @@ import { Navigate } from 'react-router-dom'
 
 export function DashboardPage() {
   return (
-    <PurchaseGate productRef={import.meta.env.VITE_SOLVAPAY_PRODUCT_REF as string}>
-      {({ status }) => {
-        if (status === 'loading') return <div>Loading…</div>
-        if (status !== 'active') return <Navigate to="/checkout" replace />
-        return <Dashboard />
-      }}
-    </PurchaseGate>
+    <PurchaseGate.Root productRef={import.meta.env.VITE_SOLVAPAY_PRODUCT_REF as string}>
+      <PurchaseGate.Loading>
+        <div>Loading…</div>
+      </PurchaseGate.Loading>
+      <PurchaseGate.Allowed asChild>
+        <Dashboard />
+      </PurchaseGate.Allowed>
+      <PurchaseGate.Blocked asChild>
+        <Navigate to="/checkout" replace />
+      </PurchaseGate.Blocked>
+    </PurchaseGate.Root>
   )
 }
 ```
 
-`PurchaseGate` hits `/check-purchase` via the provider and renders the
-render-prop with the current purchase `status`. No additional wiring required.
+Each slot is a `div` by default; pass `asChild` to forward props onto the
+immediate child (so `<Navigate />` mounts at the right point in the tree
+without a wrapping element). `PurchaseGate.Root` hits `/check-purchase` via
+the provider, matches against `productRef` (or `planRef`, or both), and
+renders whichever branch matches the current status. Swap `productRef` for
+`planRef="pln_..."` when gating on a specific plan. For ad-hoc checks
+outside the gate, read `hasPurchase({ productRef, planRef })` from
+`usePurchase()`.
 
 ## shadcn/ui composition (optional)
 
-Every primitive under `@solvapay/react` supports Radix's `asChild` pattern, so
-you can skin them with shadcn components without re-implementing anything:
+Every primitive supports Radix's `asChild` pattern so you can skin them with
+shadcn components without re-implementing anything. Two imports matter:
+
+- **`@solvapay/react`** — high-level components (`CheckoutLayout`,
+  `PurchaseGate`, `PaymentForm`) plus a simple convenience `PlanSelector`.
+- **`@solvapay/react/primitives`** — compound slot primitives including the
+  `PlanSelector.Root / .Card / .Heading / .Grid` tree. Import from here when
+  you want to skin individual plan cards.
 
 ```tsx
-import { PlanSelector, PaymentForm } from '@solvapay/react'
+import { PaymentForm } from '@solvapay/react'
+import { PlanSelector } from '@solvapay/react/primitives'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
-<PlanSelector.Card asChild>
-  <Card className="data-[state=selected]:ring-2 data-[state=selected]:ring-primary" />
-</PlanSelector.Card>
+<PlanSelector.Root productRef={PRODUCT_REF} className="space-y-6">
+  <PlanSelector.Grid className="grid gap-3">
+    <PlanSelector.Card asChild>
+      <Card className="data-[state=selected]:ring-2 data-[state=selected]:ring-primary p-4">
+        <PlanSelector.CardName className="text-base font-medium" />
+        <PlanSelector.CardPrice className="text-2xl font-bold" />
+        <PlanSelector.CardInterval className="text-sm text-muted-foreground" />
+      </Card>
+    </PlanSelector.Card>
+  </PlanSelector.Grid>
+</PlanSelector.Root>
 
 <PaymentForm.SubmitButton asChild>
   <Button className="w-full" />
