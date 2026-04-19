@@ -112,16 +112,32 @@ Deno.serve(checkPurchase)
 
 Call `configureCors()` before any handler runs.
 
+## Authentication Model
+
+Every handler extracts the authenticated user from the `Authorization: Bearer <jwt>` header that the Supabase platform gateway forwards. Edge Functions run with `verify_jwt = true` by default, so the token is cryptographically validated at the gateway before the handler runs -- inside the handler, the SDK decodes the payload to read `sub`, `email`, and `user_metadata.full_name` (used by `syncCustomer`).
+
+Opt into strict mode (verify the token inside the function as well) by setting:
+
+```bash
+supabase secrets set SUPABASE_JWT_SECRET=<project jwt secret>
+supabase secrets set SOLVAPAY_AUTH_STRICT=true   # optional: reject unverified tokens
+```
+
+`SOLVAPAY_JWT_SECRET` is an accepted provider-neutral alias for `SUPABASE_JWT_SECRET`. Asymmetric JWT signing keys (ES256/RS256, Supabase Auth GA 2025) are covered by the gateway-trust path and do not require this secret.
+
 ## Frontend Integration
 
 Wire `SolvaPayProvider` to point at Edge Function URLs:
 
 ```tsx
+import { supabase } from '@/integrations/supabase/client' // your existing client
+import { createSupabaseAuthAdapter } from '@solvapay/react-supabase'
+
 const SUPABASE_URL = 'https://<project-ref>.supabase.co/functions/v1'
 
 <SolvaPayProvider
   config={{
-    auth: { adapter: createSupabaseAuthAdapter(supabase) },
+    auth: { adapter: createSupabaseAuthAdapter({ client: supabase }) },
     api: {
       checkPurchase: `${SUPABASE_URL}/check-purchase`,
       createPayment: `${SUPABASE_URL}/create-payment-intent`,
@@ -136,6 +152,8 @@ const SUPABASE_URL = 'https://<project-ref>.supabase.co/functions/v1'
 >
 ```
 
+Pass the host app's existing Supabase client via `{ client }` so only one `GoTrue` instance is live on the page. The legacy `{ supabaseUrl, supabaseAnonKey }` form still works (emits a one-time `console.warn`) but can miss the session when the app uses `@supabase/ssr` or a custom `auth.storageKey`.
+
 The `sync-customer`, `create-checkout-session`, `create-customer-session`, and `solvapay-webhook` functions are server-side only and not wired through the React provider.
 
 ## Validation
@@ -149,7 +167,7 @@ The `sync-customer`, `create-checkout-session`, `create-customer-session`, and `
 
 - **Deno npm resolution fails**: ensure `deno.json` is at `supabase/functions/deno.json` (not inside a function subdirectory).
 - **CORS preflight blocked**: `configureCors()` must be called before the handler. Check that `OPTIONS` requests return 204.
-- **401 on all requests**: auth token not being forwarded. Supabase Edge Functions receive the `Authorization` header automatically for authenticated requests.
+- **401 on all requests**: upgrade `@solvapay/server` / `@solvapay/supabase` to at least the version documented in `Setup` -- earlier versions required a Next.js-style `x-user-id` header that Edge Functions never set. The current SDK reads the Bearer JWT directly. Optionally set `SUPABASE_JWT_SECRET` (and `SOLVAPAY_AUTH_STRICT=true`) for strict-mode verification inside the function.
 - **Webhook signature failures**: verify `SOLVAPAY_WEBHOOK_SECRET` is set correctly via `supabase secrets list`.
 - **Missing env var**: `SOLVAPAY_SECRET_KEY` must be set via `supabase secrets set`, not in a `.env` file.
 

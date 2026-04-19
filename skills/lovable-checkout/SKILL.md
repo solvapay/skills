@@ -171,16 +171,13 @@ Router):
 ```tsx
 import { SolvaPayProvider } from '@solvapay/react'
 import { createSupabaseAuthAdapter } from '@solvapay/react-supabase'
+import { supabase } from '@/integrations/supabase/client' // the singleton Lovable scaffolds
 import '@solvapay/react/styles.css'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 const FN = (name: string) => `${SUPABASE_URL}/functions/v1/${name}`
 
-const adapter = createSupabaseAuthAdapter({
-  supabaseUrl: SUPABASE_URL,
-  supabaseAnonKey: SUPABASE_ANON_KEY,
-})
+const adapter = createSupabaseAuthAdapter({ client: supabase })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <SolvaPayProvider
@@ -199,6 +196,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 ```
 
+Pass the **existing** Supabase client (the one Lovable created in
+`src/integrations/supabase/client.ts`, or wherever your app calls
+`createClient`). Spawning a second client via the URL/key form works in most
+setups but silently drops the session when the app uses `@supabase/ssr`, a
+custom `auth.storageKey`, `persistSession: false`, or iframe-isolated
+storage — the second `GoTrue` instance then has no session to read.
+
 Two things that break silently if you skip them:
 
 - All four `config.api.*` entries must be **absolute** URLs. Relative paths
@@ -207,6 +211,24 @@ Two things that break silently if you skip them:
   (typically `import './index.css'` that contains `@tailwind utilities`). If
   Tailwind loads last, its preflight will flatten primitive buttons and
   inputs. Swap the order and the issue disappears.
+
+<details>
+<summary>Legacy: URL/key form (deprecated)</summary>
+
+If the app genuinely has no Supabase client to reuse, the adapter can still
+create its own:
+
+```tsx
+const adapter = createSupabaseAuthAdapter({
+  supabaseUrl: import.meta.env.VITE_SUPABASE_URL as string,
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY as string,
+})
+```
+
+This logs a one-time `console.warn`. Prefer the `{ client }` form in any new
+project — it removes the "Multiple GoTrueClient" class of bugs entirely.
+
+</details>
 
 ## Step 5 — The `/checkout` route
 
