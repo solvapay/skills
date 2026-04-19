@@ -21,7 +21,10 @@ Detect stack from `package.json`:
 - `react` present and `next` absent -> follow [react/guide.md](react/guide.md) plus backend contract
 - `express` present -> follow [express/guide.md](express/guide.md)
 - `@modelcontextprotocol/*` present -> follow [mcp-server/guide.md](mcp-server/guide.md)
+- `supabase/functions/` directory exists OR `@supabase/supabase-js` present without `next`/`express` -> follow [supabase-edge/guide.md](supabase-edge/guide.md)
+- Deno project without Node framework -> follow [supabase-edge/guide.md](supabase-edge/guide.md)
 - If multiple match, ask which runtime is primary for paid operations.
+- If React + Supabase but unsure about backend: "Does the project already have a Next.js backend, or is the backend entirely on Supabase Edge Functions?"
 
 ## When To Ask Clarifying Questions
 
@@ -110,6 +113,7 @@ Ask one question if any of these are missing:
 - **React**: [react/guide.md](react/guide.md)
 - **Express**: [express/guide.md](express/guide.md)
 - **MCP Server**: [mcp-server/guide.md](mcp-server/guide.md)
+- **Supabase Edge Functions**: [supabase-edge/guide.md](supabase-edge/guide.md)
 
 ## Shared References
 

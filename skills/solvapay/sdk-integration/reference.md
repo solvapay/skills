@@ -23,8 +23,9 @@ Use this file for TypeScript SDK operation patterns and minimal payload shapes.
 
 ## Package Map
 
-- `@solvapay/server`: server SDK, paywall handlers, webhook verification
+- `@solvapay/server`: server SDK, paywall handlers, webhook verification, core helpers (`*Core` functions)
 - `@solvapay/next`: Next.js helpers for checkout/customer/access/renewal/activation routes
+- `@solvapay/supabase`: Supabase Edge Function adapter (one-liner handlers for all operations + `solvapayWebhook` factory)
 - `@solvapay/react`: UI provider/hooks for purchase and plan state
 - `@solvapay/react-supabase`: Supabase auth adapter for `@solvapay/react`
 - `@solvapay/auth`: auth utilities and adapters
@@ -223,6 +224,7 @@ Use when customer wants to stop auto-renewal. Access continues until period end.
 
 `@solvapay/next` helper: `cancelRenewal(request, { purchaseRef, reason? })`
 `@solvapay/server` core: `cancelPurchaseCore(request, { purchaseRef, reason? })`
+`@solvapay/supabase` handler: `cancelRenewal` (one-liner Edge Function)
 
 API endpoint: `POST /v1/sdk/purchases/{purchaseRef}/cancel`
 
@@ -241,6 +243,7 @@ Use when customer wants to undo a pending cancellation. Only works while purchas
 
 `@solvapay/next` helper: `reactivateRenewal(request, { purchaseRef })`
 `@solvapay/server` core: `reactivatePurchaseCore(request, { purchaseRef })`
+`@solvapay/supabase` handler: `reactivateRenewal` (one-liner Edge Function)
 
 API endpoint: `POST /v1/sdk/purchases/{purchaseRef}/reactivate`
 
@@ -261,6 +264,7 @@ Use to activate a product for a customer on a specific plan without checkout. Ha
 
 `@solvapay/next` helper: `activatePlan(request, { productRef, planRef })`
 `@solvapay/server` core: `activatePlanCore(request, { productRef, planRef })`
+`@solvapay/supabase` handler: `activatePlan` (one-liner Edge Function)
 
 API endpoint: `POST /v1/sdk/activate`
 
@@ -310,6 +314,19 @@ Manual fallback (when CLI setup cannot run):
 
 ```bash
 npm install @solvapay/server @solvapay/next @solvapay/react @solvapay/auth @solvapay/react-supabase @supabase/supabase-js
+```
+
+Supabase Edge Functions (Deno) -- no npm install needed, use `deno.json` import map:
+
+```json
+{
+  "imports": {
+    "@solvapay/supabase": "npm:@solvapay/supabase",
+    "@solvapay/server": "npm:@solvapay/server",
+    "@solvapay/auth": "npm:@solvapay/auth",
+    "@solvapay/core": "npm:@solvapay/core"
+  }
+}
 ```
 
 ## Required Environment Variables (Typical)
