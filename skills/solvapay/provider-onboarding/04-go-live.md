@@ -10,19 +10,27 @@ Switch account mode only after sandbox checks pass.
 ## Required Preconditions
 
 - At least one product exists with a plan configured in product setup
-- Stripe setup is complete from dashboard (existing account connected or new account created)
 - Sandbox integration tests are complete
+- Email is verified, business details are complete, and two-factor
+  authentication is enabled on the owner account
 
 ## Actions
 
-1. Switch account mode from sandbox to live in SolvaPay Console header.
-2. Replace sandbox credentials with live credentials where applicable.
-3. Run one controlled live checkout test.
-4. Monitor first real transactions and webhook deliveries.
+1. Open Go-Live flow from the dashboard card or the environment toggle.
+2. Walk through the Go-Live checklist (email verified, product created,
+   business details, two-factor authentication).
+3. Connect Stripe for live payments: choose "Connect existing account" (OAuth) or "Create new account."
+4. Choose whether to copy sandbox products to the live environment.
+5. Confirm and switch to live mode.
+6. Replace sandbox credentials with live credentials where applicable.
+7. Run one controlled live checkout test.
+8. Monitor first real transactions and webhook deliveries.
 
 ## Acceptance Criteria
 
 - [ ] Live mode is active
+- [ ] Two-factor authentication is enabled on the owner account
+- [ ] Stripe account is connected for live payments
 - [ ] Real payment succeeds for a test user
 - [ ] Webhooks are received and verified
 - [ ] SolvaPay Console shows expected live usage/revenue events
