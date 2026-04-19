@@ -49,11 +49,26 @@ every extra function is one more deploy target.
 | `create-topup-payment-intent` | `createTopupPaymentIntent` | Top-up flow |
 | `solvapay-webhook` | `solvapayWebhook` | Receiving SolvaPay webhooks server-side |
 
-Each follows the same one-liner shape:
+All handlers except `solvapayWebhook` follow the same one-liner shape:
 
 ```ts
 import { activatePlan } from '@solvapay/supabase'
 Deno.serve(activatePlan)
+```
+
+`solvapayWebhook` is a factory — call it with the signing secret:
+
+```ts
+import { solvapayWebhook } from '@solvapay/supabase'
+
+Deno.serve(
+  solvapayWebhook({
+    secret: Deno.env.get('SOLVAPAY_WEBHOOK_SECRET')!,
+    onEvent: async event => {
+      // handle purchase.created / updated / expired / cancelled etc.
+    },
+  }),
+)
 ```
 
 The full list lives in

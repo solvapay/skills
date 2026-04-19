@@ -76,8 +76,9 @@ No custom Node server. Each SolvaPay API route is a one-line Deno handler from
 ## Prerequisites
 
 - SolvaPay dev console access with a sandbox product and at least one plan.
-- A sandbox secret key: `sp_sandbox_...`.
+- A sandbox secret key: `sk_sandbox_...`.
 - The product ref: `prd_...`.
+- The product **name** exactly as it appears in the SolvaPay Console (needed by `PurchaseGate` — see Step 6).
 - Supabase CLI installed locally (`npm install -g supabase`) **or** willingness
   to create functions through the Supabase dashboard.
 - A Supabase project already wired into the Lovable app (Lovable scaffolds this
@@ -150,11 +151,13 @@ Finally, create `supabase/functions/deno.json` with the preview import map:
 ## Step 3 — Set Supabase secrets and deploy
 
 ```bash
-supabase secrets set SOLVAPAY_SECRET_KEY=sp_sandbox_...
+supabase secrets set SOLVAPAY_SECRET_KEY=sk_sandbox_...
 supabase secrets set SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com
-supabase secrets set SOLVAPAY_PRODUCT_REF=prd_...
 supabase functions deploy
 ```
+
+The product ref is sent by the browser (via `VITE_SOLVAPAY_PRODUCT_REF` → query
+string), not read from a Supabase secret — the edge functions don't need it.
 
 Redeploy after changing any secret — secrets are baked into the function
 runtime at deploy time.
@@ -250,9 +253,11 @@ route that requires a paid plan:
 import { PurchaseGate } from '@solvapay/react'
 import { Navigate } from 'react-router-dom'
 
+const PRODUCT_NAME = 'Widget API' // exact name from SolvaPay Console
+
 export function DashboardPage() {
   return (
-    <PurchaseGate.Root productRef={import.meta.env.VITE_SOLVAPAY_PRODUCT_REF as string}>
+    <PurchaseGate.Root requireProduct={PRODUCT_NAME}>
       <PurchaseGate.Loading>
         <div>Loading…</div>
       </PurchaseGate.Loading>
@@ -270,11 +275,16 @@ export function DashboardPage() {
 Each slot is a `div` by default; pass `asChild` to forward props onto the
 immediate child (so `<Navigate />` mounts at the right point in the tree
 without a wrapping element). `PurchaseGate.Root` hits `/check-purchase` via
-the provider, matches against `productRef` (or `planRef`, or both), and
-renders whichever branch matches the current status. Swap `productRef` for
-`planRef="pln_..."` when gating on a specific plan. For ad-hoc checks
-outside the gate, read `hasPurchase({ productRef, planRef })` from
-`usePurchase()`.
+the provider and renders `Allowed` when the customer has an active purchase
+whose `productName` matches `requireProduct` case-insensitively. Omit
+`requireProduct` to allow access as long as the customer has **any** active
+purchase. For ad-hoc checks outside the gate, call `hasProduct(name)` from
+`usePurchase()`:
+
+```tsx
+const { hasProduct, hasPaidPurchase } = usePurchase()
+if (hasProduct(PRODUCT_NAME)) { /* ... */ }
+```
 
 ## shadcn/ui composition (optional)
 
@@ -321,9 +331,8 @@ enough; the layout component is the happy path.
 | `VITE_SUPABASE_URL` | `.env` (client) | Already set by Lovable. |
 | `VITE_SUPABASE_ANON_KEY` | `.env` (client) | Already set by Lovable. |
 | `VITE_SOLVAPAY_PRODUCT_REF` | `.env` (client) | `prd_...` — safe to expose. |
-| `SOLVAPAY_SECRET_KEY` | Supabase secret | **Never** in `.env` or client code. |
+| `SOLVAPAY_SECRET_KEY` | Supabase secret | `sk_sandbox_...` (or `sk_live_...`). **Never** in `.env` or client code. |
 | `SOLVAPAY_API_BASE_URL` | Supabase secret | `https://api-dev.solvapay.com` during preview. |
-| `SOLVAPAY_PRODUCT_REF` | Supabase secret | Same `prd_...` — also needed server-side. |
 
 ## Sandbox verification
 
@@ -342,7 +351,8 @@ enough; the layout component is the happy path.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `CheckoutLayout` missing from `@solvapay/react` exports | Pinned to an old exact preview version | Replace the version with `"preview"` in `package.json`, `npm install` again |
-| `/list-plans` returns `[]` | `SOLVAPAY_PRODUCT_REF` secret missing | `supabase secrets set SOLVAPAY_PRODUCT_REF=prd_...` and `supabase functions deploy` |
+| `/list-plans` returns `[]` | `VITE_SOLVAPAY_PRODUCT_REF` points at the wrong product, or no active plans exist on that product | Verify the ref matches a product in the current sandbox and that it has at least one plan |
+| `PurchaseGate` always renders `Blocked` after a successful checkout | `requireProduct` doesn't match the product's display name exactly (case-insensitive match, but whitespace matters) | Copy the product **name** from SolvaPay Console and pass it verbatim |
 | 402 with no checkout URL | Hitting prod with sandbox key | Set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` as a Supabase secret, redeploy |
 | CORS / 500 from `/functions/v1/*` | Secrets changed but functions not redeployed | Rerun `supabase functions deploy` (CORS is permissive by default in the wrappers) |
 | Primitive buttons and inputs look unstyled, padding flattened | Tailwind entry imported after `@solvapay/react/styles.css` | Move `import '@solvapay/react/styles.css'` to come **after** `import './index.css'` |
@@ -359,6 +369,6 @@ When `1.0.8` (or the next stable minor) promotes to `@latest`:
    `"npm:@solvapay/supabase"`, etc.
 3. Rotate the Supabase secret `SOLVAPAY_API_BASE_URL` to
    `https://api.solvapay.com`.
-4. Rotate `SOLVAPAY_SECRET_KEY` to a `sp_live_...` prod key.
+4. Rotate `SOLVAPAY_SECRET_KEY` to a `sk_live_...` prod key.
 5. Retire this skill in favour of `solvapay/sdk-integration/react/guide.md`
    once the Supabase Edge content lands on the stable skill.
