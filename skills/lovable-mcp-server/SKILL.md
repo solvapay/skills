@@ -441,7 +441,30 @@ Append the final block to `index.ts`:
 ```ts
 const httpHandler = new StreamableHttpTransport().bind(mcp)
 
-app.all('/mcp', async c => {
+// Swallow OIDC discovery probes. Cursor tries OIDC before RFC 8414; without this
+// explicit 404, Supabase Edge's catch-all can return a non-OIDC-compliant JSON
+// blob that fails Cursor's Zod validator. We return 404 (rather than a full OIDC
+// doc) because SolvaPay is an OAuth 2.0 authorization server, not an OpenID
+// Provider — we don't issue id_tokens or expose a JWKS endpoint, and claiming
+// we do would break strict OIDC clients later in the flow.
+app.get(
+  '/.well-known/openid-configuration',
+  () => new Response(null, { status: 404 }),
+)
+
+// GET /mcp is Cursor's Streamable HTTP back-channel probe. mcp-lite is stateless
+// and can't serve it; returning 400 lands Cursor's FSM in `failed` with
+// "Failed to open SSE stream: Bad Request". 405 with `Allow` keeps Cursor connected.
+app.get(
+  '/mcp',
+  () =>
+    new Response(null, {
+      status: 405,
+      headers: { Allow: 'POST, OPTIONS' },
+    }),
+)
+
+app.post('/mcp', async c => {
   const authHeader = c.req.header('Authorization')
   if (!authHeader?.startsWith('Bearer ')) {
     return new Response(null, {
@@ -493,6 +516,10 @@ supabase functions deploy mcp
    native-scheme preflight is mirrored.
 6. `curl -X POST https://<project>.supabase.co/functions/v1/mcp/mcp`
    returns 401 with `WWW-Authenticate: Bearer resource_metadata=...`.
+6b. `curl -i https://<project>.supabase.co/functions/v1/mcp/mcp`
+    returns 405 with `Allow: POST, OPTIONS` — no SSE back-channel is offered.
+6c. `curl -i https://<project>.supabase.co/functions/v1/mcp/.well-known/openid-configuration`
+    returns 404 — OIDC Discovery is explicitly declined so clients fall back to RFC 8414.
 7. Run the MCP Inspector:
    `npx @modelcontextprotocol/inspector https://<project>.supabase.co/functions/v1/mcp/mcp`.
    DCR registers the inspector; browser redirects to SolvaPay dev login.
@@ -524,6 +551,8 @@ supabase functions deploy mcp
 | `anonymous` recorded as the customer on every call | Userinfo returning 401 — token stale or bearer passed verbatim without `Bearer ` prefix | Confirm MCP client negotiated a fresh token; `authHeader.startsWith('Bearer ')` check must pass |
 | Deno resolves wrong versions on deploy | Missing or stale `supabase/functions/mcp/deno.json` | Recreate per Step 1, `supabase functions deploy mcp` |
 | Virtual tool names clash with business tool names | Registered a business tool called `upgrade` | Rename your tool or exclude the virtual one via `getVirtualTools({ ..., exclude: ['upgrade'] })` |
+| Cursor auth succeeds but FSM lands in `failed` with "Failed to open SSE stream: Bad Request" | mcp-lite's transport returns 400 on `GET /mcp`; Cursor's Streamable HTTP back-channel probe trips `transport_error` | Add the explicit `app.get('/mcp', ...)` 405 branch from Step 9 |
+| Cursor logs Zod validation error on `jwks_uri` / `subject_types_supported` at first connect | Supabase Edge catch-all returned OAuth metadata for `/.well-known/openid-configuration`; Cursor's OIDC validator rejects it | Add `app.get('/.well-known/openid-configuration', ...)` returning 404 from Step 9 |
 
 ## Handoff — going stable
 
