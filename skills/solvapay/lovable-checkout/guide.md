@@ -1,16 +1,3 @@
----
-name: lovable-checkout
-description: >
-  Add a SolvaPay hosted checkout to a Lovable project (Vite + React + TypeScript
-  + shadcn/ui + Supabase) using the preview SDK (`@solvapay/react@preview`) and
-  Supabase Edge Functions as the backend. Use this skill when the user mentions
-  "Lovable", "Vite checkout", "shadcn checkout", "Supabase Edge checkout",
-  "SolvaPay in Lovable", "paste this into Lovable", or "SolvaPay preview Lovable".
-  Paste this entire file into the Lovable chat to bias the agent toward a working
-  integration on the first turn. Preview-only against `api-dev.solvapay.com`;
-  retires once `1.0.8` stable ships.
----
-
 # Lovable Checkout (preview)
 
 Self-contained guide for wiring SolvaPay hosted checkout into a Lovable-generated
@@ -19,7 +6,10 @@ shadcn/ui, Supabase. The backend is Supabase Edge Functions — there is no Node
 server to add. Pinned to the floating `@preview` tag and the dev backend
 (`https://api-dev.solvapay.com`). Not for production.
 
-## When to use this skill
+This guide is also designed to be pasted whole into the Lovable chat to bias its
+agent toward a working integration on turn zero.
+
+## When to use this guide
 
 Use when all three are true:
 
@@ -29,9 +19,10 @@ Use when all three are true:
 - OK running against SolvaPay sandbox and `api-dev.solvapay.com` during the
   preview window.
 
-For a Next.js App Router checkout, use the `solvapay` skill with
-`sdk-integration/react/guide.md`. For an MCP App UI (iframe inside Claude Desktop
-or ChatGPT), use `mcp-app-checkout` instead — the auth/iframe wiring is different.
+For a Next.js App Router checkout, see
+[`../sdk-integration/react/guide.md`](../sdk-integration/react/guide.md). For an
+MCP App UI (iframe inside Claude Desktop or ChatGPT), use `mcp-app-checkout`
+instead — the auth/iframe wiring is different.
 
 ## Guardrails
 
@@ -45,7 +36,7 @@ Explicit Never / Always for the Lovable agent to internalise before writing code
 - **Always** install with the `@preview` tag:
   `@solvapay/react@preview`, `@solvapay/react-supabase@preview`. Never pin an
   exact preview version — the floating tag tracks the current build and is
-  what every snippet in this skill targets.
+  what every snippet in this guide targets.
 - **Always** set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` as a
   Supabase secret. Production rejects sandbox keys.
 - **Always** use `createSupabaseAuthAdapter` from `@solvapay/react-supabase`.
@@ -378,7 +369,7 @@ enough; the layout component is the happy path.
 | 402 with no checkout URL | Hitting prod with sandbox key | Set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` as a Supabase secret, redeploy |
 | CORS / 500 from `/functions/v1/*` | Secrets changed but functions not redeployed | Rerun `supabase functions deploy` (CORS is permissive by default in the wrappers) |
 | Primitive buttons and inputs look unstyled, padding flattened | Tailwind entry imported after `@solvapay/react/styles.css` | Move `import '@solvapay/react/styles.css'` to come **after** `import './index.css'` |
-| `useApp is not exported` / `@modelcontextprotocol/ext-apps` errors | Wrong skill — that's the MCP App one | Use `mcp-app-checkout` for MCP App UIs; this skill is web-only |
+| `useApp is not exported` / `@modelcontextprotocol/ext-apps` errors | Wrong guide — that's the MCP App one | Use `mcp-app-checkout` for MCP App UIs; this guide is web-only |
 | Deno resolves wrong versions on deploy | Missing or stale `supabase/functions/deno.json` import map | Recreate `deno.json` per Step 2, redeploy |
 
 ## Handoff — going stable
@@ -392,5 +383,6 @@ When `1.0.8` (or the next stable minor) promotes to `@latest`:
 3. Rotate the Supabase secret `SOLVAPAY_API_BASE_URL` to
    `https://api.solvapay.com`.
 4. Rotate `SOLVAPAY_SECRET_KEY` to a `sk_live_...` prod key.
-5. Retire this skill in favour of `solvapay/sdk-integration/react/guide.md`
-   once the Supabase Edge content lands on the stable skill.
+5. Retire this guide in favour of
+   [`../sdk-integration/react/guide.md`](../sdk-integration/react/guide.md)
+   once the Supabase Edge content lands on the stable guide.

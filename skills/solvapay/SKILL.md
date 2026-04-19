@@ -4,10 +4,11 @@ description: >
   Integrate SolvaPay into any project -- TypeScript SDK integration for Next.js, React,
   Express, and MCP Server implementations, including CLI-guided setup with
   `npx solvapay init`; MCP Pay no-code hosted MCP monetization;
-  provider account onboarding; and hosted web checkout flows. Use this
+  provider account onboarding; hosted web checkout flows; and a paste-in
+  Lovable (Vite + shadcn/ui + Supabase Edge) checkout guide. Use this
   skill whenever the user mentions SolvaPay, payments, billing, monetization, pricing,
   paywalls, checkout, purchases, products, plans, customer portal, usage tracking,
-  webhooks, or any payment-related setup, even if they don't explicitly say 'SolvaPay'.
+  webhooks, Lovable, or any payment-related setup, even if they don't explicitly say 'SolvaPay'.
 ---
 
 # SolvaPay
@@ -22,6 +23,7 @@ Route user intent to the right domain guide and provide shared context.
    - [sdk-integration/guide.md](sdk-integration/guide.md) -- TypeScript SDK paywall, checkout, usage, webhooks
    - [mcp-pay/guide.md](mcp-pay/guide.md) -- no-code hosted MCP monetization with bootstrap and plan configuration
    - [website-checkout/guide.md](website-checkout/guide.md) -- hosted checkout and customer portal for web apps
+   - [lovable-checkout/guide.md](lovable-checkout/guide.md) -- preview-only paste-in guide for Lovable apps (Vite + shadcn/ui + Supabase Edge Functions)
    - [provider-onboarding/guide.md](provider-onboarding/guide.md) -- SolvaPay Console onboarding: account + onboarding form, first product with plans, sandbox testing, then go-live with Stripe connection
 4. Follow the domain guide to completion.
 
@@ -49,6 +51,7 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 | SDK integration | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "express", "MCP Server code integration", "nextjs sdk", "npx solvapay init", "cli", "init project", "scaffold", "cancel renewal", "reactivate", "activate plan", "switch plan", "supabase edge functions", "deno", "edge runtime backend", "lovable backend" | [sdk-integration/guide.md](sdk-integration/guide.md) |
 | MCP Pay setup | "bootstrap mcp", "hosted mcp", "mcp pay", "monetize mcp server no-code", "mcp product bootstrap" | [mcp-pay/guide.md](mcp-pay/guide.md) |
 | Web app checkout | "add checkout to website", "hosted checkout", "customer portal", "nextjs checkout" | [website-checkout/guide.md](website-checkout/guide.md) |
+| Lovable checkout (preview) | "lovable", "vite checkout", "shadcn checkout", "supabase edge checkout", "solvapay in lovable", "paste this into lovable", "@preview" | [lovable-checkout/guide.md](lovable-checkout/guide.md) |
 | Provider onboarding | "create account", "create product", "create plan", "sandbox test", "go live", "provider setup" | [provider-onboarding/guide.md](provider-onboarding/guide.md) |
 
 ## Negative Routing Examples

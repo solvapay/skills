@@ -1,8 +1,8 @@
 # Lovable Checkout — Reference
 
-Secondary file for developers browsing the skill on GitHub. The primary
-delivery channel is pasting [SKILL.md](SKILL.md) into the Lovable chat; this
-reference covers the bits that would bloat `SKILL.md` without helping a
+Secondary file for developers browsing this guide on GitHub. The primary
+delivery channel is pasting [guide.md](guide.md) into the Lovable chat; this
+reference covers the bits that would bloat `guide.md` without helping a
 paste-in agent turn zero.
 
 ## Canonical reference project
@@ -10,7 +10,7 @@ paste-in agent turn zero.
 [`solvapay-sdk/examples/spa-checkout`](https://github.com/solvapay/solvapay-sdk/tree/main/examples/spa-checkout)
 is this exact stack (Vite + React + TypeScript + Tailwind v3 + shadcn/ui +
 Supabase + React Router) wired end-to-end against the preview SDK. Every
-snippet in `SKILL.md` is lifted from there.
+snippet in `guide.md` is lifted from there.
 
 The only difference from a Lovable app is dependency resolution: the example
 uses `workspace:*` so it tracks the local SDK build. In a Lovable project,
@@ -31,7 +31,7 @@ your Lovable project doesn't, the diff is almost always in Step 4
 
 ## Extended edge function catalogue
 
-`SKILL.md` lists the four edge functions required by `CheckoutLayout` and
+`guide.md` lists the four edge functions required by `CheckoutLayout` and
 `PurchaseGate`. `@solvapay/supabase` exports additional handlers for flows
 beyond the happy path. Only add these when the corresponding UI needs them —
 every extra function is one more deploy target.
