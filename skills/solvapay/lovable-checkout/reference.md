@@ -32,7 +32,7 @@ your Lovable project doesn't, the diff is almost always in Step 4
 ## Extended edge function catalogue
 
 `guide.md` lists the four edge functions required by `CheckoutLayout` and
-`PurchaseGate`. `@solvapay/supabase` exports additional handlers for flows
+`PurchaseGate`. `@solvapay/server/fetch` exports additional handlers for flows
 beyond the happy path. Only add these when the corresponding UI needs them —
 every extra function is one more deploy target.
 
@@ -47,19 +47,22 @@ every extra function is one more deploy target.
 | `reactivate-renewal` | `reactivateRenewal` | Account / billing management UI |
 | `customer-balance` | `customerBalance` | Top-up / balance display |
 | `create-topup-payment-intent` | `createTopupPaymentIntent` | Top-up flow |
+| `get-merchant` | `getMerchant` | Branding (logo, icon, terms, privacy) in checkout and account UI |
+| `get-payment-method` | `getPaymentMethod` | `CurrentPlanCard`, `usePaymentMethod` hook |
+| `get-product` | `getProduct` | Product details + public plans |
 | `solvapay-webhook` | `solvapayWebhook` | Receiving SolvaPay webhooks server-side |
 
 All handlers except `solvapayWebhook` follow the same one-liner shape:
 
 ```ts
-import { activatePlan } from '@solvapay/supabase'
+import { activatePlan } from '@solvapay/server/fetch'
 Deno.serve(activatePlan)
 ```
 
 `solvapayWebhook` is a factory — call it with the signing secret:
 
 ```ts
-import { solvapayWebhook } from '@solvapay/supabase'
+import { solvapayWebhook } from '@solvapay/server/fetch'
 
 Deno.serve(
   solvapayWebhook({

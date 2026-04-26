@@ -1,6 +1,6 @@
 # Supabase Edge Functions Guide
 
-Use `@solvapay/supabase` to deploy SolvaPay endpoints as Supabase Edge Functions with one-liner handlers.
+Use `@solvapay/server/fetch` to deploy SolvaPay endpoints as Supabase Edge Functions with one-liner handlers. This subpath replaces the older standalone `@solvapay/supabase` / `@solvapay/fetch` packages — same handlers, same signatures, now co-located with the `*Core` helpers they wrap.
 
 ## When To Use
 
@@ -20,7 +20,7 @@ If the project already has a Next.js backend, prefer [nextjs/guide.md](../nextjs
 
 ## Docs References (Topic-Based)
 
-- Topics: `supabase edge functions`, `@solvapay/supabase`, `edge runtime`.
+- Topics: `supabase edge functions`, `@solvapay/server/fetch`, `edge runtime`.
 - Retrieval hint: resolve guide topic first; pull API operation topics only when needed.
 
 ## Setup
@@ -37,20 +37,22 @@ supabase secrets set SOLVAPAY_WEBHOOK_SECRET=whsec_...
 ```json
 {
   "imports": {
-    "@solvapay/supabase": "npm:@solvapay/supabase",
     "@solvapay/server": "npm:@solvapay/server",
+    "@solvapay/server/": "npm:/@solvapay/server/",
     "@solvapay/auth": "npm:@solvapay/auth",
     "@solvapay/core": "npm:@solvapay/core"
   }
 }
 ```
 
+The `"@solvapay/server/"` trailing-slash entry is required for Deno to resolve the `/fetch` subpath.
+
 ## Handler Pattern
 
 Every handler is two lines:
 
 ```typescript
-import { checkPurchase } from '@solvapay/supabase'
+import { checkPurchase } from '@solvapay/server/fetch'
 Deno.serve(checkPurchase)
 ```
 
@@ -66,42 +68,48 @@ Deno.serve(checkPurchase)
 | `customer-balance` | GET | `customerBalance` | Get customer credit balance |
 | `cancel-renewal` | POST | `cancelRenewal` | Cancel subscription renewal |
 | `reactivate-renewal` | POST | `reactivateRenewal` | Reactivate cancelled subscription |
-| `activate-plan` | POST | `activatePlan` | Activate a free/usage plan |
+| `activate-plan` | POST | `activatePlan` | Activate a free / usage-based / recurring plan |
 | `list-plans` | GET | `listPlans` | List available plans |
 | `track-usage` | POST | `trackUsage` | Track usage for metered billing |
 | `create-checkout-session` | POST | `createCheckoutSession` | Create hosted checkout session |
 | `create-customer-session` | POST | `createCustomerSession` | Create customer portal session |
+| `get-merchant` | GET | `getMerchant` | Fetch merchant branding (`name`, `iconUrl`, `logoUrl`, `termsUrl`, `privacyUrl`) |
+| `get-payment-method` | GET | `getPaymentMethod` | Mirrored card brand + last4 for a customer |
+| `get-product` | GET | `getProduct` | Product + public plans |
+
+All handlers are `(req: Request) => Promise<Response>` and run on any web-standards runtime (Supabase Edge, Deno, Cloudflare Workers, Bun, Next.js Edge).
 
 ## Webhook Handling
 
 Webhooks use a factory pattern instead of a direct handler:
 
 ```typescript
-import { solvapayWebhook } from '@solvapay/supabase'
+import type { WebhookEvent } from '@solvapay/server'
+import { solvapayWebhook } from '@solvapay/server/fetch'
 
 Deno.serve(solvapayWebhook({
-  onEvent: async event => {
+  onEvent: async (event: WebhookEvent) => {
     switch (event.type) {
       case 'purchase.created':
       case 'purchase.updated':
       case 'purchase.cancelled':
       case 'purchase.expired':
-      case 'payment.succeeded':
-      case 'payment.failed':
+      case 'payment_intent.succeeded':
+      case 'payment_intent.failed':
         break
     }
   },
 }))
 ```
 
-The factory handles HMAC signature verification automatically using `SOLVAPAY_WEBHOOK_SECRET` from the environment.
+The factory handles HMAC signature verification automatically using `SOLVAPAY_WEBHOOK_SECRET` from the environment. On `payment_intent.succeeded`, SolvaPay mirrors the card brand + last4 onto the Customer — the `get-payment-method` handler reads that mirror with no Stripe round-trip.
 
 ## CORS Configuration
 
 Default: `*` (permissive). For production, restrict origins:
 
 ```typescript
-import { checkPurchase, configureCors } from '@solvapay/supabase'
+import { checkPurchase, configureCors } from '@solvapay/server/fetch'
 
 configureCors({
   origins: ['https://myapp.com', 'http://localhost:5173'],
@@ -114,7 +122,7 @@ Call `configureCors()` before any handler runs.
 
 ## Authentication Model
 
-Every handler extracts the authenticated user from the `Authorization: Bearer <jwt>` header that the Supabase platform gateway forwards. Edge Functions run with `verify_jwt = true` by default, so the token is cryptographically validated at the gateway before the handler runs -- inside the handler, the SDK decodes the payload to read `sub`, `email`, and `user_metadata.full_name` (used by `syncCustomer`).
+Every handler extracts the authenticated user from the `Authorization: Bearer <jwt>` header that the Supabase platform gateway forwards. Edge Functions run with `verify_jwt = true` by default, so the token is cryptographically validated at the gateway before the handler runs — inside the handler, the SDK decodes the payload to read `sub`, `email`, and `user_metadata.full_name` (used by `syncCustomer`).
 
 Opt into strict mode (verify the token inside the function as well) by setting:
 
@@ -147,6 +155,9 @@ const SUPABASE_URL = 'https://<project-ref>.supabase.co/functions/v1'
       customerBalance: `${SUPABASE_URL}/customer-balance`,
       cancelRenewal: `${SUPABASE_URL}/cancel-renewal`,
       reactivateRenewal: `${SUPABASE_URL}/reactivate-renewal`,
+      getMerchant: `${SUPABASE_URL}/get-merchant`,
+      getPaymentMethod: `${SUPABASE_URL}/get-payment-method`,
+      getProduct: `${SUPABASE_URL}/get-product`,
     },
   }}
 >
@@ -165,9 +176,10 @@ The `sync-customer`, `create-checkout-session`, `create-customer-session`, and `
 
 ## Troubleshooting
 
-- **Deno npm resolution fails**: ensure `deno.json` is at `supabase/functions/deno.json` (not inside a function subdirectory).
+- **Deno npm resolution fails**: ensure `deno.json` is at `supabase/functions/deno.json` (not inside a function subdirectory) and that the trailing-slash `"@solvapay/server/"` entry is present.
+- **Subpath import fails (`Cannot find module '@solvapay/server/fetch'`)**: the `"@solvapay/server/": "npm:/@solvapay/server/"` import-map entry must be present — Deno needs the trailing-slash form to resolve subpath exports.
 - **CORS preflight blocked**: `configureCors()` must be called before the handler. Check that `OPTIONS` requests return 204.
-- **401 on all requests**: upgrade `@solvapay/server` / `@solvapay/supabase` to at least the version documented in `Setup` -- earlier versions required a Next.js-style `x-user-id` header that Edge Functions never set. The current SDK reads the Bearer JWT directly. Optionally set `SUPABASE_JWT_SECRET` (and `SOLVAPAY_AUTH_STRICT=true`) for strict-mode verification inside the function.
+- **401 on all requests**: upgrade `@solvapay/server` to at least the version documented in `Setup` — earlier versions required a Next.js-style `x-user-id` header that Edge Functions never set. The current SDK reads the Bearer JWT directly. Optionally set `SUPABASE_JWT_SECRET` (and `SOLVAPAY_AUTH_STRICT=true`) for strict-mode verification inside the function.
 - **Webhook signature failures**: verify `SOLVAPAY_WEBHOOK_SECRET` is set correctly via `supabase secrets list`.
 - **Missing env var**: `SOLVAPAY_SECRET_KEY` must be set via `supabase secrets set`, not in a `.env` file.
 
@@ -182,7 +194,7 @@ The `sync-customer`, `create-checkout-session`, `create-customer-session`, and `
 When this domain completes, provide:
 
 - Supabase project ref and function URLs
-- Which of the 13 handlers + webhook are deployed
+- Which of the 16 handlers + webhook are deployed
 - Frontend `SolvaPayProvider` config with custom API routes
 - Verified test outcomes (happy path and failure path)
 

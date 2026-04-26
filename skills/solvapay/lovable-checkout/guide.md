@@ -58,11 +58,12 @@ flowchart LR
 
   browser --> provider
   provider -->|absolute URL| fn
-  fn -->|@solvapay/supabase| api
+  fn -->|@solvapay/server/fetch| api
 ```
 
 No custom Node server. Each SolvaPay API route is a one-line Deno handler from
-`@solvapay/supabase` that re-exports the matching `@solvapay/server` route.
+the `@solvapay/server/fetch` subpath export — the same one you'd use on
+Cloudflare Workers, Bun, or Vercel Edge Functions.
 
 ## Prerequisites
 
@@ -88,8 +89,8 @@ the next build tracks the current preview tag.
 
 ## Step 2 — Create the Supabase edge functions
 
-SolvaPay ships `@solvapay/supabase`, a tiny wrapper that exports ready-to-serve
-Deno handlers. Each function is a single line.
+SolvaPay ships ready-to-serve Deno handlers at the `@solvapay/server/fetch`
+subpath. Each function is a single line.
 
 Run once per function from the project root:
 
@@ -104,25 +105,25 @@ Then replace each `index.ts` with the matching one-liner:
 
 ```ts
 // supabase/functions/list-plans/index.ts
-import { listPlans } from '@solvapay/supabase'
+import { listPlans } from '@solvapay/server/fetch'
 Deno.serve(listPlans)
 ```
 
 ```ts
 // supabase/functions/create-payment-intent/index.ts
-import { createPaymentIntent } from '@solvapay/supabase'
+import { createPaymentIntent } from '@solvapay/server/fetch'
 Deno.serve(createPaymentIntent)
 ```
 
 ```ts
 // supabase/functions/process-payment/index.ts
-import { processPayment } from '@solvapay/supabase'
+import { processPayment } from '@solvapay/server/fetch'
 Deno.serve(processPayment)
 ```
 
 ```ts
 // supabase/functions/check-purchase/index.ts
-import { checkPurchase } from '@solvapay/supabase'
+import { checkPurchase } from '@solvapay/server/fetch'
 Deno.serve(checkPurchase)
 ```
 
@@ -131,13 +132,16 @@ Finally, create `supabase/functions/deno.json` with the preview import map:
 ```json
 {
   "imports": {
-    "@solvapay/supabase": "npm:@solvapay/supabase@preview",
     "@solvapay/server": "npm:@solvapay/server@preview",
+    "@solvapay/server/": "npm:/@solvapay/server@preview/",
     "@solvapay/auth": "npm:@solvapay/auth@preview",
     "@solvapay/core": "npm:@solvapay/core@preview"
   }
 }
 ```
+
+The trailing-slash `"@solvapay/server/"` entry is what unlocks the `/fetch`
+subpath import in Deno.
 
 ## Step 3 — Set Supabase secrets and deploy
 
@@ -379,7 +383,8 @@ When `1.0.8` (or the next stable minor) promotes to `@latest`:
 1. Replace `"preview"` with the stable version in `package.json`
    (e.g. `"@solvapay/react": "^1.0.8"`), run `npm install`.
 2. Rewrite `supabase/functions/deno.json` to drop `@preview`:
-   `"npm:@solvapay/supabase"`, etc.
+   `"@solvapay/server": "npm:@solvapay/server"` and
+   `"@solvapay/server/": "npm:/@solvapay/server/"`, etc.
 3. Rotate the Supabase secret `SOLVAPAY_API_BASE_URL` to
    `https://api.solvapay.com`.
 4. Rotate `SOLVAPAY_SECRET_KEY` to a `sk_live_...` prod key.

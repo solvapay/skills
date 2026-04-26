@@ -1,8 +1,8 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "organization": "SolvaPay",
-  "date": "March 2026",
-  "abstract": "Integrate SolvaPay payments into any project. Covers TypeScript SDK integration for Next.js, React, Express, and MCP Server implementations with paywall protection, hosted checkout, customer portal, usage tracking, and webhooks. Also includes provider account onboarding from setup through live launch.",
+  "date": "April 2026",
+  "abstract": "Integrate SolvaPay payments into any project. Covers TypeScript SDK integration for Next.js, React, Express, and MCP Server implementations (including fetch-first MCP servers on Cloudflare Workers and Supabase Edge) with paywall protection, hosted and embedded checkout, account management components (CurrentPlanCard, LaunchCustomerPortalButton, usePaymentMethod), customer portal, usage tracking, and webhooks. Also includes provider account onboarding from setup through live launch.",
   "references": [
     "https://docs.solvapay.com",
     "https://docs.solvapay.com/llms.txt"

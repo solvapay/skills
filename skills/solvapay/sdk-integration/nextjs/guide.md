@@ -25,6 +25,8 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 4. Gate premium views based on purchase/access state.
 5. Add webhook endpoint to synchronize purchase/payment events.
 
+> **Breaking change in SDK 1.1:** every `@solvapay/next` route-wrapper helper (`checkPurchase`, `createPaymentIntent`, `processPaymentIntent`, `activatePlan`, `cancelRenewal`, `reactivateRenewal`, `createCheckoutSession`, `createCustomerSession`, `syncCustomer`, `listPlans`, `getMerchant`, `getProduct`, `getPaymentMethod`, `getCustomerBalance`, `trackUsage`) now always returns `Promise<NextResponse>`. Collapse handlers to `return wrapperHelper(request, body)` — remove any `result instanceof NextResponse ? result : NextResponse.json(result)` branches. For Server Components, call the `*Core` primitives from `@solvapay/server` directly and check with `isErrorResult`. `getAuthenticatedUser` / `getCustomerReference` / `syncCustomer` data helpers are unchanged.
+
 ## Hosted vs Embedded Decision
 
 - Default to hosted checkout for faster integration and lower PCI burden.
@@ -43,6 +45,7 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 - [ ] `/api/reactivate-renewal` implemented (if subscription management needed)
 - [ ] `/api/activate-plan` implemented (if free plans, credit activation, or plan switching needed)
 - [ ] `/api/list-plans` implemented (if plan selection UI needed)
+- [ ] `/api/merchant`, `/api/product`, `/api/payment-method` implemented (if you render branding, product details, or the mirrored card in account UI)
 
 ## Verification
 
