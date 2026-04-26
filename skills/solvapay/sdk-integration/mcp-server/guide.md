@@ -1,6 +1,6 @@
 # MCP Server Paywall Integration
 
-Add paywall protection and self-service tools to an MCP server using `@solvapay/server`.
+Add paywall protection and self-service tools to an MCP server using `@solvapay/mcp` (batteries-included factory) or `@solvapay/server` (low-level primitives).
 
 This guide is for SDK-based integrations where you self-host the MCP server and add paywall/auth
 logic in code. If you want SolvaPay to host auth, billing, and paywall enforcement through a
@@ -10,6 +10,7 @@ managed proxy (no paywall code in your server), use [MCP Pay guide](../../mcp-pa
 
 - [Guardrails](#guardrails)
 - [Prerequisites](#prerequisites)
+- [Factory setup (recommended)](#factory-setup-recommended)
 - [SDK initialization](#sdk-initialization)
 - [Wrap tool handlers](#wrap-tool-handlers)
 - [Register virtual tools](#register-virtual-tools)
@@ -29,9 +30,63 @@ managed proxy (no paywall code in your server), use [MCP Pay guide](../../mcp-pa
 
 - Run `npx solvapay init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
   `.env`, and install base SDK packages.
-- Base packages from init are sufficient for this flow.
+- Install `@solvapay/mcp` for the batteries-included factory:
+
+  ```bash
+  npm install @solvapay/mcp @solvapay/server
+  ```
+
 - A product created in SolvaPay Console with at least one plan
 - `SOLVAPAY_SECRET_KEY` and `SOLVAPAY_PRODUCT_REF` set in the environment
+
+## Factory setup (recommended)
+
+For new MCP servers, prefer the batteries-included factories from `@solvapay/mcp`. They wire up the full SolvaPay tool surface (check_purchase, create_checkout_session, activate_plan, upgrade, topup, manage_account, plus your paywalled business tools), register the OAuth bridge, and emit the text-only paywall response format — in a single call.
+
+Three runtime-specific factories are exposed via subpaths:
+
+- `@solvapay/mcp` — `createSolvaPayMcpServer` — framework-neutral MCP server object you mount onto any transport.
+- `@solvapay/mcp/fetch` — `createSolvaPayMcpFetch` — single `(req: Request) => Promise<Response>` handler for Cloudflare Workers, Deno, Supabase Edge Functions, Bun. Also exposes `createOAuthFetchRouter` if you want to assemble the bridge yourself.
+- `@solvapay/mcp/express` — Express middleware variant.
+
+```typescript
+// src/server.ts (Cloudflare Worker / Deno / Supabase Edge / Bun)
+import { createSolvaPayMcpFetch } from '@solvapay/mcp/fetch'
+import { createSolvaPay } from '@solvapay/server'
+
+const solvaPay = createSolvaPay({ apiKey: process.env.SOLVAPAY_SECRET_KEY! })
+
+const handler = createSolvaPayMcpFetch({
+  solvaPay,
+  productRef: process.env.SOLVAPAY_PRODUCT_REF!,
+  publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
+  tools: [
+    {
+      name: 'predict_price_chart',
+      description: 'Return a seeded price chart for a ticker.',
+      inputSchema: { type: 'object', properties: { ticker: { type: 'string' } } },
+      // Wrap the handler with `payable.mcp(...)` to enforce the paywall.
+      handler: solvaPay.payable({ product: process.env.SOLVAPAY_PRODUCT_REF! }).mcp(predictPriceChart),
+    },
+  ],
+  // Optional: hide certain tools from certain audiences (LLM / user / agent).
+  hideToolsByAudience: { user: ['internal_admin_tool'] },
+})
+
+export default { fetch: handler } // Cloudflare Worker export
+// or: Deno.serve(handler)
+// or: app.use(handler)  // Express via createSolvaPayMcpExpress from @solvapay/mcp/express
+```
+
+Key behaviors baked in:
+
+- **Text-only paywall.** When `payable.mcp(…)` detects an over-limit call, the response is a plain-text `Purchase required` narration that routes the host model to the correct recovery intent (`upgrade` / `topup` / `activate_plan`) via the SolvaPay tool surface. No `McpPaywallView` / structured UI payload.
+- **CSP auto-injection.** `createSolvaPayMcpFetch` sets `_meta.ui.csp.frameDomains` to include `solvaPay.apiBaseUrl` automatically so MCP App widgets hosted on compliant clients can embed Stripe Elements without extra config.
+- **OAuth bridge.** `/oauth/{register,authorize,token,revoke}` + `/.well-known/{oauth-protected-resource,oauth-authorization-server,openid-configuration}` routes are mounted for free.
+
+See examples: [`cloudflare-workers-mcp`](https://github.com/solvapay/solvapay-sdk/tree/main/examples/cloudflare-workers-mcp), [`supabase-edge-mcp`](https://github.com/solvapay/solvapay-sdk/tree/main/examples/supabase-edge-mcp), and [`mcp-checkout-app`](https://github.com/solvapay/solvapay-sdk/tree/main/examples/mcp-checkout-app).
+
+If you need full control (custom transport, legacy servers, bespoke auth), drop down to the manual pattern below.
 
 ## SDK initialization
 

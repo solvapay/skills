@@ -37,10 +37,23 @@ React client alone is not enough. The integration needs server endpoints that us
 
 ## Frontend Integration Pattern
 
-- Initialize `SolvaPayProvider` at app root.
+- Initialize `SolvaPayProvider` at app root. Pass `config.transport` if you're running inside an MCP host sandbox (see [mcp-server/guide.md](../mcp-server/guide.md) and `createMcpAppAdapter` from `@solvapay/react/mcp`). Per-method transport props on the provider were removed in SDK 1.1 — `config.transport` is the only supported shape.
 - Ensure auth token is attached to backend API calls.
-- Use purchase/access hooks to gate premium UI.
+- Use purchase/access hooks to gate premium UI (`usePurchase`, `PurchaseGate`).
 - Trigger redirects using returned hosted URLs.
+
+## Account management components
+
+Drop these into any authenticated view to render a complete self-service billing UI:
+
+- **`<CurrentPlanCard />`** — renders the active plan, next-billing line, mirrored card brand/last4, and inline **Update card** / **Cancel plan** actions. Returns `null` when there is no active purchase.
+- **`<LaunchCustomerPortalButton />`** — opens the hosted customer portal in a new tab. Pre-fetches `createCustomerSession` on hover so the portal link is ready on click.
+- **`usePaymentMethod()`** — `{ paymentMethod, loading, refetch }` where `paymentMethod` is `{ kind: 'card', brand, last4, expMonth, expYear } | { kind: 'none' }`. The card brand/last4 are mirrored onto the Customer by the `payment_intent.succeeded` webhook, so this hook is free to poll and needs no Stripe round-trip.
+- **`useMerchant()`** — `{ merchant, loading }` where `merchant` is the result of `GET /v1/sdk/merchant` (`name`, `iconUrl`, `logoUrl`, `termsUrl`, `privacyUrl`). Use in checkout and mandate copy.
+
+## Activation + PAYG semantics
+
+When `activatePlan` is called on a usage-based (PAYG) plan, the server now activates eagerly at zero balance (`status: 'activated'`, `creditBalance: 0`) instead of returning `topup_required`. The user can start calling paid features immediately and pay per use; top-up becomes an optional follow-up flow via `createTopupPaymentIntent`. Free plans are unchanged (`activated`), and recurring/hybrid plans still return `topup_required` / `payment_required` when the customer has no credits and no card on file.
 
 ## Verification Checklist
 

@@ -60,11 +60,23 @@ app.post('/api/webhooks/solvapay', express.raw({ type: 'application/json' }), as
 
 | Event | Typical action |
 | --- | --- |
-| `purchase.created` | grant access and initialize usage state |
-| `purchase.updated` | update access tier/limits |
+| `purchase.created` | grant access and initialize usage state (also fires on plan switch) |
+| `purchase.updated` | update access tier/limits (also fires on reactivation — `cancelledAt` cleared) |
 | `purchase.cancelled` | schedule downgrade or revoke at period end |
+| `purchase.expired` | revoke access (also fires when plan switch expires old purchase) |
 | `payment.succeeded` | record payment and clear payment retry flags |
 | `payment.failed` | mark account at risk and notify customer |
+
+## Reactivation and Plan Switching Events
+
+**Reactivation**: when `reactivateRenewal` undoes a pending cancellation, a `purchase.updated`
+event fires. The purchase object has `cancelledAt: null` and `autoRenew: true`.
+
+**Plan switching**: when `activatePlan` switches a customer to a different plan, two events fire:
+- `purchase.expired` for the old purchase (immediate expiration)
+- `purchase.created` for the new purchase on the requested plan
+
+Handle both events to keep local access state accurate during plan switches.
 
 ## Idempotency Strategy
 

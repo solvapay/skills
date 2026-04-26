@@ -25,6 +25,8 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 4. Gate premium views based on purchase/access state.
 5. Add webhook endpoint to synchronize purchase/payment events.
 
+> **Breaking change in SDK 1.1:** every `@solvapay/next` route-wrapper helper (`checkPurchase`, `createPaymentIntent`, `processPaymentIntent`, `activatePlan`, `cancelRenewal`, `reactivateRenewal`, `createCheckoutSession`, `createCustomerSession`, `syncCustomer`, `listPlans`, `getMerchant`, `getProduct`, `getPaymentMethod`, `getCustomerBalance`, `trackUsage`) now always returns `Promise<NextResponse>`. Collapse handlers to `return wrapperHelper(request, body)` — remove any `result instanceof NextResponse ? result : NextResponse.json(result)` branches. For Server Components, call the `*Core` primitives from `@solvapay/server` directly and check with `isErrorResult`. `getAuthenticatedUser` / `getCustomerReference` / `syncCustomer` data helpers are unchanged.
+
 ## Hosted vs Embedded Decision
 
 - Default to hosted checkout for faster integration and lower PCI burden.
@@ -39,6 +41,11 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 - [ ] `/api/check-access` or equivalent implemented
 - [ ] UI redirects to hosted checkout/customer URLs
 - [ ] Webhook route verifies signatures and updates local state
+- [ ] `/api/cancel-renewal` implemented (if subscription management needed)
+- [ ] `/api/reactivate-renewal` implemented (if subscription management needed)
+- [ ] `/api/activate-plan` implemented (if free plans, credit activation, or plan switching needed)
+- [ ] `/api/list-plans` implemented (if plan selection UI needed)
+- [ ] `/api/merchant`, `/api/product`, `/api/payment-method` implemented (if you render branding, product details, or the mirrored card in account UI)
 
 ## Verification
 
@@ -47,6 +54,8 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 3. Successful purchase unlocks premium route/component.
 4. Customer session redirects to portal successfully.
 5. At least one webhook event is received and processed.
+6. Cancel and reactivate renewal round-trips correctly (if implemented).
+7. Plan activation and switching works as expected (if implemented).
 
 ## Guardrails
 

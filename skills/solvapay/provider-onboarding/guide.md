@@ -20,7 +20,8 @@ Canonical sequence:
 - Sign up or log in.
 - Complete provider onboarding fields: company name, website URL, country, currency.
 - Create first product and configure plans within that product, then choose path (Hosted MCP Pay or SDK).
-- Continue from dashboard and complete Stripe setup (connect existing account or create a new one).
+- Test in sandbox (test Stripe account is auto-provisioned).
+- Go live: connect Stripe for real payments (connect existing account or create a new one) and switch to live mode.
 
 ## Docs Discovery Hints
 
@@ -49,6 +50,5 @@ At completion provide:
 - [ ] Account is created and provider onboarding fields are completed
 - [ ] First product is created and plan is configured within product setup
 - [ ] Integration path is chosen (Hosted MCP Pay or SDK)
-- [ ] Stripe setup is completed from dashboard (existing or new account)
 - [ ] Sandbox purchase flow is tested end to end
-- [ ] Go-live checklist is complete
+- [ ] Go-live flow is complete (Stripe connected during go-live, switched to live mode)
