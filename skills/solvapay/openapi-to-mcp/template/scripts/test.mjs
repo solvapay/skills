@@ -39,7 +39,34 @@ async function main() {
 
   const { spec } = await loadSpec(args.specPath)
   const operations = listOperations(spec)
-  const exposedTools = new Set((await listTools(base)).map(t => t.name))
+
+  // Anonymous `tools/list` is gated when the worker uses the SDK default
+  // `requireAuth: true`. The well-formed challenge response is the same
+  // signal `verify.mjs` treats as a pass — here we surface it as a
+  // structured `overall: "skipped"` so the human sees a one-line reason
+  // instead of a stack trace and knows to either pass a bearer token
+  // out-of-band or temporarily flip the worker to `requireAuth: false`.
+  let exposedTools
+  try {
+    exposedTools = new Set((await listTools(base)).map(t => t.name))
+  } catch (err) {
+    if (err instanceof RpcError && err.info?.httpStatus === 401) {
+      const challenge = err.info.wwwAuthenticate ?? ''
+      if (/^Bearer\b/i.test(challenge) && /resource_metadata="/.test(challenge)) {
+        const summary = {
+          workerUrl: base,
+          specPath: args.specPath,
+          results: [],
+          overall: 'skipped',
+          reason: 'worker requires bearer auth; anonymous probe cannot enumerate tools',
+          wwwAuthenticate: challenge,
+        }
+        process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`)
+        process.exit(0)
+      }
+    }
+    throw err
+  }
 
   const results = []
   for (const op of operations) {

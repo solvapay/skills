@@ -48,6 +48,8 @@ Per operation:
 
 Plus one `paywallGate` probe: tries a candidate tool with empty args; passes when the response is a text-only gate that names a recovery intent tool, skips when no tool gates, fails when a gate response has malformed shape.
 
+When the worker requires bearer auth (the SDK default — `requireAuth: true`), `test.mjs` can't enumerate the catalog anonymously, so it exits `0` with `overall: "skipped"` and `reason: "worker requires bearer auth; anonymous probe cannot enumerate tools"` plus the `WWW-Authenticate` challenge so you can confirm the gate is well-formed. To actually exercise tools against an auth-gated worker, either pass a bearer token out-of-band (planned follow-up; not in v1) or temporarily flip the worker to `requireAuth: false` in `createSolvaPayMcpFetch` for the smoke run. This mirrors [verify.md](verify.md)'s auth-aware `toolsList` behaviour.
+
 ## Reading a `failed` result
 
 When a tool returns `isError: true`, `test.mjs` surfaces the full multi-line error text (up to 1000 chars) under `response.textPreview` — not the 160-char preview used for happy paths. Generated tools throw `UpstreamError` from `template/src/lib/upstreamFetch.ts` whenever the upstream returns non-2xx or non-JSON, so a `failed` line tells you exactly which `METHOD url`, which HTTP status, which `content-type`, and a body snippet to grep against.
