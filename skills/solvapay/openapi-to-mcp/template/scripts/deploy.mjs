@@ -140,13 +140,65 @@ function readWranglerAccountIdFromConfig() {
   return readWranglerConfig().accountId
 }
 
+function stripJsoncComments(text) {
+  let result = ''
+  let i = 0
+  let inString = false
+  let stringChar = ''
+  let escaped = false
+
+  while (i < text.length) {
+    const c = text[i]
+    const next = text[i + 1]
+
+    if (inString) {
+      result += c
+      if (escaped) {
+        escaped = false
+      } else if (c === '\\') {
+        escaped = true
+      } else if (c === stringChar) {
+        inString = false
+      }
+      i++
+      continue
+    }
+
+    if (c === '"' || c === "'") {
+      inString = true
+      stringChar = c
+      result += c
+      i++
+      continue
+    }
+
+    if (c === '/' && next === '/') {
+      while (i < text.length && text[i] !== '\n') i++
+      continue
+    }
+
+    if (c === '/' && next === '*') {
+      i += 2
+      while (i < text.length - 1 && !(text[i] === '*' && text[i + 1] === '/')) i++
+      i += 2
+      continue
+    }
+
+    result += c
+    i++
+  }
+
+  return result
+}
+
 function readWranglerConfig() {
   const configPath = resolve(projectRoot, 'wrangler.jsonc')
   if (!existsSync(configPath)) {
     return { name: null, accountId: null, hasCustomDomainRoute: false }
   }
 
-  const contents = readFileSync(configPath, 'utf8')
+  const raw = readFileSync(configPath, 'utf8')
+  const contents = stripJsoncComments(raw)
   const nameMatch = contents.match(/"name"\s*:\s*"([^"]+)"/)
   const accountMatch = contents.match(/"account_id"\s*:\s*"([^"]+)"/)
   const hasCustomDomainRoute = /"routes"\s*:\s*\[[\s\S]*?"custom_domain"\s*:\s*true/i.test(
