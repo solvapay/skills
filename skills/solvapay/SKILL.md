@@ -28,6 +28,7 @@ Route user intent to the right domain guide and provide shared context.
    - [website-checkout/guide.md](website-checkout/guide.md) -- hosted checkout and customer portal for web apps
    - [lovable-checkout/guide.md](lovable-checkout/guide.md) -- preview-only paste-in guide for Lovable apps (Vite + shadcn/ui + Supabase Edge Functions)
    - [provider-onboarding/guide.md](provider-onboarding/guide.md) -- SolvaPay Console onboarding: account + onboarding form, first product with plans, sandbox testing, then go-live with Stripe connection
+   - [openapi-to-mcp/guide.md](openapi-to-mcp/guide.md) -- turn an OpenAPI / Swagger document into a deployable Cloudflare Workers MCP server with SolvaPay paywall wiring
 4. Follow the domain guide to completion.
 
 ## Documentation Sources
@@ -52,6 +53,7 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 | User intent | Trigger examples | Route to |
 | --- | --- | --- |
 | Build MCP app | "build mcp app", "new mcp server", "scaffold mcp", "cloudflare workers mcp from scratch", "add solvapay to my mcp", "integrate solvapay into existing mcp", "monetize my mcp tools", "paywall my mcp", "mcp app starter", "data mcp server", "intelligence mcp" | [building-mcp-app/guide.md](building-mcp-app/guide.md) |
+| OpenAPI → MCP | "openapi to mcp", "wrap rest api as mcp", "generate mcp from swagger", "openapi to cloudflare worker", "my api as mcp tools" | [openapi-to-mcp/guide.md](openapi-to-mcp/guide.md) |
 | SDK integration | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "express", "MCP Server code integration", "nextjs sdk", "npx solvapay init", "cli", "init project", "scaffold", "cancel renewal", "reactivate", "activate plan", "switch plan", "supabase edge functions", "deno", "edge runtime backend", "lovable backend" | [sdk-integration/guide.md](sdk-integration/guide.md) |
 | MCP server on edge runtime | "cloudflare workers mcp", "supabase edge mcp", "deno mcp server", "createSolvaPayMcpFetch", "fetch-first mcp", "@solvapay/mcp/fetch", "mcp on the edge", "wrangler mcp" | [sdk-integration/mcp-server/guide.md](sdk-integration/mcp-server/guide.md) |
 | MCP checkout app / embedded MCP UI | "mcp checkout app", "mcp app", "CurrentPlanCard", "LaunchCustomerPortalButton", "usePaymentMethod", "createMcpAppAdapter", "embedded checkout in mcp host", "basic-host checkout", "ChatGPT mcp app" | [sdk-integration/mcp-server/guide.md](sdk-integration/mcp-server/guide.md) (server) + [sdk-integration/react/guide.md](sdk-integration/react/guide.md) (client) |
@@ -71,7 +73,7 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 
 Use this if needed:
 
-"Do you want to (1) build or extend an MCP server with SolvaPay in code, (2) integrate the TypeScript SDK into a non-MCP app, (3) set up MCP Pay hosted monetization (no code), (4) set up hosted checkout for a web app, or (5) configure your provider account and product in SolvaPay Console?"
+"Do you want to (1) build or extend an MCP server with SolvaPay in code, (2) integrate the TypeScript SDK into a non-MCP app, (3) set up MCP Pay hosted monetization (no code), (4) set up hosted checkout for a web app, (5) configure your provider account and product in SolvaPay Console, or (6) generate an MCP server from an existing OpenAPI / Swagger spec?"
 
 Default if still ambiguous after one question:
 - If request is MCP-focused and code-based, route to `building-mcp-app/guide.md`.
