@@ -2,73 +2,30 @@
 
 What `scaffold.mjs`, `verify.mjs`, and `test.mjs` assume the template at `openapi-to-mcp/template/` provides. The template can evolve without breaking the skill as long as this contract holds.
 
+Rationale (why arrow wrapper, why single environment, etc.) lives in [design-notes.md](design-notes.md) — maintainer-only.
+
 ## Entrypoint shape
 
-`src/worker.ts` calls `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch`:
+`src/worker.ts` exports a `fetch` that calls `createSolvaPayMcpFetch` with `mode: 'json-stateless'` and `hideToolsByAudience: ['ui']`, then threads the Workers `env` into the generated tools via `additionalTools: ctx => registerTools(ctx, env)`. `src/tools/index.ts` exports the matching `registerTools(ctx, env)`; scaffold appends one import + one `registerXxx(ctx, env)` call per generated operation.
 
-```ts
-import { createSolvaPay } from '@solvapay/server'
-import { createSolvaPayMcpFetch } from '@solvapay/mcp/fetch'
-import { registerTools } from './tools'
-
-export interface Env {
-  SOLVAPAY_SECRET_KEY: string
-  SOLVAPAY_PRODUCT_REF: string
-  MCP_PUBLIC_BASE_URL: string
-  SOLVAPAY_API_BASE_URL?: string
-  UPSTREAM_API_KEY?: string
-}
-
-export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
-    const handler = createSolvaPayMcpFetch({
-      solvaPay: createSolvaPay({ apiKey: env.SOLVAPAY_SECRET_KEY }),
-      productRef: env.SOLVAPAY_PRODUCT_REF,
-      publicBaseUrl: env.MCP_PUBLIC_BASE_URL,
-      mode: 'json-stateless',
-      hideToolsByAudience: ['ui'],
-      additionalTools: ctx => registerTools(ctx, env),
-    })
-    return handler(req)
-  },
-} satisfies ExportedHandler<Env>
-```
-
-The arrow wrapper `ctx => registerTools(ctx, env)` threads the Workers `env` binding (which the SDK's `additionalTools` hook does not provide) into generated tool handlers so they can read `env.UPSTREAM_API_KEY`. Adapted from [examples/cloudflare-workers-mcp/src/worker.ts](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/src/worker.ts) lines 80–109.
-
-**Consumers**: `scaffold.mjs` substitutes placeholders here; `verify.mjs` asserts the OAuth + tools/list shape this produces.
-
-## Registration extension point
-
-`src/tools/index.ts` exports a single `registerTools` function. Scaffold appends imports above and `registerXxx(ctx, env)` calls inside.
-
-```ts
-import type { AdditionalToolsContext } from '@solvapay/mcp'
-import type { Env } from '../worker'
-// Scaffold appends one import per generated operation here.
-
-export function registerTools(ctx: AdditionalToolsContext, env: Env) {
-  // Scaffold appends one registerXxx(ctx, env) call per generated operation here.
-}
-```
-
-`registerTools` always takes `(ctx, env)` regardless of `selections.json.upstreamAuth.kind`. The template's `src/worker.ts` ships with `additionalTools: ctx => registerTools(ctx, env)` baked in and scaffold doesn't rewrite it, so the aggregator signature has to match. For `upstreamAuth.kind === 'none'`, `env` is in scope but unused — individual per-operation handlers still drop `env` from their own signatures (see [Tool file shape](#tool-file-shape)).
-
-The template ships an empty `registerTools(ctx, env)` plus one example tool (`src/tools/example.ts`) that scaffold removes wholesale after copying.
-
-**Consumer**: `scaffold.mjs`.
+Full file: [examples/cloudflare-workers-mcp/src/worker.ts](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/src/worker.ts).
 
 ## Tool file shape
 
-One file per operation, named after the camelCase `operationId`. Exports `register{OperationId}(ctx, env)`. All upstream calls route through `upstreamFetchJson` (see [Upstream helper](#upstream-helper) below) — never raw `fetch().json()`.
+One file per operation in `src/tools/`, named after the camelCase `operationId`. Exports `register{OperationId}(ctx, env)`. All upstream calls route through `upstreamFetchJson` (see [Upstream helper](#upstream-helper)) — never raw `fetch().json()`.
+
+Both examples assume `src/types/upstream.ts` has been generated via `npx openapi-typescript path/to/spec.json -o src/types/upstream.ts` (see [../intent-driven.md#typed-upstream-recommended](../intent-driven.md#typed-upstream-recommended)). The typed `upstreamFetchJson<T>` form is canonical; for the fallback when a spec doesn't define a 200 schema, see [Success-status fallback](#success-status-fallback) below.
 
 ### Paid tool
 
 ```ts
 import { z } from 'zod'
 import type { AdditionalToolsContext } from '@solvapay/mcp'
+import type { operations } from '../types/upstream'
 import { upstreamFetchJson } from '../lib/upstreamFetch'
 import type { Env } from '../worker'
+
+type Pet = operations['getPetById']['responses']['200']['content']['application/json']
 
 export function registerGetPetById(ctx: AdditionalToolsContext, env: Env) {
   ctx.registerPayable('getPetById', {
@@ -80,7 +37,7 @@ export function registerGetPetById(ctx: AdditionalToolsContext, env: Env) {
     annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
     handler: async ({ petId }, c) => {
       const url = new URL(`https://petstore.swagger.io/v2/pet/${petId}`)
-      const data = await upstreamFetchJson<Record<string, unknown>>(url, {
+      const data = await upstreamFetchJson<Pet>(url, {
         method: 'GET',
         headers: { authorization: `Bearer ${env.UPSTREAM_API_KEY}` },
       })
@@ -90,15 +47,18 @@ export function registerGetPetById(ctx: AdditionalToolsContext, env: Env) {
 }
 ```
 
-`c.respond(payload, { text })` is the SolvaPay `ResponseContext` helper. It packages `payload` into `structuredContent` for capable hosts and `text` into `content[0].text` for text-only hosts.
+`c.respond(payload, { text })` packages `payload` into `structuredContent` for capable hosts and `text` into `content[0].text` for text-only hosts.
 
 ### Free tool
 
 ```ts
 import { z } from 'zod'
 import type { AdditionalToolsContext } from '@solvapay/mcp'
+import type { operations } from '../types/upstream'
 import { upstreamFetchJson } from '../lib/upstreamFetch'
 import type { Env } from '../worker'
+
+type Pets = operations['listPets']['responses']['200']['content']['application/json']
 
 export function registerListPets(ctx: AdditionalToolsContext, env: Env) {
   ctx.server.registerTool(
@@ -112,12 +72,12 @@ export function registerListPets(ctx: AdditionalToolsContext, env: Env) {
     async ({ limit }) => {
       const url = new URL('https://petstore.swagger.io/v2/pets')
       if (limit !== undefined) url.searchParams.set('limit', String(limit))
-      const data = await upstreamFetchJson<Record<string, unknown>>(url, {
+      const data = await upstreamFetchJson<Pets>(url, {
         method: 'GET',
         headers: { authorization: `Bearer ${env.UPSTREAM_API_KEY}` },
       })
       return {
-        content: [{ type: 'text', text: `Found ${(data as { id: number }[]).length} pets.` }],
+        content: [{ type: 'text', text: `Found ${data.length} pets.` }],
         structuredContent: data,
       }
     },
@@ -125,21 +85,30 @@ export function registerListPets(ctx: AdditionalToolsContext, env: Env) {
 }
 ```
 
-`ctx.respond` is exclusive to `registerPayable`'s handler context. Free tools call `ctx.server.registerTool` from `@modelcontextprotocol/sdk` directly and hand-roll the dual envelope.
+Free tools call `ctx.server.registerTool` from `@modelcontextprotocol/sdk` directly and hand-roll the dual envelope; `ctx.respond` is exclusive to `registerPayable`.
+
+### Success-status fallback
+
+When picking the type argument for `upstreamFetchJson<T>`, walk this fallback order against the operation's `responses` block:
+
+| Operation defines                                 | Use as `<T>`                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------- |
+| `responses['200']['content']['application/json']` | `operations[id]['responses']['200']['content']['application/json']` |
+| Only `201` (e.g. create)                          | Same, with `'201'`                                                  |
+| Only `204` or no JSON                             | `unknown`                                                           |
+| No schema at all                                  | `unknown`                                                           |
+
+Never fall back to `Record<string, unknown>` — it advertises object-shape that the spec doesn't promise.
 
 ### Auth header selection
 
-| `upstreamAuth.kind` | Header | Per-operation `register{OperationId}` signature |
+| `upstreamAuth.kind` | Header | Per-operation signature |
 | --- | --- | --- |
 | `none` | No header. Headers block omitted. | `(ctx: AdditionalToolsContext)` |
 | `bearer` | `` authorization: `Bearer ${env.UPSTREAM_API_KEY}` `` | `(ctx: AdditionalToolsContext, env: Env)` |
 | `apiKey` | `` '<name>': `${env.UPSTREAM_API_KEY}` `` | `(ctx: AdditionalToolsContext, env: Env)` |
 
-`Accept: application/json` is set by `upstreamFetchJson` (see [Upstream helper](#upstream-helper)), not by `scaffold.mjs`. Generated tools never set it explicitly.
-
-Both authenticated branches wrap `env.UPSTREAM_API_KEY` (typed `string | undefined` in `Env`) in a template literal so the header value satisfies `HeadersInit`'s `string` requirement. The runtime safety net is `UPSTREAM_API_KEY` on the Worker — uploaded from `.env` by `deploy.mjs` on first deploy (see [deploy.md](../deploy.md)), not a compile-time guard.
-
-**Consumers**: `scaffold.mjs` emits these files; `test.mjs` invokes them with synthesised inputs.
+`Accept: application/json` is set by `upstreamFetchJson` — generated tools never set it explicitly.
 
 ## Upstream helper
 
@@ -158,26 +127,10 @@ Both authenticated branches wrap `env.UPSTREAM_API_KEY` (typed `string | undefin
 
 The thrown `UpstreamError` is **not caught inside the generated handler**. Both paths convert it to a proper MCP error envelope automatically:
 
-| Path | Handler | What converts the throw |
-| --- | --- | --- |
-| Free | `ctx.server.registerTool(name, ..., handler)` | `@modelcontextprotocol/sdk` wraps the throw into `{ isError: true, content: [{ type: 'text', text: error.message }] }`. |
-| Paid | `ctx.registerPayable(name, { handler })` | SolvaPay's `formatError` wraps the throw into `{ isError: true, content: [{ type: 'text', text: JSON.stringify({ success: false, error: error.message }) }] }`. The customer is not charged for an upstream failure (the `payable` wrapper only records usage on a successful merchant return). |
-
-**Consumers**: `scaffold.mjs` emits the import line and the helper call; the helper file itself is part of `template/` and copied verbatim.
-
-## Env vars the entrypoint reads
-
-| Var | Read by | Source |
-| --- | --- | --- |
-| `SOLVAPAY_SECRET_KEY` | `createSolvaPay` in `src/worker.ts` | `wrangler secret put` in deployed runs; `.env` for `wrangler dev`. Populated by `solvapay-init`. |
-| `SOLVAPAY_PRODUCT_REF` | `createSolvaPayMcpFetch` | `.env` (`--var` override at deploy time). Populated by `scaffold`. |
-| `MCP_PUBLIC_BASE_URL` | `createSolvaPayMcpFetch` (OAuth issuer) | `.env` (`--var` override). Auto-resolved by `deploy.mjs` on first workers.dev deploy; set explicitly for custom domains. |
-| `SOLVAPAY_API_BASE_URL` | `createSolvaPay` (optional) | `.env`, defaults to `https://api.solvapay.com`. |
-| `UPSTREAM_API_KEY` | Tool handlers via `env.UPSTREAM_API_KEY` (closed over from `fetch`) | Uploaded from `.env` by `deploy.mjs` on first deploy; `.env` for `wrangler dev`. Populated by `scaffold` from `selections.upstreamAuth.key`. Omitted when `kind: "none"`. |
-
-`UPSTREAM_API_KEY` is read inside tool handlers, not by the entrypoint factory.
-
-**Consumers**: `scaffold` writes non-SolvaPay-secret vars; `solvapay-init` writes `SOLVAPAY_SECRET_KEY`; `deploy` uploads secrets.
+| Path | What converts the throw |
+| --- | --- |
+| Free | `@modelcontextprotocol/sdk` wraps the throw into `{ isError: true, content: [{ type: 'text', text: error.message }] }`. |
+| Paid | SolvaPay's `formatError` wraps the throw into the same shape. The customer is not charged for an upstream failure — `payable` only records usage on a successful merchant return. |
 
 ## Who writes what to `.env`
 
@@ -187,22 +140,7 @@ The thrown `UpstreamError` is **not caught inside the generated handler**. Both 
 | `npx solvapay init` | `SOLVAPAY_SECRET_KEY` — appended via the CLI's append-safe writer, no clobber |
 | Agent | One-time edit to `MCP_PUBLIC_BASE_URL` only for custom-domain deploys (see [../deploy.md](../deploy.md) step 2) |
 
-No other module touches `.env`.
-
-## `.env` + Worker Secret lifecycle
-
-`SOLVAPAY_SECRET_KEY` and `UPSTREAM_API_KEY` are both secrets:
-
-- Written to `.env` (gitignored) so `wrangler dev` picks them up locally.
-- `SOLVAPAY_SECRET_KEY` is pushed via a one-time `wrangler secret put SOLVAPAY_SECRET_KEY` (value from `.env`).
-- `UPSTREAM_API_KEY` is uploaded from `.env` by `deploy.mjs` when present and not already on the worker. Rotate manually with `wrangler secret put UPSTREAM_API_KEY`.
-- **Not** passed via `--var` in the deploy script (reserved for non-secret values).
-
-Go-live is a key swap, not a separate environment: the user replaces `SOLVAPAY_SECRET_KEY` in `.env` with `sk_live_…`, re-runs `wrangler secret put SOLVAPAY_SECRET_KEY`, redeploys. Single worker, single secret slot.
-
-Mirrors [examples/cloudflare-workers-mcp/README.md](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/README.md) lines 108–136, simplified to one environment.
-
-**Consumers**: `scaffold` + `solvapay-init` + `deploy`.
+`SOLVAPAY_SECRET_KEY` and `UPSTREAM_API_KEY` are uploaded as Worker Secrets; see [../deploy.md](../deploy.md) for the lifecycle.
 
 ## Placeholders the skill substitutes
 
@@ -210,14 +148,12 @@ Mirrors [examples/cloudflare-workers-mcp/README.md](../../../../solvapay-sdk/exa
 | --- | --- | --- |
 | `__WORKER_NAME__` | `selections.workerName` | `wrangler.jsonc` `name` field |
 | `__RESOURCE_URI_SLUG__` | `selections.workerName` | `src/worker.ts` `resourceUri` arg (`ui://<slug>/mcp-app.html`) |
-| `__SOLVAPAY_PRODUCT_REF__` | `selections.solvapayProductRef` | `.env.example` (template only; `.env` is generated separately) |
+| `__SOLVAPAY_PRODUCT_REF__` | `selections.solvapayProductRef` | `.env.example` |
 | `__MCP_PUBLIC_BASE_URL__` | `selections.mcpPublicBaseUrl` | `.env.example` |
 
-Substitution is straight string-replace (not template interpolation) so the template files remain valid TypeScript / JSON / JSONC standalone — editors and CI lint them without `scaffold.mjs` ever having run.
+The example tool (`src/tools/example.ts`) and its reference in `src/tools/index.ts` are removed wholesale rather than substituted — scaffold rewrites `src/tools/index.ts` from scratch with the operations it generated.
 
-The example tool (`src/tools/example.ts`) and its references in `src/tools/index.ts` are removed wholesale rather than substituted. Scaffold rewrites `src/tools/index.ts` from scratch with the operations it generated.
-
-**Consumer**: `scaffold.mjs` (the `PLACEHOLDERS` export in `scripts/lib/template.mjs` is the source of truth for the substitution table).
+The `PLACEHOLDERS` export in `scripts/lib/template.mjs` is the source of truth for this table.
 
 ## MCP wire-shape
 
@@ -227,5 +163,3 @@ Hosted by `createSolvaPayMcpFetch`:
 - `/.well-known/oauth-authorization-server` returns `{ issuer, authorization_endpoint, token_endpoint, registration_endpoint? }`.
 - `tools/list` includes the four intent tools (`upgrade`, `topup`, `activate_plan`, `manage_account`) and the generated tools. UI-only tools (`create_payment_intent`, `create_topup_payment_intent`, …) are hidden from text-only hosts via `hideToolsByAudience: ['ui']`.
 - Paywall gate response: text-only narration in `content[0].text` naming the recovery intent tool, `structuredContent.gate` for programmatic consumers, no `_meta.ui` on the gate (the iframe only mounts on deliberate intent-tool calls).
-
-**Consumers**: `verify.mjs` asserts these; `test.mjs` relies on them when interpreting tool responses.

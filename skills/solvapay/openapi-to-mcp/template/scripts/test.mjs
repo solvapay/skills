@@ -68,6 +68,7 @@ async function main() {
     throw err
   }
 
+  const operationIds = new Set(operations.map(op => op.operationId))
   const results = []
   for (const op of operations) {
     const tier = suggestTier(op)
@@ -79,7 +80,7 @@ async function main() {
       results.push({
         operationId: op.operationId,
         status: 'skipped',
-        reason: 'operation not registered as a tool on the worker (probably tier: "skip" in selections.json)',
+        reason: 'operation not registered as a tool on the worker (probably tier: "skip" in selections.json, or intent-driven mode)',
       })
       continue
     }
@@ -118,6 +119,23 @@ async function main() {
         info: err instanceof RpcError ? err.info : undefined,
       })
     }
+  }
+
+  // Intent-driven detection: any tool exposed by the worker that
+  // doesn't match an OpenAPI `operationId` and isn't a built-in
+  // SolvaPay intent tool is reported `skipped` with a pointer to the
+  // intent-driven manual smoke-test path. Detection works because
+  // `operationId` is unique within an OpenAPI spec by spec rules, so
+  // a worker tool that's neither in the spec nor in the intent set is
+  // almost certainly an agent-authored intent tool.
+  for (const toolName of exposedTools) {
+    if (operationIds.has(toolName)) continue
+    if (INTENT_TOOLS.has(toolName)) continue
+    results.push({
+      toolName,
+      status: 'skipped',
+      reason: 'intent tool — author test inputs manually (see intent-driven.md)',
+    })
   }
 
   const paywallGate = await runPaywallGateProbe(base, exposedTools)

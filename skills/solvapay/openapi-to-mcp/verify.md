@@ -81,20 +81,7 @@ For testing against a real MCP host, deploying to a stable `*.workers.dev` URL (
 
 ### Upstream returns XML / HTML / non-JSON
 
-Symptom: `verify` passes, but a tool call (via MCP Inspector, `test.mjs`, or a real host) returns `isError: true` with a multi-line text that starts with `Upstream <METHOD> <url> returned <status> <contentType>`. Example:
-
-```
-Upstream GET https://petstore.swagger.io/v2/pets returned 404 application/xml
-Body snippet: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><apiResponse>...
-```
-
-Cause: the spec's `servers[0].url` doesn't actually serve the path declared by the operation. The canonical example: the `learn.openapis.org` petstore.yaml declares `/pets` paths and points `servers[0]` at `https://petstore.swagger.io/v2`, but petstore.swagger.io serves `/pet` (singular) — a 404 with an XML body comes back. This is the [server probe](describe.md#server-probe) trap.
-
-Fix:
-
-1. Re-run `describe.mjs` against the spec (without `--no-probe`). It surfaces the same mismatch in `serverProbe.status === 'mismatch'` with a `serverProbeMismatch` advisory.
-2. Either swap to a spec that targets a running server (for the petstore demo, `https://petstore.swagger.io/v2/swagger.json` is the spec that matches the running server), or fix `servers[0].url` in the spec, or replace the URL prefix in each generated `tools/<id>.ts` file (cheap if you've already deployed once).
-3. The error text + structured `UpstreamError` fields are emitted by `template/src/lib/upstreamFetch.ts` — hand-tuned tools can `catch (err)` and branch on `err.status` / `err.contentType` / `err.bodySnippet` to recover. See [references/tool-template.md](references/tool-template.md#upstream-helper).
+A tool call returning `isError: true` with text starting `Upstream <METHOD> <url> returned <status> <contentType>` almost always means the spec's `servers[0].url` doesn't serve the operation's path — the [server probe](describe.md#server-probe) trap. Diagnose and fix per [describe.md#server-probe](describe.md#server-probe). Hand-tuned tools can `catch` the typed `UpstreamError` and branch on `err.status` / `err.contentType` / `err.bodySnippet`; see [references/tool-template.md](references/tool-template.md#upstream-helper).
 
 ## Hand-off
 

@@ -105,17 +105,7 @@ No separate `--env production`, no `.env.prod`. The same worker just serves live
 
 ## Template's deploy script
 
-The skill's `template/scripts/deploy.mjs` is a single-environment variant of [examples/cloudflare-workers-mcp/scripts/deploy.mjs](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/scripts/deploy.mjs):
-
-- Reads `.env` only (no `.env.prod` branch).
-- Pre-flights `wrangler login` and workers.dev subdomain registration before deploy.
-- Auto-resolves `MCP_PUBLIC_BASE_URL` from the Cloudflare API when `.env` still holds the localhost placeholder (skipped for custom-domain routes or an already-set URL).
-- Passes `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, `SOLVAPAY_API_BASE_URL` as `--var` overrides.
-- Uploads `UPSTREAM_API_KEY` from `.env` when present and not already on the worker (idempotent via `wrangler secret list`).
-- Shells out via `npx wrangler` so npm, pnpm, and yarn all work with the same command (`npm run deploy` / `pnpm deploy` / `yarn deploy`).
-- Forwards extra args to `wrangler deploy` (e.g. `npm run deploy -- --dry-run`).
-
-Keeping a single environment is intentional — the multi-env path in the source example exists for SolvaPay's own goldberg-demo and creates exactly the split-state the generated worker doesn't need.
+The template ships a single-environment `scripts/deploy.mjs` that pre-flights `wrangler login` + workers.dev subdomain registration, auto-resolves `MCP_PUBLIC_BASE_URL` from the Cloudflare API on first deploy, and uploads `UPSTREAM_API_KEY` from `.env` when present. Shells out via `npx wrangler` (npm / pnpm / yarn all work) and forwards extra args to `wrangler deploy`. See the script header for full details. Multi-env variants live in [examples/cloudflare-workers-mcp/scripts/deploy.mjs](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/scripts/deploy.mjs).
 
 ## Hand-off
 

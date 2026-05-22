@@ -38,17 +38,21 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 
 ## What it does
 
-1. Validates `selections.json` (discriminated union on `upstreamAuth.kind`).
+1. Validates `selections.json` (discriminated union on `upstreamAuth.kind`; `mode` optional with `'one-to-one'` default).
 2. Hard-fails if `<target-dir>` exists, or if `--selections` resolves inside `<target-dir>`.
 3. Copies the template (`template/`) to `<target-dir>`, substituting placeholders (`__WORKER_NAME__`, `__RESOURCE_URI_SLUG__`, `__SOLVAPAY_PRODUCT_REF__`, `__MCP_PUBLIC_BASE_URL__`). Preserves `.env.example` verbatim. Includes `scripts/verify.mjs`, `scripts/test.mjs`, and `scripts/lib/` for post-deploy checks (see [verify.md](verify.md) and [test.md](test.md)).
-4. For each operation with `tier !== 'skip'`, writes `src/tools/<operationId>.ts` with:
+4. **In one-to-one mode (default)**, for each operation with `tier !== 'skip'`, writes `src/tools/<operationId>.ts` with:
    - `register{OperationId}(ctx, env)` (or `(ctx)` when `upstreamAuth.kind === 'none'`).
    - `ctx.registerPayable(...)` for paid tiers, `ctx.server.registerTool(...)` for free tiers.
    - Correct auth header (`Authorization: Bearer ${env.UPSTREAM_API_KEY}` for `kind: "bearer"`, `<name>: ${env.UPSTREAM_API_KEY}` for `kind: "apiKey"`).
-5. Rewrites `src/tools/index.ts` to import + call every generated `register{OperationId}` from one `registerTools(ctx, env)` aggregator. Removes the template's example tool.
+
+   **In intent-driven mode**, skips per-op codegen entirely. The agent (you) authors `src/tools/<intent>.ts` files directly after scaffold finishes — see [intent-driven.md](intent-driven.md) for templates and clustering guidance.
+5. Writes `src/tools/index.ts`:
+   - **One-to-one**: imports + calls every generated `register{OperationId}` from one `registerTools(ctx, env)` aggregator. Removes the template's example tool.
+   - **Intent-driven**: writes an empty aggregator (`registerTools(_ctx, _env) { /* Intent tools registered here. See intent-driven.md. */ }`). You edit this file each time you add a new intent tool.
 6. Writes `.env` with `SOLVAPAY_PRODUCT_REF` (or the `__SOLVAPAY_PRODUCT_REF__` placeholder when `solvapayProductRef` is omitted from `selections.json`), `MCP_PUBLIC_BASE_URL`, and (when applicable) `UPSTREAM_API_KEY`. **Does not write `SOLVAPAY_SECRET_KEY`** — that's [solvapay-init.md](solvapay-init.md).
 7. Ensures `.gitignore` covers `.env`.
-8. Prints a JSON summary on stdout: files written, operations generated, secrets seeded, and a reminder to run `npx solvapay init`.
+8. Prints a JSON summary on stdout: mode used, files written, operations generated (empty in intent-driven mode), secrets seeded, and reminders. In intent-driven mode the reminders include a pointer to `intent-driven.md`.
 
 ## What it refuses to do
 
@@ -59,6 +63,9 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 
 ## After scaffold
 
-Move to [solvapay-init.md](solvapay-init.md) to populate `SOLVAPAY_SECRET_KEY` via browser auth and pick `SOLVAPAY_PRODUCT_REF` from the account's products.
+- **One-to-one mode**: move to [solvapay-init.md](solvapay-init.md) to populate `SOLVAPAY_SECRET_KEY` via browser auth and pick `SOLVAPAY_PRODUCT_REF` from the account's products.
+- **Intent-driven mode**: move to [intent-driven.md](intent-driven.md) first — author your `src/tools/<intent>.ts` files and update the aggregator. Then continue to [solvapay-init.md](solvapay-init.md). (Order doesn't matter strictly; both are required before deploy.)
+
+For typed upstream calls (recommended in intent-driven mode), see [intent-driven.md#typed-upstream-recommended](intent-driven.md#typed-upstream-recommended).
 
 Delete the temporary `selections.json` you created in step 1.

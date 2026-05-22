@@ -39,6 +39,7 @@ const TEMPLATE_DIR = resolve(HERE, '..', 'template')
 
 const VALID_AUTH_KINDS = new Set(['none', 'bearer', 'apiKey'])
 const VALID_TIERS = new Set(['free', 'paid', 'skip'])
+const VALID_MODES = new Set(['one-to-one', 'intent-driven'])
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
@@ -51,12 +52,22 @@ async function main() {
   await assertTemplatePresent(TEMPLATE_DIR)
 
   const selections = await readSelections(selectionsAbs)
+  const mode = selections.mode ?? 'one-to-one'
   const { spec } = await loadSpec(specPath)
   const operations = listOperations(spec)
   const schemes = resolveSecuritySchemes(spec)
 
-  const selectedOps = matchSelectionsToOperations(selections.operations, operations)
-  enforceAuthSupport(selectedOps, schemes, selections.upstreamAuth)
+  // Selection matching + auth enforcement run on per-op selections;
+  // intent mode has none, so skip both. Per-op auth conflicts that
+  // intent tools might hit show up when the agent authors the tool —
+  // not at scaffold time.
+  const selectedOps =
+    mode === 'intent-driven'
+      ? []
+      : matchSelectionsToOperations(selections.operations, operations)
+  if (mode !== 'intent-driven') {
+    enforceAuthSupport(selectedOps, schemes, selections.upstreamAuth)
+  }
 
   const substitutions = new Map([
     [PLACEHOLDERS.WORKER_NAME, selections.workerName],
@@ -91,16 +102,24 @@ async function main() {
     toolFiles.push(operation.operationId)
   }
 
-  await writeIndexFile(target, toolFiles, selections.upstreamAuth.kind)
+  await writeIndexFile(target, toolFiles, selections.upstreamAuth.kind, mode)
   await ensureGitignoreCoversEnv(target)
   const envWritten = await writeDotEnv(target, selections)
 
-  const reminders = [
-    `Run \`npx solvapay init\` inside ${target} to populate SOLVAPAY_SECRET_KEY (see solvapay-init.md).`,
-    `\`node scripts/verify.mjs <url>\` runs from ${target} with no extra setup. Before \`node scripts/test.mjs\`, run \`( cd scripts && npm install )\` once inside ${target} (see test.md).`,
-  ]
+  const reminders =
+    mode === 'intent-driven'
+      ? [
+          'Intent-driven mode: author src/tools/*.ts files per intent-driven.md, then update src/tools/index.ts to import and call each register{IntentName}(ctx, env). The .env and project skeleton are ready.',
+          `Run \`npx solvapay init\` inside ${target} to populate SOLVAPAY_SECRET_KEY (see solvapay-init.md).`,
+          `\`node scripts/verify.mjs <url>\` runs from ${target} with no extra setup. \`node scripts/test.mjs\` will report intent tools as skipped (they aren't in the spec's operationIds) — exercise them manually per intent-driven.md.`,
+        ]
+      : [
+          `Run \`npx solvapay init\` inside ${target} to populate SOLVAPAY_SECRET_KEY (see solvapay-init.md).`,
+          `\`node scripts/verify.mjs <url>\` runs from ${target} with no extra setup. Before \`node scripts/test.mjs\`, run \`( cd scripts && npm install )\` once inside ${target} (see test.md).`,
+        ]
 
   const summary = {
+    mode,
     filesWritten: collectWrittenPaths(target, toolFiles, envWritten),
     operationsGenerated: generated,
     secretsSeeded: secretsSeededFor(selections.upstreamAuth),
@@ -193,6 +212,11 @@ function validateSelections(selections) {
   ) {
     throw new Error('selections.json: `solvapayProductRef` must be a string when provided.')
   }
+  if (selections.mode !== undefined && !VALID_MODES.has(selections.mode)) {
+    throw new Error(
+      `selections.json: \`mode\` must be one of ${[...VALID_MODES].join(', ')} when provided.`,
+    )
+  }
   if (!selections.upstreamAuth || typeof selections.upstreamAuth !== 'object') {
     throw new Error('selections.json: `upstreamAuth` is required.')
   }
@@ -217,6 +241,18 @@ function validateSelections(selections) {
         'selections.json: `upstreamAuth.name` and `upstreamAuth.key` are required when `kind` is "apiKey".',
       )
     }
+  }
+  // Intent-driven mode owns its own `src/tools/*.ts` files, so no
+  // per-op selections are needed. One-to-one mode (default) still
+  // requires the operations array — the per-op codegen reads from it.
+  const mode = selections.mode ?? 'one-to-one'
+  if (mode === 'intent-driven') {
+    if (selections.operations !== undefined && !Array.isArray(selections.operations)) {
+      throw new Error(
+        'selections.json: when `mode` is "intent-driven", `operations` must be omitted or an array (it is ignored).',
+      )
+    }
+    return
   }
   if (!Array.isArray(selections.operations)) {
     throw new Error('selections.json: `operations` must be an array.')
@@ -469,7 +505,7 @@ function annotationsFor(operation) {
   return { readOnlyHint: false, openWorldHint: true }
 }
 
-async function writeIndexFile(target, operationIds, authKind) {
+async function writeIndexFile(target, operationIds, authKind, mode) {
   // The template's `src/worker.ts` ships with
   // `additionalTools: ctx => registerTools(ctx, env)` baked in and scaffold
   // doesn't rewrite it. So `registerTools` ALWAYS takes `(ctx, env)` —
@@ -477,7 +513,28 @@ async function writeIndexFile(target, operationIds, authKind) {
   // but unused by the aggregator. Individual `register{OperationId}`
   // handlers still drop the `env` parameter when they don't need it; the
   // aggregator just forwards `env` only to the ones that take it.
+  //
+  // In intent-driven mode the agent owns this file: scaffold writes an
+  // empty aggregator with a pointer comment, then the agent edits it as
+  // it adds each intent tool (see intent-driven.md). The signature
+  // matches one-to-one mode so the worker entrypoint is identical.
   const indexPath = join(target, 'src', 'tools', 'index.ts')
+  if (mode === 'intent-driven') {
+    const source = `import type { AdditionalToolsContext } from '@solvapay/mcp'
+import type { Env } from '../worker'
+
+export function registerTools(_ctx: AdditionalToolsContext, _env: Env) {
+  // Intent tools registered here. See intent-driven.md.
+  // After authoring src/tools/<intent>.ts, add:
+  //   import { register<IntentName> } from './<intent>'
+  // at the top, then call register<IntentName>(ctx, env) in this body
+  // (and drop the underscore prefix on whichever parameters you use).
+}
+`
+    await mkdir(dirname(indexPath), { recursive: true })
+    await writeFile(indexPath, source, 'utf8')
+    return
+  }
   const opsNeedEnv = authKind !== 'none'
   const imports = operationIds
     .map(id => `import { register${capitalize(id)} } from './${id}'`)

@@ -125,4 +125,9 @@ Pass `--no-probe` to skip the live calls entirely — useful for private upstrea
 
 ## Hand-off
 
-When the operation list is curated and `upstreamAuth` is decided, move to [scaffold.md](scaffold.md).
+Before writing `selections.json`, ask the user once which generation mode they want:
+
+> *"How should I shape the generated MCP tools? (1) **One-to-one** — one tool per OpenAPI operation (faithful, default). (2) **Intent-driven** — cluster operations into higher-level user goals like `manage_pet` or `find_pet` (better for LLM consumption, ~30 min more design work)."*
+
+- **One-to-one (default)**: curate per-op tiers and `upstreamAuth`, then move to [scaffold.md](scaffold.md).
+- **Intent-driven**: read [intent-driven.md](intent-driven.md) before writing `selections.json` — you'll need its clustering heuristics to pick a good `workerName` and to design the intents you'll author after scaffold bootstraps the project.

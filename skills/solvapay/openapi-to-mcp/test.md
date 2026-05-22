@@ -2,6 +2,8 @@
 
 Exercises each generated tool with sample inputs derived from the OpenAPI examples. Distinct from [verify.md](verify.md): verify checks the worker looks like an MCP server; test checks the tools actually do something.
 
+> **Warning**: `test.mjs` calls every non-`skip` tool once, including `POST` / `PUT` / `PATCH` / `DELETE` operations. Always run against a sandbox upstream or a sandbox account. To exclude specific mutating operations, mark them `tier: "skip"` in `selections.json` before scaffold; you can also temporarily comment out their `register*` call in `src/tools/index.ts`.
+
 ## When to read this
 
 - A worker is running (locally or deployed).
@@ -23,16 +25,7 @@ node scripts/test.mjs https://my-worker.<account>.workers.dev \
 
 ## How sample inputs are derived
 
-Same logic as [describe.md](describe.md), implemented in `scripts/lib/openapi.mjs`:
-
-1. `parameter.example`
-2. First `parameter.examples[*].value`
-3. `parameter.schema.default`
-4. `parameter.schema.example`
-5. First `enum` value
-6. Type-driven placeholder (`0`, `"string"`, `true`, `[]`, `{}`, with `format` overrides for `uuid` / `date` / `date-time` / `email`)
-
-When any value falls to step 6, the operation is flagged `examplesQuality: "placeholder"` and the tool is reported as `skipped` (reason: `"no real example data in spec"`). Placeholders are for shape testing, not for hitting a real upstream.
+Sample inputs are synthesised per [describe.md's 6-step fallback chain](describe.md#sample-input-synthesis), implemented in `scripts/lib/openapi.mjs`. Tools whose synthesis fell back to placeholders for any parameter are reported `skipped` (reason `"no real example data in spec"`) — placeholders are for shape testing, not for hitting a real upstream.
 
 ## What it reports
 
@@ -43,8 +36,9 @@ Per operation:
 | `passed` | Tool was called, returned a non-error envelope. |
 | `failed` | Tool call threw or returned `isError: true`. |
 | `skipped` (`reason: "tier is \`skip\`"`) | Operation flagged as skip by the heuristic in `describe.mjs`. |
-| `skipped` (`reason: "operation not registered..."`) | Selections marked this `tier: "skip"`. |
+| `skipped` (`reason: "operation not registered..."`) | Selections marked this `tier: "skip"`, or the worker is intent-driven so the per-op tool isn't exposed. |
 | `skipped` (`reason: "no real example data in spec"`) | Synthesis fell back to placeholders for at least one parameter. |
+| `skipped` (`reason: "intent tool — author test inputs manually..."`) | Worker exposes a tool whose name isn't in the spec's `operationId`s and isn't a SolvaPay recovery intent. Almost always means intent-driven mode. Smoke-test it manually per [intent-driven.md](intent-driven.md). |
 
 Plus one `paywallGate` probe: tries a candidate tool with empty args; passes when the response is a text-only gate that names a recovery intent tool, skips when no tool gates, fails when a gate response has malformed shape.
 
@@ -54,7 +48,7 @@ When the worker requires bearer auth (the SDK default — `requireAuth: true`), 
 
 When a tool returns `isError: true`, `test.mjs` surfaces the full multi-line error text (up to 1000 chars) under `response.textPreview` — not the 160-char preview used for happy paths. Generated tools throw `UpstreamError` from `template/src/lib/upstreamFetch.ts` whenever the upstream returns non-2xx or non-JSON, so a `failed` line tells you exactly which `METHOD url`, which HTTP status, which `content-type`, and a body snippet to grep against.
 
-Common cause: the spec's `servers[0].url` doesn't serve the spec's paths. Re-run [`describe.md`](describe.md) without `--no-probe` to confirm; see also [verify.md#upstream-returns-xml--html--non-json](verify.md#upstream-returns-xml--html--non-json).
+The common cause is the `servers[0]` mismatch trap — see [describe.md#server-probe](describe.md#server-probe) for diagnosis and fix.
 
 ## Troubleshooting
 
@@ -95,8 +89,7 @@ JSON on stdout. Exit code `0` when no operation `failed` and the paywall gate di
 
 ## Annotation-aware behaviour
 
-- `readOnlyHint: true` tools are called once.
-- Mutating tools are called once with synthesised inputs. Skip mutation tests in production by passing `tier: "skip"` on the operation in `selections.json` before scaffold runs.
+`readOnlyHint: true` tools and mutating tools are each called exactly once with synthesised inputs. See the top-of-file warning for how to exclude mutating tools from a run.
 
 ## Hand-off
 
