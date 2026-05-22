@@ -231,12 +231,21 @@ function resolveCloudflareAccountId(whoami) {
   return accounts[0].id
 }
 
+// Cloudflare canonically signals "workers.dev subdomain not registered" via
+// `error.code === 10007` in the response body — see cloudflare/workers-sdk's
+// `packages/wrangler/src/routes.ts` `getWorkersDevSubdomain`. The HTTP status
+// varies (the API often returns 200 with a `success: false` envelope) and
+// the error message text is not guaranteed to mention "subdomain", so we key
+// off the numeric code primarily and fall back to status / message heuristics.
+const SUBDOMAIN_NOT_FOUND_CODE = 10007
+
 function isSubdomainNotRegisteredResponse(status, body) {
   if (status === 404) return true
   if (!body || typeof body !== 'object') return false
 
   const errors = Array.isArray(body.errors) ? body.errors : []
   return errors.some(error => {
+    if (error?.code === SUBDOMAIN_NOT_FOUND_CODE) return true
     const message = typeof error?.message === 'string' ? error.message : ''
     return /subdomain|workers\.dev|onboarding/i.test(message)
   })
