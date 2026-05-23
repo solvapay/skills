@@ -50,7 +50,7 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 5. Writes `src/tools/index.ts`:
    - **One-to-one**: imports + calls every generated `register{OperationId}` from one `registerTools(ctx, env)` aggregator. Removes the template's example tool.
    - **Intent-driven**: writes an empty aggregator (`registerTools(_ctx, _env) { /* Intent tools registered here. See intent-driven.md. */ }`). You edit this file each time you add a new intent tool.
-6. Writes `.env` with `SOLVAPAY_PRODUCT_REF` (or the `__SOLVAPAY_PRODUCT_REF__` placeholder when `solvapayProductRef` is omitted from `selections.json`), `MCP_PUBLIC_BASE_URL`, and (when applicable) `UPSTREAM_API_KEY`. **Does not write `SOLVAPAY_SECRET_KEY`** — that's [solvapay-init.md](solvapay-init.md).
+6. Writes `.env` with `SOLVAPAY_PRODUCT_REF` (or the `__SOLVAPAY_PRODUCT_REF__` placeholder when `solvapayProductRef` is omitted from `selections.json`), `MCP_PUBLIC_BASE_URL`, and (when applicable) `UPSTREAM_API_KEY`. **Does not write `SOLVAPAY_SECRET_KEY`** — that's [../solvapay-init.md](../solvapay-init.md).
 7. Ensures `.gitignore` covers `.env`.
 8. Prints a JSON summary on stdout: mode used, files written, operations generated (empty in intent-driven mode), secrets seeded, and reminders. In intent-driven mode the reminders include a pointer to `intent-driven.md`.
 
@@ -59,12 +59,12 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 - Overwrite an existing `<target-dir>`. Re-running scaffold against an existing project is an open follow-up. Delete and re-run for now.
 - Generate a tool that requires an unsupported security scheme (oauth2, openIdConnect, query/cookie apiKey, combined schemes) unless either the operation is `tier: "skip"` or `upstreamAuth.kind = "none"`. The error message names the offending operation and both remediations.
 - Write `selections.json` into the scaffolded project.
-- Populate `SOLVAPAY_SECRET_KEY`. That's [solvapay-init.md](solvapay-init.md)'s job.
+- Populate `SOLVAPAY_SECRET_KEY`. That's [../solvapay-init.md](../solvapay-init.md)'s job.
 
 ## After scaffold
 
-- **One-to-one mode**: move to [solvapay-init.md](solvapay-init.md) to populate `SOLVAPAY_SECRET_KEY` via browser auth and pick `SOLVAPAY_PRODUCT_REF` from the account's products.
-- **Intent-driven mode**: move to [intent-driven.md](intent-driven.md) first — author your `src/tools/<intent>.ts` files and update the aggregator. Then continue to [solvapay-init.md](solvapay-init.md). (Order doesn't matter strictly; both are required before deploy.)
+- **One-to-one mode**: move to [../solvapay-init.md](../solvapay-init.md) to populate `SOLVAPAY_SECRET_KEY` via browser auth and pick `SOLVAPAY_PRODUCT_REF` from the account's products.
+- **Intent-driven mode**: move to [intent-driven.md](intent-driven.md) first — author your `src/tools/<intent>.ts` files and update the aggregator. Then continue to [../solvapay-init.md](../solvapay-init.md). (Order doesn't matter strictly; both are required before deploy.)
 
 For typed upstream calls (recommended in intent-driven mode), see [intent-driven.md#typed-upstream-recommended](intent-driven.md#typed-upstream-recommended).
 

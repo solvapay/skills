@@ -93,4 +93,4 @@ JSON on stdout. Exit code `0` when no operation `failed` and the paywall gate di
 
 ## Hand-off
 
-When `test.mjs` returns `overall: "passed"`, the generated worker is ready for hand-tuning. Move to [../building-mcp-app/tool-design.md](../building-mcp-app/tool-design.md) for refinement of individual tool surfaces.
+When `test.mjs` returns `overall: "passed"`, the generated worker is ready for hand-tuning. Move to [../tool-design.md](../tool-design.md) for refinement of individual tool surfaces.

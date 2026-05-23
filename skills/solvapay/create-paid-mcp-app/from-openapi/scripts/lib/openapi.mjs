@@ -1,6 +1,6 @@
 /* global console, process */
 /**
- * Shared OpenAPI utilities for `openapi-to-mcp`.
+ * Shared OpenAPI utilities for `create-paid-mcp-app/from-openapi`.
  *
  * Used by `describe.mjs`, `scaffold.mjs`, and `test.mjs`. Every script
  * re-parses the spec from disk; no cached state across modules.

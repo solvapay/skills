@@ -1,4 +1,4 @@
-# Design notes: openapi-to-mcp skill ↔ template
+# Design notes: create-paid-mcp-app/from-openapi skill ↔ template
 
 Rationale for individual choices in the template + scaffold contract. Maintainer-facing; the routine happy-path agent doesn't load this. Pair with [tool-template.md](tool-template.md), which states *what* the contract is.
 
@@ -29,6 +29,14 @@ The skill's `template/scripts/deploy.mjs` is a single-environment variant of [ex
 ## `.env` + Worker Secret lifecycle in one place
 
 Both `SOLVAPAY_SECRET_KEY` and `UPSTREAM_API_KEY` live in `.env` (gitignored) for `wrangler dev` and are uploaded as Worker Secrets for deployed runs. Neither is passed via `--var` — that's reserved for non-secret values. Rotation is by `wrangler secret put` plus a redeploy. The operational flow is documented once in [../deploy.md](../deploy.md); duplicating it in the contract doc was the original sin this design note exists to record.
+
+## Why `upstreamFetchJson` sets `Accept: application/json` by default
+
+Content-negotiating upstreams default to XML when the `Accept` header isn't pinned. `petstore.swagger.io` is the canonical offender — without the explicit `Accept`, generated tools receive XML and the `JSON.parse` step throws `Unexpected token '<'`, looping the model on a meaningless error string. The helper sets it once; generated tools never repeat it.
+
+## Why `UpstreamError` keeps structured fields
+
+The thrown `UpstreamError` carries `status`, `contentType`, `bodySnippet`, `parseError`, `method`, `url` on the instance so hand-tuned tools (intent-driven mode) can `catch` and branch — e.g. treat 404 as "not found" silently, or surface 429 as a nudge to retry. The default conversion to an MCP error envelope (via SDK wrapping for free, `formatError` for paid) is the safe fallback when the tool doesn't catch.
 
 ## Why typed upstream is docs-only, not codegen
 

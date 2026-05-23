@@ -4,15 +4,15 @@ Orchestration prose, no script. Whatever `SOLVAPAY_SECRET_KEY` is in `.env` is w
 
 ## When to read this
 
-- You ran [scaffold.md](scaffold.md) and [solvapay-init.md](solvapay-init.md). `.env` has `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, and `UPSTREAM_API_KEY` (when applicable).
-- You rotated the SolvaPay key in [solvapay-init.md](solvapay-init.md) and need to push the new value to the deployed worker.
+- You ran [scaffold.md](scaffold.md) and [../solvapay-init.md](../solvapay-init.md). `.env` has `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, and `UPSTREAM_API_KEY` (when applicable).
+- You rotated the SolvaPay key in [../solvapay-init.md](../solvapay-init.md) and need to push the new value to the deployed worker.
 - You've tested in sandbox and want to swap in `sk_live_…`.
 
 ## Prerequisites
 
 - `wrangler login` succeeded once for this account. If not, `npm run deploy` exits early with `npx wrangler login` instructions.
 - On a **fresh Cloudflare account**, register a workers.dev subdomain once before the first deploy. `scripts/deploy.mjs` pre-flights this and prints `https://dash.cloudflare.com/<account>/workers/onboarding` instead of letting `wrangler deploy` fail with a buried link.
-- `.env` is populated. Run [solvapay-init.md](solvapay-init.md) first if it isn't.
+- `.env` is populated. Run [../solvapay-init.md](../solvapay-init.md) first if it isn't.
 - Dependencies are installed. `npx solvapay init` already ran `npm install` (or the detected package manager equivalent) — no need to re-run unless `package.json` changed.
 
 ## Step 1 — push secrets and deploy

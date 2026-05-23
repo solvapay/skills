@@ -3,14 +3,14 @@ name: solvapay
 description: >
   Integrate SolvaPay into any project -- TypeScript SDK integration for Next.js, React,
   Express, and MCP Server implementations, including CLI-guided setup with
-  `npx solvapay init`; build an MCP app, scaffold MCP server, or monetize MCP with
-  paywalled tools on Cloudflare Workers and other edge runtimes; MCP Pay no-code hosted
-  MCP monetization; provider account onboarding; hosted web checkout flows; and a
-  paste-in Lovable (Vite + shadcn/ui + Supabase Edge) checkout guide. Use this
-  skill whenever the user mentions SolvaPay, payments, billing, monetization, pricing,
-  paywalls, checkout, purchases, products, plans, customer portal, usage tracking,
-  webhooks, Lovable, MCP server, MCP app, or any payment-related setup, even if they
-  don't explicitly say 'SolvaPay'.
+  `npx solvapay init`; create a paid MCP app (from OpenAPI spec or hand-written) on
+  Cloudflare Workers and other edge runtimes; MCP Pay no-code hosted MCP monetization;
+  provider account onboarding; hosted web checkout flows; and a paste-in Lovable
+  (Vite + shadcn/ui + Supabase Edge) checkout guide. Use this skill whenever the user
+  mentions SolvaPay, payments, billing, monetization, pricing, paywalls, paid mcp,
+  monetize mcp, paywall mcp, checkout, purchases, products, plans, customer portal,
+  usage tracking, webhooks, Lovable, MCP server, MCP app, or any payment-related setup,
+  even if they don't explicitly say 'SolvaPay'.
 ---
 
 # SolvaPay
@@ -22,13 +22,12 @@ Route user intent to the right domain guide and provide shared context.
 1. Identify the primary user intent from request keywords.
 2. If intent is ambiguous, ask one disambiguation question.
 3. Read the matching domain guide:
-   - [building-mcp-app/guide.md](building-mcp-app/guide.md) -- build a new MCP server with SolvaPay from scratch, or integrate SolvaPay into an existing MCP server (Cloudflare Workers default, full inline templates)
+   - [create-paid-mcp-app/guide.md](create-paid-mcp-app/guide.md) -- build a paid MCP app (from OpenAPI spec or hand-written tools), Cloudflare Workers default with full inline templates
    - [sdk-integration/guide.md](sdk-integration/guide.md) -- TypeScript SDK paywall, checkout, usage, webhooks
    - [mcp-pay/guide.md](mcp-pay/guide.md) -- no-code hosted MCP monetization with bootstrap and plan configuration
    - [website-checkout/guide.md](website-checkout/guide.md) -- hosted checkout and customer portal for web apps
    - [lovable-checkout/guide.md](lovable-checkout/guide.md) -- preview-only paste-in guide for Lovable apps (Vite + shadcn/ui + Supabase Edge Functions)
    - [provider-onboarding/guide.md](provider-onboarding/guide.md) -- SolvaPay Console onboarding: account + onboarding form, first product with plans, sandbox testing, then go-live with Stripe connection
-   - [openapi-to-mcp/guide.md](openapi-to-mcp/guide.md) -- turn an OpenAPI / Swagger document into a deployable Cloudflare Workers MCP server with SolvaPay paywall wiring
 4. Follow the domain guide to completion.
 
 ## Documentation Sources
@@ -52,8 +51,7 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 
 | User intent | Trigger examples | Route to |
 | --- | --- | --- |
-| Build MCP app | "build mcp app", "new mcp server", "scaffold mcp", "cloudflare workers mcp from scratch", "add solvapay to my mcp", "integrate solvapay into existing mcp", "monetize my mcp tools", "paywall my mcp", "mcp app starter", "data mcp server", "intelligence mcp" | [building-mcp-app/guide.md](building-mcp-app/guide.md) |
-| OpenAPI → MCP | "openapi to mcp", "wrap rest api as mcp", "generate mcp from swagger", "openapi to cloudflare worker", "my api as mcp tools", "intent-driven mcp", "cluster openapi into intents", "smart mcp tools from openapi" | [openapi-to-mcp/guide.md](openapi-to-mcp/guide.md) |
+| Create a paid MCP app | "paid mcp", "monetize mcp", "paywall mcp", "mcp with payments", "mcp billing", "openapi to mcp", "wrap rest api as mcp", "generate mcp from swagger", "build mcp app", "new mcp server", "scaffold mcp", "cloudflare workers mcp from scratch", "add solvapay to my mcp", "integrate solvapay into existing mcp", "monetize my mcp tools", "paywall my mcp", "intent-driven mcp", "data mcp server", "intelligence mcp" | [create-paid-mcp-app/guide.md](create-paid-mcp-app/guide.md) |
 | SDK integration | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "express", "MCP Server code integration", "nextjs sdk", "npx solvapay init", "cli", "init project", "scaffold", "cancel renewal", "reactivate", "activate plan", "switch plan", "supabase edge functions", "deno", "edge runtime backend", "lovable backend" | [sdk-integration/guide.md](sdk-integration/guide.md) |
 | MCP server on edge runtime | "cloudflare workers mcp", "supabase edge mcp", "deno mcp server", "createSolvaPayMcpFetch", "fetch-first mcp", "@solvapay/mcp/fetch", "mcp on the edge", "wrangler mcp" | [sdk-integration/mcp-server/guide.md](sdk-integration/mcp-server/guide.md) |
 | MCP checkout app / embedded MCP UI | "mcp checkout app", "mcp app", "CurrentPlanCard", "LaunchCustomerPortalButton", "usePaymentMethod", "createMcpAppAdapter", "embedded checkout in mcp host", "basic-host checkout", "ChatGPT mcp app" | [sdk-integration/mcp-server/guide.md](sdk-integration/mcp-server/guide.md) (server) + [sdk-integration/react/guide.md](sdk-integration/react/guide.md) (client) |
@@ -66,6 +64,8 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 ## Negative Routing Examples
 
 - "Migrate old billing data", "analytics reporting", "general Stripe setup only" -> do not auto-route; ask clarification.
+- "Monetize mcp server no-code" or "hosted MCP monetization" -> route to `mcp-pay/guide.md`, NOT `create-paid-mcp-app/`. The paid-MCP skill is code-based; MCP Pay is the no-code path.
+- "Paywall my API" / "paywall web app" without MCP context -> route to `sdk-integration/`, NOT `create-paid-mcp-app/`. Paywalled MCP and paywalled REST/web are different surfaces.
 - "Build MCP app UI" without SDK/paywall details -> clarify before routing.
 - "Fix one broken endpoint" with no product context -> ask whether this is SDK integration or onboarding issue.
 
@@ -73,12 +73,10 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 
 Use this if needed:
 
-"Do you want to (1) generate an MCP server from an existing OpenAPI / Swagger spec, (2) build or extend an MCP server with SolvaPay in code (hand-written tools), (3) integrate the TypeScript SDK into a non-MCP app, (4) set up MCP Pay hosted monetization (no code), (5) set up hosted checkout for a web app, or (6) configure your provider account and product in SolvaPay Console?"
+"Do you want to (1) build a paid MCP server (from OpenAPI spec or hand-written tools), (2) integrate the TypeScript SDK into a non-MCP app, (3) set up MCP Pay hosted monetization (no code), (4) set up hosted checkout for a web app, or (5) configure your provider account and product in SolvaPay Console?"
 
 Default if still ambiguous after one question:
-- If request is MCP-focused and code-based:
-  - If the user mentions an OpenAPI / Swagger / spec / "wrap my API as MCP", route to `openapi-to-mcp/guide.md` first.
-  - Otherwise route to `building-mcp-app/guide.md`.
+- If request is MCP-focused and code-based, route to `create-paid-mcp-app/guide.md` (the umbrella asks input-mode follow-up).
 - If request is no-code and MCP-focused, route to `mcp-pay/guide.md`.
 - If request is no-code onboarding/admin flow, route to `provider-onboarding/guide.md`.
 - Otherwise, route to `sdk-integration/guide.md`.

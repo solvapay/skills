@@ -59,15 +59,32 @@ solvapay/
 ├── SKILL.md                     # Router and shared context
 ├── AGENTS.md -> SKILL.md        # Claude Code compatibility
 ├── metadata.json                # skills.sh leaderboard metadata
+├── create-paid-mcp-app/         # Build a paid MCP app on Cloudflare Workers
+│   ├── SKILL.md                 # Frontmatter entry point
+│   ├── AGENTS.md -> SKILL.md    # Claude Code compatibility
+│   ├── guide.md                 # Two-mode router (from-openapi / from-scratch)
+│   ├── tool-design.md           # Shared tool-design contract (load-bearing)
+│   ├── solvapay-init.md         # Credential bootstrap (npx solvapay init)
+│   ├── hosting/{cloudflare,alternatives}.md
+│   ├── from-openapi/            # Generate from an OpenAPI / Swagger spec
+│   │   ├── {guide,describe,scaffold,intent-driven,deploy,verify,test}.md
+│   │   ├── scripts/             # describe.mjs, scaffold.mjs, lib/
+│   │   ├── template/            # Cloudflare Workers MCP template
+│   │   └── references/{selections-schema,tool-template,design-notes}.md
+│   └── from-scratch/{new,existing}.md  # Hand-written tools
 ├── sdk-integration/             # SDK paywall, checkout, usage, webhooks
 │   ├── guide.md                 # Entry point with stack detection
 │   ├── reference.md             # Package map and API operations
 │   ├── webhooks.md              # Signature verification and events
 │   └── {nextjs,react,express,mcp-server}/guide.md
+├── mcp-pay/                     # No-code hosted MCP monetization
+│   └── guide.md
 ├── website-checkout/            # Hosted checkout for web apps
 │   ├── guide.md                 # Entry point with stack support
 │   ├── nextjs/{guide,01-setup,02-auth,03-checkout}.md
 │   └── react/guide.md
+├── lovable-checkout/            # Paste-in checkout for Lovable (preview)
+│   └── guide.md
 └── provider-onboarding/         # Account onboarding through go-live
     ├── guide.md                 # Entry point with step overview
     └── {01-create-account,02-create-product-and-plan,03-test-in-sandbox,04-go-live}.md

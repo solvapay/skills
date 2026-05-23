@@ -1,6 +1,6 @@
 # verify — contract checks
 
-Read-only assertions that a running worker (local `wrangler dev` or deployed) satisfies the SolvaPay MCP contract. Inherits the verification checklist from [../building-mcp-app/guide.md](../building-mcp-app/guide.md) and turns it into one command.
+Read-only assertions that a running worker (local `wrangler dev` or deployed) satisfies the SolvaPay MCP contract. Inherits the verification checklist from [../guide.md](../guide.md) and turns it into one command.
 
 ## When to read this
 

@@ -101,4 +101,4 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 
 - `solvapaySecretKey` — `npx solvapay init` writes it directly to `.env`. Never include it here.
 - `apiBaseUrl` for the upstream — derived from the OpenAPI document's `servers[0].url` at scaffold time.
-- `selectionsForRotation` — there is no rotation flow that goes through scaffold. Rotation is handled by re-running [../solvapay-init.md](../solvapay-init.md) + [../deploy.md](../deploy.md).
+- `selectionsForRotation` — there is no rotation flow that goes through scaffold. Rotation is handled by re-running [../../solvapay-init.md](../../solvapay-init.md) + [../deploy.md](../deploy.md).

@@ -8,7 +8,7 @@ No script — delegate to the SolvaPay CLI's browser-auth flow. This module exis
 | --- | --- |
 | Fresh scaffold, no `SOLVAPAY_SECRET_KEY` in `.env` yet | Yes — first-time setup. |
 | Existing project, user rotated their SolvaPay key | Yes — populate the new key, then redeploy. |
-| Switching from sandbox `sk_test_…` to live `sk_live_…` | No — that's [deploy.md](deploy.md)'s go-live section (manual key swap in `.env` + redeploy; no CLI run needed). |
+| Switching from sandbox `sk_test_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
 | Lost track of which environment a deployed worker points at | No — check `wrangler secret list` first. |
 
 ## Run
@@ -41,13 +41,13 @@ The CLI:
 - Populate `MCP_PUBLIC_BASE_URL`. Scaffold writes `http://localhost:8787`; `deploy.mjs` auto-resolves the live workers.dev URL on first deploy.
 - Populate `UPSTREAM_API_KEY`. Scaffold writes it from `selections.upstreamAuth.key`.
 - Create a product. If the account has none, init warns and points to Console — route to [../provider-onboarding/guide.md](../provider-onboarding/guide.md) first.
-- Deploy anything. Rotation and first-time setup both end with a re-run of [deploy.md](deploy.md).
+- Deploy anything. Rotation and first-time setup both end with a re-run of your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md) deploy section).
 
 ## Sandbox vs live
 
 | Pass | `.env` value | Set on deployed worker via |
 | --- | --- | --- |
-| First setup (sandbox) | `sk_test_…` written by `solvapay init` | `wrangler secret put SOLVAPAY_SECRET_KEY` (in [deploy.md](deploy.md)) |
+| First setup (sandbox) | `sk_test_…` written by `solvapay init` | `wrangler secret put SOLVAPAY_SECRET_KEY` (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md)) |
 | Go-live | `sk_live_…` written manually by the user, replacing the sandbox value | `wrangler secret put SOLVAPAY_SECRET_KEY` again, then `npm run deploy` |
 
 Single worker, single secret slot. There is no `--env production`, no `.env.prod` — the template ships one environment by design.
@@ -58,14 +58,14 @@ When this module is invoked for an **already-deployed** worker (the user rotated
 
 1. `npx solvapay init` writes the new `SOLVAPAY_SECRET_KEY` to `.env`.
 2. The deployed worker still has the old key on the Workers Secret store.
-3. Route the user to [deploy.md](deploy.md) step 1: `wrangler secret put SOLVAPAY_SECRET_KEY` (paste the new value from `.env`) followed by `npm run deploy`.
+3. Route the user to their mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md) step 1; from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md)): `wrangler secret put SOLVAPAY_SECRET_KEY` (paste the new value from `.env`) followed by `npm run deploy`.
 
 Rotation is not complete until both `.env` and the deployed Secret have the new value.
 
 ## Hand-off
 
-- First-time setup → [deploy.md](deploy.md).
-- Rotation → [deploy.md](deploy.md) (push new secret + redeploy).
+- First-time setup → from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md) deploy section.
+- Rotation → same destinations (push new secret + redeploy).
 
 ## Reference
 

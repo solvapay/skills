@@ -2,7 +2,7 @@
 
 Generate a SolvaPay-wired Cloudflare Workers MCP server from an OpenAPI document. State-based router — pick the module that matches the user's current situation, not a linear walkthrough.
 
-> Arrived from [../building-mcp-app/guide.md](../building-mcp-app/guide.md)? Right place. This guide owns scaffold → init → deploy → verify → test end-to-end; hand-tuning at the end returns to [../building-mcp-app/tool-design.md](../building-mcp-app/tool-design.md).
+> Arrived from [../guide.md](../guide.md)? Right place. This guide owns scaffold → init → deploy → verify → test end-to-end; hand-tuning at the end returns to [../tool-design.md](../tool-design.md).
 
 ## First time? Quickstart
 
@@ -14,13 +14,9 @@ In Claude Code or Cursor with this skill installed:
 
 The skill auto-loads and routes to the appropriate module below.
 
-## Guardrails (inherited from [../building-mcp-app/guide.md](../building-mcp-app/guide.md))
+## Guardrails
 
-- Never expose `SOLVAPAY_SECRET_KEY` to client code, public env vars, or deploy-time plaintext. Upload via `wrangler secret put` and keep it in a gitignored `.env` only for local dev.
-- Never wrap SolvaPay intent tools (`upgrade`, `topup`, `manage_account`, `activate_plan`) with `payable.mcp()` — they are the paywall recovery path.
-- Never return a custom iframe or structured UI payload on a paywall gate. Gates are **text-only** in `content[0].text` naming the recovery intent tool.
-- Always use `mode: 'json-stateless'` on Cloudflare Workers. Isolates don't pin across requests.
-- Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
+See [../guide.md](../guide.md) for the umbrella's guardrails block. All apply to OpenAPI-generated tools.
 
 ## State-based routing
 
@@ -29,13 +25,13 @@ The skill auto-loads and routes to the appropriate module below.
 | I have an OpenAPI / Swagger spec and want to know what I'd generate | [describe.md](describe.md) |
 | I've reviewed the operations and want to generate the worker | [scaffold.md](scaffold.md) |
 | I picked intent-driven mode and need to author the tool files | [intent-driven.md](intent-driven.md) |
-| I have a scaffolded worker and need to wire it up to SolvaPay | [solvapay-init.md](solvapay-init.md) |
-| I want to rotate or re-auth my SolvaPay key | [solvapay-init.md](solvapay-init.md) → [deploy.md](deploy.md) (push new secret + redeploy) |
+| I have a scaffolded worker and need to wire it up to SolvaPay | [../solvapay-init.md](../solvapay-init.md) |
+| I want to rotate or re-auth my SolvaPay key | [../solvapay-init.md](../solvapay-init.md) → [deploy.md](deploy.md) (push new secret + redeploy) |
 | I have a local worker and want to deploy it | [deploy.md](deploy.md) |
 | I tested with sandbox and want to swap in a live key | [deploy.md](deploy.md) (Go-live section) |
 | I want to check if my worker satisfies the MCP contract | [verify.md](verify.md) |
 | I want to check if my generated tools actually work | [test.md](test.md) |
-| Tools generated but I want to hand-tune their shape / narration | [../building-mcp-app/tool-design.md](../building-mcp-app/tool-design.md) |
+| Tools generated but I want to hand-tune their shape / narration | [../tool-design.md](../tool-design.md) |
 
 ## End-to-end happy path
 
@@ -48,7 +44,7 @@ describe → curate → scaffold → solvapay-init → deploy → verify → tes
 **Skill scripts** (`describe.mjs`, `scaffold.mjs`) share a single runtime dep (`@apidevtools/swagger-parser`). Install it once per skill checkout:
 
 ```bash
-( cd skills/skills/solvapay/openapi-to-mcp/scripts && npm install )
+( cd skills/skills/solvapay/create-paid-mcp-app/from-openapi/scripts && npm install )
 ```
 
 **Scaffolded project scripts** (`verify.mjs`, `test.mjs`) ship inside the generated project. Run them from the project root with `node scripts/<name>.mjs`. `verify.mjs` has no extra deps; `test.mjs` needs `( cd scripts && npm install )` once inside the project (see [test.md](test.md)).
@@ -92,4 +88,4 @@ Pick a spec whose `servers[0]` (or, for Swagger 2.0, `host` + `basePath`) actual
 
 - [references/selections-schema.md](references/selections-schema.md) — `selections.json` schema.
 - [references/tool-template.md](references/tool-template.md) — behavioral contract between skill and template.
-- [../building-mcp-app/tool-design.md](../building-mcp-app/tool-design.md) — read before hand-tuning generated tools.
+- [../tool-design.md](../tool-design.md) — read before hand-tuning generated tools.
