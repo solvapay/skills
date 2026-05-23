@@ -33,7 +33,7 @@ Step-by-step deploy of a SolvaPay MCP server on Cloudflare Workers, with every f
 ## Guardrails
 
 - Never commit `.env`. Only `.env.example` is tracked. The gitignore template below enforces this.
-- Never put `SOLVAPAY_SECRET_KEY` in `wrangler.jsonc` `vars` or in a `--var` flag. Upload it once via `wrangler secret put SOLVAPAY_SECRET_KEY`; it persists across deploys.
+- Never put `SOLVAPAY_SECRET_KEY` in `wrangler.jsonc` `vars` or in a `--var` flag. `npm run deploy` uploads it from `.env` as a Worker secret on first deploy; it persists across deploys after that.
 - Never remove `mode: 'json-stateless'` from the `createSolvaPayMcpFetch` call. Workers isolates don't pin across requests — stateful MCP sessions break.
 - Never set `_meta.ui.resourceUri` on merchant payable tools. `registerPayable` enforces this, but if you drop down to `registerPayableTool`, don't pass a `resourceUri`.
 - Always keep `hideToolsByAudience: ['ui']` unless you have a specific reason not to.
@@ -94,13 +94,7 @@ cp .env.example .env
 
 Edit `.env` with real values for `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`. Keep `SOLVAPAY_API_BASE_URL` blank unless you're pointing at a non-production API origin.
 
-Upload the secret to Cloudflare once (persists across deploys):
-
-```bash
-pnpm exec wrangler secret put SOLVAPAY_SECRET_KEY
-```
-
-Paste the `sk_...` value when prompted. The `.env` keeps the secret available to `wrangler dev` for local testing; the production Worker reads it from Cloudflare's secret store.
+`npm run deploy` (step 8) uploads `SOLVAPAY_SECRET_KEY` from `.env` to Cloudflare Worker Secrets automatically on the first deploy. The local `.env` keeps the secret available to `wrangler dev`; the deployed Worker reads it from Cloudflare's secret store after that.
 
 ### 6. Build the widget
 
@@ -387,7 +381,7 @@ function requireEnv(env: Env, name: keyof Env): string {
   const value = env[name]
   if (!value) {
     throw new Error(
-      `${name} is not set — check wrangler.jsonc \`vars\` block or run \`wrangler secret put ${name}\``,
+      `${name} is not set — check wrangler.jsonc \`vars\` block or run \`npx wrangler secret put ${name}\``,
     )
   }
   return value
@@ -539,7 +533,7 @@ createRoot(rootEl).render(<McpApp app={app} applyContext={applyContext} />)
  * overridable keys as `--var` flags to `wrangler deploy`.
  *
  * `SOLVAPAY_SECRET_KEY` is managed separately as a Worker secret
- * (`wrangler secret put SOLVAPAY_SECRET_KEY` — run once, persists
+ * (`npx wrangler secret put SOLVAPAY_SECRET_KEY` — run once, persists
  * across deploys). It's listed in `.env` so `wrangler dev` can use
  * it for local testing; this script does NOT re-upload it on every
  * deploy.
@@ -735,7 +729,7 @@ if (!NO_BANNER) setTimeout(() => { process.stdout.write('\n'); printBanner() }, 
 #      SOLVAPAY_API_BASE_URL as `--var` overrides at deploy time.
 #
 # SOLVAPAY_SECRET_KEY is NOT re-uploaded on each deploy — it lives on
-# the Worker as a proper secret via `wrangler secret put SOLVAPAY_SECRET_KEY`
+# the Worker as a proper secret via `npx wrangler secret put SOLVAPAY_SECRET_KEY`
 # (run once; persists across deploys). Kept here so `wrangler dev`
 # can read it for local testing.
 #
@@ -775,7 +769,7 @@ node_modules/
 
 ## Troubleshooting
 
-- **`SOLVAPAY_SECRET_KEY is not set`** at runtime — you skipped `wrangler secret put SOLVAPAY_SECRET_KEY`. Run it once; it persists across deploys.
+- **`SOLVAPAY_SECRET_KEY is not set`** at runtime — `.env` was missing or the value wasn't picked up at deploy time. `npm run deploy` reads `.env` and uploads the secret on the first deploy; verify `.env` has a real `sk_test_…` / `sk_live_…` value and re-run.
 - **OAuth discovery returns the placeholder `MCP_PUBLIC_BASE_URL`** — your `.env` wasn't sourced. Check that `.env` exists in the project root and that `scripts/deploy.mjs` printed no "not found" warning.
 - **Worker bundle size over 1MB** on deploy — Cloudflare's free tier caps bundles at 1MB post-gzip. `@solvapay/mcp` + `@solvapay/server` + `@modelcontextprotocol/sdk` sit close to this ceiling. Upgrade to the paid tier (10MB cap) if you need more headroom.
 - **`Already connected to a transport` errors** under load — you removed `mode: 'json-stateless'`. Put it back; Workers isolates don't pin sessions across requests.
@@ -783,4 +777,3 @@ node_modules/
 - **Widget flashes empty on every silent tool success** — you set `_meta.ui.resourceUri` on a merchant payable tool. Remove it; `resourceUri` belongs only on the three SolvaPay intent tools, which `createSolvaPayMcpFetch` registers for you.
 - **Gate returns a structured UI payload instead of text** — you hand-rolled a paywall response or wrapped a virtual tool with `payable.mcp()`. Use `registerPayable` and let it emit the text-only narration.
 - **Widget doesn't mount when I call `upgrade`** — verify the MCP host supports iframe resources (Claude Desktop, ChatGPT Apps, MCP Inspector do; pure terminal clients don't). On unsupported hosts the intent tool returns the bootstrap payload in `structuredContent` for programmatic use.
-- **Rotating `SOLVAPAY_SECRET_KEY`** — run `wrangler secret put SOLVAPAY_SECRET_KEY` with the new value and update `.env` for local dev. No deploy needed for the secret itself.

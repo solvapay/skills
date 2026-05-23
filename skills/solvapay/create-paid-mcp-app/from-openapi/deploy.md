@@ -5,7 +5,6 @@ Orchestration prose, no script. Whatever `SOLVAPAY_SECRET_KEY` is in `.env` is w
 ## When to read this
 
 - You ran [scaffold.md](scaffold.md) and [../solvapay-init.md](../solvapay-init.md). `.env` has `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, and `UPSTREAM_API_KEY` (when applicable).
-- You rotated the SolvaPay key in [../solvapay-init.md](../solvapay-init.md) and need to push the new value to the deployed worker.
 - You've tested in sandbox and want to swap in `sk_live_…`.
 
 ## Prerequisites
@@ -15,14 +14,11 @@ Orchestration prose, no script. Whatever `SOLVAPAY_SECRET_KEY` is in `.env` is w
 - `.env` is populated. Run [../solvapay-init.md](../solvapay-init.md) first if it isn't.
 - Dependencies are installed. `npx solvapay init` already ran `npm install` (or the detected package manager equivalent) — no need to re-run unless `package.json` changed.
 
-## Step 1 — push secrets and deploy
+## Step 1 — deploy
 
 Run from inside the scaffolded directory:
 
 ```bash
-wrangler secret put SOLVAPAY_SECRET_KEY
-# Paste the value currently in .env (sandbox sk_test_… on the first pass).
-
 npm run deploy
 ```
 
@@ -32,9 +28,10 @@ npm run deploy
 - Auto-resolves `MCP_PUBLIC_BASE_URL` when `.env` still holds the scaffold placeholder (`http://localhost:8787` or `__MCP_PUBLIC_BASE_URL__`): computes `https://<worker>.<subdomain>.workers.dev` from `wrangler.jsonc#name` + the account subdomain, writes it to `.env` before deploy, then verifies wrangler's output matches. Skipped when you already set a custom URL or `wrangler.jsonc` has a `custom_domain` route.
 - Prompts to confirm the resolved workers.dev URL (skipped under `--yes`, non-TTY, dry-run, or when a custom domain is already configured). Declining exits with dashboard + custom-domain instructions.
 - Reads `.env` and forwards `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, and `SOLVAPAY_API_BASE_URL` as `--var` overrides to `wrangler deploy`.
-- Uploads `UPSTREAM_API_KEY` from `.env` automatically when scaffold wrote it (i.e. when `selections.json.upstreamAuth.kind` was `bearer` or `apiKey`). Skipped when the key is absent from `.env` (`kind: "none"`) or already on the worker. To rotate an upstream key, update `.env` and run `wrangler secret put UPSTREAM_API_KEY` manually.
+- Uploads `SOLVAPAY_SECRET_KEY` from `.env` as a Worker secret on the first deploy. Skipped when already present on the worker.
+- Uploads `UPSTREAM_API_KEY` from `.env` automatically when scaffold wrote it (i.e. when `selections.json.upstreamAuth.kind` was `bearer` or `apiKey`). Skipped when the key is absent from `.env` (`kind: "none"`) or already on the worker.
 
-`SOLVAPAY_SECRET_KEY` is **not** passed via `--var` — set it once with `wrangler secret put` as shown above.
+Both secrets go through `npx wrangler secret put` under the hood — never `--var`.
 
 Before invoking `wrangler deploy`, the script prints the resolved workers.dev URL and asks `[Y/n]`. Press Enter to accept. Decline (`n`) to abort and follow the printed instructions — either rename the account-wide workers.dev subdomain in the Cloudflare dashboard (affects every Worker on the account), or attach a `custom_domain` route (see Step 2). Pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) to skip the prompt; it's also skipped automatically when `wrangler.jsonc` has a `custom_domain` route or stdin is not a TTY.
 
@@ -97,10 +94,10 @@ When the user has verified the sandbox worker behaves correctly:
 
 1. Generate a live key (`sk_live_…`) in the SolvaPay Console under **API Keys**.
 2. Replace `SOLVAPAY_SECRET_KEY=sk_test_…` with `SOLVAPAY_SECRET_KEY=sk_live_…` in `.env`.
-3. Re-run:
+3. The first-deploy auto-upload only runs when no `SOLVAPAY_SECRET_KEY` is present on the worker. Since one is already there, push the new value explicitly, then redeploy:
 
    ```bash
-   wrangler secret put SOLVAPAY_SECRET_KEY
+   npx wrangler secret put SOLVAPAY_SECRET_KEY
    npm run deploy
    ```
 
@@ -108,7 +105,7 @@ No separate `--env production`, no `.env.prod`. The same worker just serves live
 
 ## Template's deploy script
 
-The template ships a single-environment `scripts/deploy.mjs` that pre-flights `wrangler login` + workers.dev subdomain registration, auto-resolves `MCP_PUBLIC_BASE_URL` from the Cloudflare API on first deploy, and uploads `UPSTREAM_API_KEY` from `.env` when present. Shells out via `npx wrangler` (npm / pnpm / yarn all work) and forwards extra args to `wrangler deploy`. See the script header for full details. Multi-env variants live in [examples/cloudflare-workers-mcp/scripts/deploy.mjs](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/scripts/deploy.mjs).
+The template ships a single-environment `scripts/deploy.mjs` that pre-flights `wrangler login` + workers.dev subdomain registration, auto-resolves `MCP_PUBLIC_BASE_URL` from the Cloudflare API on first deploy, and uploads `SOLVAPAY_SECRET_KEY` and `UPSTREAM_API_KEY` from `.env` as Worker secrets on the first deploy. Shells out via `npx wrangler` (npm / pnpm / yarn all work) and forwards extra args to `wrangler deploy`. See the script header for full details. Multi-env variants live in [examples/cloudflare-workers-mcp/scripts/deploy.mjs](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/scripts/deploy.mjs).
 
 ## Hand-off
 

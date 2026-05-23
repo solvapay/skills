@@ -40,7 +40,6 @@ See [../guide.md](../guide.md) for the umbrella's guardrails block. All apply to
 | I've reviewed the operations and want to generate the worker | [scaffold.md](scaffold.md) |
 | I picked intent-driven mode and need to author the tool files | [intent-driven.md](intent-driven.md) |
 | I have a scaffolded worker and need to wire it up to SolvaPay | [../solvapay-init.md](../solvapay-init.md) |
-| I want to rotate or re-auth my SolvaPay key | [../solvapay-init.md](../solvapay-init.md) → [deploy.md](deploy.md) (push new secret + redeploy) |
 | I have a local worker and want to deploy it | [deploy.md](deploy.md) |
 | I tested with sandbox and want to swap in a live key | [deploy.md](deploy.md) (Go-live section) |
 | I want to check if my worker satisfies the MCP contract | [verify.md](verify.md) |
@@ -90,6 +89,18 @@ Then write `selections.json` to a non-project path (`/tmp/selections-<uuid>.json
 - OpenAPI file path (`.json`, `.yaml`, `.yml`). Both OpenAPI 3.x and Swagger 2.0 are supported.
 - HTTP URL → fetch it first into a local file, then pass the path.
 - Pasted YAML / JSON → write to a temp file (`/tmp/spec-<uuid>.json`) then pass the path.
+
+### If the user gave you a Swagger UI URL
+
+URLs like `https://example.com/api-docs/`, `/swagger-ui/`, or `/docs/` point at the rendered docs page, not the spec itself. The spec usually lives next to the page. Try these in order before giving up:
+
+1. `<base>/swagger.json`
+2. `<base>/openapi.json`
+3. `<base>/openapi.yaml` or `<base>/swagger.yaml`
+4. `<base>?format=yaml` or `<base>?format=json`
+5. Strip the trailing path segment (`/api-docs/` → `/`) and try `/swagger.json`, `/openapi.json` at the root.
+
+If none of those resolve, view-source on the docs page and look for the `url:` field in the `SwaggerUIBundle({ url: '…' })` config — it's the canonical spec source.
 
 ### Picking a spec
 

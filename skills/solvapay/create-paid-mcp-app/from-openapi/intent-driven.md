@@ -175,6 +175,24 @@ export function registerManagePet(ctx: AdditionalToolsContext, env: Env) {
 
 The gate runs **once** before the handler — switch branches don't re-check balance.
 
+#### Common pitfall: `c.respond<T>` across switch branches
+
+When each switch branch passes a differently-typed payload, TypeScript can't infer a single `ResponseResult<T>` for the dispatcher and rejects it with errors like `Type 'ResponseResult<Pet>' is not assignable to type 'ResponseResult<User>'`. Fix by pinning one generic across the dispatcher:
+
+```ts
+// Wrong — three different Ts, the inferred union doesn't unify.
+case 'create': return c.respond(petData, { text: '…' })       // T = Pet
+case 'update': return c.respond(userData, { text: '…' })      // T = User
+case 'delete': return c.respond(deleteResult, { text: '…' })  // T = unknown
+
+// Right — pin T = unknown at the dispatcher; runtime envelope unchanged.
+case 'create': return c.respond<unknown>(petData, { text: '…' })
+case 'update': return c.respond<unknown>(userData, { text: '…' })
+case 'delete': return c.respond<unknown>(deleteResult, { text: '…' })
+```
+
+The gate behavior, narration shape, and JSON-RPC envelope are all unchanged — `unknown` is purely a TypeScript-level relaxation for the dispatcher. Use the narrow `<Pet>` / `<User>` form when you have a single-branch tool and want the payload type echoed back through `c.respond`'s return type.
+
 ### Pattern 3 — Fan-out (1 intent ← N ops in parallel)
 
 Use for "give me a complete view of X" or "search across these endpoints".

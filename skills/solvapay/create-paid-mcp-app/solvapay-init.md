@@ -1,15 +1,13 @@
 # solvapay-init — wire SolvaPay credentials
 
-No script — delegate to the SolvaPay CLI's browser-auth flow. This module exists so first-time setup and credential rotation share the same entry point.
+No script — delegate to the SolvaPay CLI's browser-auth flow. This module wires first-time credentials into a freshly scaffolded project.
 
 ## When to read this
 
 | State | Use this module |
 | --- | --- |
 | Fresh scaffold, no `SOLVAPAY_SECRET_KEY` in `.env` yet | Yes — first-time setup. |
-| Existing project, user rotated their SolvaPay key | Yes — populate the new key, then redeploy. |
 | Switching from sandbox `sk_test_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
-| Lost track of which environment a deployed worker points at | No — check `wrangler secret list` first. |
 
 ## Run
 
@@ -41,14 +39,14 @@ The CLI:
 - Populate `MCP_PUBLIC_BASE_URL`. Scaffold writes `http://localhost:8787`; `deploy.mjs` auto-resolves the live workers.dev URL on first deploy.
 - Populate `UPSTREAM_API_KEY`. Scaffold writes it from `selections.upstreamAuth.key`.
 - Create a product. If the account has none, init warns and points to Console — route to [../provider-onboarding/guide.md](../provider-onboarding/guide.md) first.
-- Deploy anything. Rotation and first-time setup both end with a re-run of your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md) deploy section).
+- Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md) deploy section).
 
 ## Sandbox vs live
 
 | Pass | `.env` value | Set on deployed worker via |
 | --- | --- | --- |
-| First setup (sandbox) | `sk_test_…` written by `solvapay init` | `wrangler secret put SOLVAPAY_SECRET_KEY` (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md)) |
-| Go-live | `sk_live_…` written manually by the user, replacing the sandbox value | `wrangler secret put SOLVAPAY_SECRET_KEY` again, then `npm run deploy` |
+| First setup (sandbox) | `sk_test_…` written by `solvapay init` | Auto-uploaded by `npm run deploy` on first deploy (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md)) |
+| Go-live | `sk_live_…` written manually by the user, replacing the sandbox value | `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then `npm run deploy` |
 
 Single worker, single secret slot. There is no `--env production`, no `.env.prod` — the template ships one environment by design.
 
@@ -57,24 +55,12 @@ Single worker, single secret slot. There is no `--env production`, no `.env.prod
 Recommend separate keys per environment and per project, even when one merchant account hosts them:
 
 - **Sandbox vs live** — always use `sk_test_…` for `wrangler dev` and any non-production deploy; never reuse a `sk_live_…` for local testing. The CLI defaults to sandbox; only swap to live during the documented go-live step.
-- **One key per MCP server / product surface** — if the account hosts multiple MCP servers (or multiple products under one account), provision a separate secret key per project so a rotation, leak, or revocation on one does not impact the others.
+- **One key per MCP server / product surface** — if the account hosts multiple MCP servers (or multiple products under one account), provision a separate secret key per project so a leak or revocation on one does not impact the others.
 - **Scope where available** — when the SolvaPay Console exposes per-product or per-environment scoping on a key, use the narrowest scope that still works for the worker. The default scope is fine for a single-product scaffold; tighten it when one account fans out to many surfaces.
-- **Rotation** — leaked or routinely-rotated keys go through the same `npx solvapay init` + `wrangler secret put` + redeploy path documented above.
-
-## Post-rotation redeploy
-
-When this module is invoked for an **already-deployed** worker (the user rotated their key after a leak, or wants to switch accounts):
-
-1. `npx solvapay init` writes the new `SOLVAPAY_SECRET_KEY` to `.env`.
-2. The deployed worker still has the old key on the Workers Secret store.
-3. Route the user to their mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md) step 1; from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md)): `wrangler secret put SOLVAPAY_SECRET_KEY` (paste the new value from `.env`) followed by `npm run deploy`.
-
-Rotation is not complete until both `.env` and the deployed Secret have the new value.
 
 ## Hand-off
 
 - First-time setup → from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md) deploy section.
-- Rotation → same destinations (push new secret + redeploy).
 
 ## Reference
 
