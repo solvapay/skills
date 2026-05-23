@@ -125,9 +125,9 @@ Pass `--no-probe` to skip the live calls entirely — useful for private upstrea
 
 ## Hand-off
 
-Before writing `selections.json`, ask the user once which generation mode they want:
+Before writing `selections.json`, ask the user once which generation mode they want — count operations from this script's output first:
 
-> *"How should I shape the generated MCP tools? (1) **One-to-one** — one tool per OpenAPI operation (faithful, default). (2) **Intent-driven** — cluster operations into higher-level user goals like `manage_pet` or `find_pet` (better for LLM consumption, ~30 min more design work)."*
+> *"Your spec has N operations. Two ways to shape the generated MCP tools: (1) **Intent-driven** (recommended in this context) — I cluster the N operations into a small number of higher-level semantic tools like `manage_pet` or `find_pet` and author them directly. The host LLM picks fewer, more meaningful tools better. (2) **One-to-one** — generate exactly N tool files matching the spec verbatim. Useful when the API surface IS the user-facing model, or when you want byte-for-byte traceability between the spec and the tools."*
 
-- **One-to-one (default)**: curate per-op tiers and `upstreamAuth`, then move to [scaffold.md](scaffold.md).
-- **Intent-driven**: read [intent-driven.md](intent-driven.md) before writing `selections.json` — you'll need its clustering heuristics to pick a good `workerName` and to design the intents you'll author after scaffold bootstraps the project.
+- **Intent-driven (recommended)**: read [intent-driven.md](intent-driven.md) before writing `selections.json` — you'll need its clustering heuristics to pick a good `workerName` and to design the intents you'll author after scaffold bootstraps the project. Set `"mode": "intent-driven"` explicitly in `selections.json`.
+- **One-to-one (default in `scaffold.mjs`)**: curate per-op tiers and `upstreamAuth`, then move to [scaffold.md](scaffold.md). Set `"mode": "one-to-one"` or omit `mode` entirely — `scaffold.mjs` defaults to one-to-one for terminal-safety.

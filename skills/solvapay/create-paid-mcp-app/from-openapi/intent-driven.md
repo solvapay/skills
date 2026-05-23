@@ -1,5 +1,7 @@
 # intent-driven — author intent tools yourself
 
+> **Recommended when an LLM agent (Cursor/Claude/etc.) is in the loop.** The agent reads `describe.mjs` output, clusters operations into higher-level intents (`manage_pet`, `find_pet`, etc.), and authors `src/tools/<intent>.ts` directly. Terminal-only invocations via `npx create-paid-mcp-app` cannot use this mode — they default to `one-to-one` (see [scaffold.md](scaffold.md)).
+
 Optional alternative to one-to-one mode. `scaffold.mjs` only bootstraps the project skeleton; you author `src/tools/<intent>.ts` files directly using the templates below.
 
 ## When to read this
@@ -15,7 +17,7 @@ Optional alternative to one-to-one mode. `scaffold.mjs` only bootstraps the proj
 | Spec has 10+ ops with obvious resource groupings (CRUD on `pets`, `orders`, etc.) | Spec is small (< 8 ops) or read-only |
 | LLM consumers are the primary audience (tool catalogue should be small + goal-shaped) | Programmatic / SDK-style consumers who already know the operationIds |
 | Multiple ops share most parameters and only differ by verb | Each op has a meaningfully distinct schema |
-| You're willing to spend ~30 min designing schemas | You want a faithful 1:1 export with no design work |
+| An LLM agent is in the loop to design and author the intent schemas | You want a faithful 1:1 export with no design work, or no agent is available |
 
 Don't pick intent-driven for tiny read-only APIs — the design overhead doesn't pay back.
 
