@@ -8,6 +8,46 @@ This skill covers **any MCP server whose tools return text or `structuredContent
 
 The only UI this skill ships is SolvaPay's built-in checkout / account / topup widget, which mounts only when the user deliberately invokes an intent tool (`upgrade` / `topup` / `manage_account`). If you also want custom graphical widgets for your own tools, use this skill for the server + paywall wiring and add the MCP Apps UI guidance at [../sdk-integration/mcp-server/guide.md](../sdk-integration/mcp-server/guide.md) and [../sdk-integration/react/guide.md](../sdk-integration/react/guide.md) — the two compose.
 
+## First-decision routing (before any scaffold)
+
+Run this gate before reading further. Picking the wrong branch is the most expensive mistake an agent can make in this skill — scaffolding into an existing project clobbers files; scaffolding into the wrong directory of a multi-package repo means later cleanup.
+
+### Detect existing project
+
+A "paid-MCP project" is a directory that has **all** of:
+
+- `package.json` with `@solvapay/mcp` (or `@solvapay/server`) in `dependencies`.
+- `wrangler.jsonc` or `wrangler.toml`.
+- `src/worker.ts` (or similar entrypoint) that calls `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` / `createSolvaPayMcpExpress`.
+
+If those exist, **do not scaffold**. Skip ahead to:
+
+1. Add new paid tools per [from-scratch/new.md](from-scratch/new.md).
+2. Run `npm run dev` (widget watch + `wrangler dev` together) and verify with `node scripts/verify.mjs http://localhost:8787`.
+3. Deploy with `npm run deploy` per [hosting/cloudflare.md](hosting/cloudflare.md).
+
+### Greenfield routing
+
+If no paid-MCP project is present:
+
+| Situation | Path |
+| --- | --- |
+| Human at a terminal, no spec — wants a working server with one placeholder tool | `npm create paid-mcp-app <name>` (asks "spec? y/n", picks from-scratch on `n`). |
+| Human at a terminal, has an OpenAPI / Swagger URL or file | `npm create paid-mcp-app <name> -- --openapi <url-or-path>` (one-to-one mode). |
+| Agent, has a spec, needs per-operation curation or intent-driven clustering | The agent path — [from-openapi/guide.md](from-openapi/guide.md), which uses `scripts/describe.mjs` + `scripts/scaffold.mjs` and accepts a hand-authored `selections.json`. |
+| Agent, no spec, hand-writing tools | [from-scratch/new.md](from-scratch/new.md) — `npm create paid-mcp-app <name> -- --no-openapi` for the scaffold, then add tools by hand. |
+
+### Inside an unrelated app repo
+
+If the cwd is inside a repo that already has its own purpose (a Next.js app, a backend service, a monorepo) **and** there is no paid-MCP server in scope, **stop and ask the user where the MCP server should live** before scaffolding. The MCP server is its own deployable unit (its own `wrangler.jsonc`, its own dependencies) — it does not belong at the app's root by default.
+
+Reasonable defaults to suggest:
+
+- A sibling directory (`../my-app-mcp`) for repos that are a single deployable.
+- A subdirectory under `apps/` or `packages/` for a monorepo.
+
+Do not silently scaffold into `./mcp/` or `./solvapay-mcp/` without confirming.
+
 ## Pre-read (required)
 
 Read [tool-design.md](tool-design.md) before writing any tool. It covers the three response modes (silent / nudge / gate), intent composition with the recovery tools, annotations, and the rule that payable tools return data for the host to render — not iframes. Both input modes route through this.

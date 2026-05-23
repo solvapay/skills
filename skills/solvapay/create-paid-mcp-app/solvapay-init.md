@@ -52,6 +52,15 @@ The CLI:
 
 Single worker, single secret slot. There is no `--env production`, no `.env.prod` — the template ships one environment by design.
 
+## API key scoping
+
+Recommend separate keys per environment and per project, even when one merchant account hosts them:
+
+- **Sandbox vs live** — always use `sk_test_…` for `wrangler dev` and any non-production deploy; never reuse a `sk_live_…` for local testing. The CLI defaults to sandbox; only swap to live during the documented go-live step.
+- **One key per MCP server / product surface** — if the account hosts multiple MCP servers (or multiple products under one account), provision a separate secret key per project so a rotation, leak, or revocation on one does not impact the others.
+- **Scope where available** — when the SolvaPay Console exposes per-product or per-environment scoping on a key, use the narrowest scope that still works for the worker. The default scope is fine for a single-product scaffold; tighten it when one account fans out to many surfaces.
+- **Rotation** — leaked or routinely-rotated keys go through the same `npx solvapay init` + `wrangler secret put` + redeploy path documented above.
+
 ## Post-rotation redeploy
 
 When this module is invoked for an **already-deployed** worker (the user rotated their key after a leak, or wants to switch accounts):

@@ -15,6 +15,27 @@ A SolvaPay-monetized MCP server on Cloudflare Workers. Two input modes share the
 
 > **Human at a terminal?** The fastest path is the published scaffolder: `npm create paid-mcp-app <name>` (or `pnpm create paid-mcp-app`, `yarn create paid-mcp-app`). It ships both from-openapi (one-to-one mode) and from-scratch modes, runs the project-local install, and invokes `solvapay init` for auth + product picker. The modules below are the agent path — they own intent-driven mode and per-operation curation, which the CLI deliberately defers.
 
+## Mandatory read order
+
+Before writing any tool code, load these files in order:
+
+1. [guide.md](guide.md) — routing decision (existing project vs greenfield, input mode, host).
+2. [tool-design.md](tool-design.md) — the response-mode contract, gate rules, `registerPayable` shape.
+3. Exactly one input-mode guide: [from-openapi/guide.md](from-openapi/guide.md) **or** [from-scratch/new.md](from-scratch/new.md) **or** [from-scratch/existing.md](from-scratch/existing.md).
+
+Do not write `registerPayable(...)`, `additionalTools`, or new files under `src/tools/` until those three files are loaded. The detailed guardrails live in `guide.md` and `tool-design.md`; this block is the entry gate, not a duplicate of them.
+
+## First-decision routing
+
+Pick one before scaffolding anything:
+
+| Situation | Action |
+| --- | --- |
+| Existing `create-paid-mcp-app` project (has `wrangler.jsonc`, `src/worker.ts` calling `createSolvaPayMcpFetch`) | **Do not scaffold.** Add tools under `src/tools/`, then run `npm run dev` and `node scripts/verify.mjs http://localhost:8787`. |
+| Greenfield, human at a terminal | Run `npm create paid-mcp-app <name>` (interactive). |
+| Greenfield, agent has an OpenAPI / Swagger doc and needs per-operation curation or intent-driven clustering | Use the agent path: [from-openapi/guide.md](from-openapi/guide.md) with `scripts/describe.mjs` + `scripts/scaffold.mjs`. |
+| Inside an unrelated app repo with no paid-MCP server in scope | **Ask** where the MCP server should live (sibling directory? `apps/mcp/`?). Do not scaffold into the app root. |
+
 ## Quick Start
 
 1. Read [guide.md](guide.md) — the router that picks input mode, host, and sequences scaffold → init → deploy → verify → test.
