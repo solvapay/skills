@@ -71,6 +71,8 @@ npm run deploy
 
 `scripts/deploy.mjs` reads `.env` and forwards `SOLVAPAY_PRODUCT_REF` / `MCP_PUBLIC_BASE_URL` / `SOLVAPAY_API_BASE_URL` as `--var` overrides to `wrangler deploy`. `UPSTREAM_API_KEY` is uploaded from `.env` on first deploy when scaffold wrote it. `SOLVAPAY_SECRET_KEY` is set via `wrangler secret put` and is **not** re-uploaded on every deploy.
 
+`npm run deploy` confirms the resolved `*.workers.dev` URL with `[Y/n]` before deploying. Add `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) to skip the prompt in CI; it's also skipped when a `custom_domain` route is configured or stdin is not a TTY.
+
 On a default `*.workers.dev` deploy, `deploy.mjs` auto-resolves `MCP_PUBLIC_BASE_URL` from the Cloudflare API before the first deploy — no manual second deploy needed. For custom domains, set `MCP_PUBLIC_BASE_URL` in `.env` explicitly (see [deploy.md](../deploy.md) step 2).
 
 ## Custom domain (optional)

@@ -22,19 +22,28 @@
  * re-run `wrangler secret put SOLVAPAY_SECRET_KEY`, redeploy.
  *
  * Pass-through: any extra CLI args (e.g. `--dry-run`) are forwarded to
- * `wrangler deploy`.
+ * `wrangler deploy`. `--yes` / `-y` are consumed by this script (to skip
+ * the URL confirm prompt) and stripped before the wrangler call.
  *
  * Pre-flight (before deploy): verifies `wrangler login` and, on accounts
  * that still need it, that a workers.dev subdomain is registered.
  * When `MCP_PUBLIC_BASE_URL` is still the localhost placeholder, resolves
  * the live `*.workers.dev` URL pre-deploy, writes it to `.env`, and
  * verifies wrangler's deploy output matches (defence in depth).
+ *
+ * URL confirm: prompts the user to confirm the resolved `*.workers.dev`
+ * URL before running `wrangler deploy`. Skipped when `wrangler.jsonc`
+ * declares a `custom_domain` route, when `--yes` / `-y` is passed, when
+ * `SOLVAPAY_DEPLOY_YES=1` is set, when running under `--dry-run`, or
+ * when stdin is not a TTY (CI). Declining prints instructions for
+ * renaming the workers.dev subdomain or configuring a custom domain.
  */
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { resolve, dirname, join } from 'node:path'
+import * as readline from 'node:readline/promises'
 import { fileURLToPath } from 'node:url'
 
 const CF_API_BASE = 'https://api.cloudflare.com/client/v4'
@@ -479,6 +488,60 @@ function verifyDeployedWorkersDevUrl(expected, output) {
   console.log(`MCP_PUBLIC_BASE_URL verified: ${deployed}`)
 }
 
+async function promptUser(question) {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
+  try {
+    return await rl.question(question)
+  } finally {
+    rl.close()
+  }
+}
+
+function printDeclineInstructions(accountId) {
+  const accountFragment = accountId ?? '<accountId>'
+  console.error(
+    [
+      '',
+      'Aborted. To pick a different deployment URL:',
+      '',
+      '  • Rename the account-wide workers.dev subdomain (affects every Worker on the account):',
+      `      https://dash.cloudflare.com/${accountFragment}/workers/subdomain`,
+      '',
+      '  • Or attach a custom domain to this Worker by adding a routes block to wrangler.jsonc:',
+      '      "routes": [{ "pattern": "mcp.your-company.com", "custom_domain": true }]',
+      '    then set MCP_PUBLIC_BASE_URL in .env to match. See deploy.md step 2.',
+      '',
+      'Re-run `npm run deploy` (optionally with --yes) once the URL is what you want.',
+      '',
+    ].join('\n'),
+  )
+}
+
+async function confirmDeploymentUrl(localEnv, preflight, { dryRun = false, yes = false } = {}) {
+  const { hasCustomDomainRoute } = readWranglerConfig()
+  if (hasCustomDomainRoute) return 'proceed'
+
+  const current = localEnv.MCP_PUBLIC_BASE_URL?.trim()
+  if (!current || isMcpPublicBaseUrlPlaceholder(current)) return 'proceed'
+  const candidate = normalizeBaseUrl(current)
+
+  if (dryRun) {
+    console.log(`[dry-run] would confirm deploy target: ${candidate}`)
+    return 'proceed'
+  }
+
+  if (yes || !process.stdin.isTTY) {
+    console.log(`Deploy target: ${candidate} (auto-confirmed)`)
+    return 'proceed'
+  }
+
+  const answer = (await promptUser(`Deploy to ${candidate} ? [Y/n] `)).trim().toLowerCase()
+  if (answer === '' || answer === 'y' || answer === 'yes') return 'proceed'
+
+  printDeclineInstructions(preflight?.accountId)
+  return 'abort'
+}
+
 function parseDotEnv(contents) {
   const env = {}
   for (const rawLine of contents.split(/\r?\n/)) {
@@ -519,16 +582,26 @@ if (!existsSync(dotEnvPath)) {
 }
 
 const dryRun = passthrough.includes('--dry-run')
+const yesFlag =
+  passthrough.includes('--yes') ||
+  passthrough.includes('-y') ||
+  process.env.SOLVAPAY_DEPLOY_YES === '1'
+
 const preflight = await runDeployPreflight({ dryRun })
 const resolvedPublicUrl = ensureMcpPublicBaseUrl(localEnv, preflight, { dryRun })
+
+const confirmation = await confirmDeploymentUrl(localEnv, preflight, { dryRun, yes: yesFlag })
+if (confirmation === 'abort') process.exit(1)
+
 ensureUpstreamApiKeySecret(localEnv, { dryRun })
 
+const wranglerPassthrough = passthrough.filter(arg => arg !== '--yes' && arg !== '-y')
 const wranglerArgs = ['deploy']
 for (const name of OVERRIDABLE_VARS) {
   const value = localEnv[name]
   if (value) wranglerArgs.push('--var', `${name}:${value}`)
 }
-wranglerArgs.push(...passthrough)
+wranglerArgs.push(...wranglerPassthrough)
 
 const result = runWrangler(wranglerArgs, { captureOutput: true })
 printCapturedWranglerOutput(result)

@@ -2,6 +2,8 @@
 
 Create a fresh MCP server with SolvaPay paywall + intent tools baked in, targeting Cloudflare Workers. Every template is inline — no cloning, no external repo dependency.
 
+> **If the user has an OpenAPI / Swagger spec for the API they want to wrap, stop and route to [../../openapi-to-mcp/guide.md](../../openapi-to-mcp/guide.md) instead.** This guide is for hand-written tools; the OpenAPI flow auto-generates them.
+
 ## Contents
 
 - Prerequisites

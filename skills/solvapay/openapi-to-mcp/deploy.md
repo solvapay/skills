@@ -30,10 +30,13 @@ npm run deploy
 
 - Pre-flights Cloudflare auth (`wrangler whoami`) and workers.dev subdomain registration (Cloudflare API `GET /accounts/{id}/workers/subdomain`). Exits with actionable messages when logged out or the subdomain is not registered yet.
 - Auto-resolves `MCP_PUBLIC_BASE_URL` when `.env` still holds the scaffold placeholder (`http://localhost:8787` or `__MCP_PUBLIC_BASE_URL__`): computes `https://<worker>.<subdomain>.workers.dev` from `wrangler.jsonc#name` + the account subdomain, writes it to `.env` before deploy, then verifies wrangler's output matches. Skipped when you already set a custom URL or `wrangler.jsonc` has a `custom_domain` route.
+- Prompts to confirm the resolved workers.dev URL (skipped under `--yes`, non-TTY, dry-run, or when a custom domain is already configured). Declining exits with dashboard + custom-domain instructions.
 - Reads `.env` and forwards `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, and `SOLVAPAY_API_BASE_URL` as `--var` overrides to `wrangler deploy`.
 - Uploads `UPSTREAM_API_KEY` from `.env` automatically when scaffold wrote it (i.e. when `selections.json.upstreamAuth.kind` was `bearer` or `apiKey`). Skipped when the key is absent from `.env` (`kind: "none"`) or already on the worker. To rotate an upstream key, update `.env` and run `wrangler secret put UPSTREAM_API_KEY` manually.
 
 `SOLVAPAY_SECRET_KEY` is **not** passed via `--var` — set it once with `wrangler secret put` as shown above.
+
+Before invoking `wrangler deploy`, the script prints the resolved workers.dev URL and asks `[Y/n]`. Press Enter to accept. Decline (`n`) to abort and follow the printed instructions — either rename the account-wide workers.dev subdomain in the Cloudflare dashboard (affects every Worker on the account), or attach a `custom_domain` route (see Step 2). Pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) to skip the prompt; it's also skipped automatically when `wrangler.jsonc` has a `custom_domain` route or stdin is not a TTY.
 
 On a default `*.workers.dev` deploy, **one** `npm run deploy` is enough — you do not need a second deploy to pin `MCP_PUBLIC_BASE_URL`.
 

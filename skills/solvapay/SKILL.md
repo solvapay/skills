@@ -73,10 +73,12 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 
 Use this if needed:
 
-"Do you want to (1) build or extend an MCP server with SolvaPay in code, (2) integrate the TypeScript SDK into a non-MCP app, (3) set up MCP Pay hosted monetization (no code), (4) set up hosted checkout for a web app, (5) configure your provider account and product in SolvaPay Console, or (6) generate an MCP server from an existing OpenAPI / Swagger spec?"
+"Do you want to (1) generate an MCP server from an existing OpenAPI / Swagger spec, (2) build or extend an MCP server with SolvaPay in code (hand-written tools), (3) integrate the TypeScript SDK into a non-MCP app, (4) set up MCP Pay hosted monetization (no code), (5) set up hosted checkout for a web app, or (6) configure your provider account and product in SolvaPay Console?"
 
 Default if still ambiguous after one question:
-- If request is MCP-focused and code-based, route to `building-mcp-app/guide.md`.
+- If request is MCP-focused and code-based:
+  - If the user mentions an OpenAPI / Swagger / spec / "wrap my API as MCP", route to `openapi-to-mcp/guide.md` first.
+  - Otherwise route to `building-mcp-app/guide.md`.
 - If request is no-code and MCP-focused, route to `mcp-pay/guide.md`.
 - If request is no-code onboarding/admin flow, route to `provider-onboarding/guide.md`.
 - Otherwise, route to `sdk-integration/guide.md`.

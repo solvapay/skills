@@ -2,6 +2,8 @@
 
 Generate a SolvaPay-wired Cloudflare Workers MCP server from an OpenAPI document. State-based router — pick the module that matches the user's current situation, not a linear walkthrough.
 
+> Arrived from [../building-mcp-app/guide.md](../building-mcp-app/guide.md)? Right place. This guide owns scaffold → init → deploy → verify → test end-to-end; hand-tuning at the end returns to [../building-mcp-app/tool-design.md](../building-mcp-app/tool-design.md).
+
 ## First time? Quickstart
 
 In Claude Code or Cursor with this skill installed:
@@ -51,7 +53,7 @@ describe → curate → scaffold → solvapay-init → deploy → verify → tes
 
 **Scaffolded project scripts** (`verify.mjs`, `test.mjs`) ship inside the generated project. Run them from the project root with `node scripts/<name>.mjs`. `verify.mjs` has no extra deps; `test.mjs` needs `( cd scripts && npm install )` once inside the project (see [test.md](test.md)).
 
-**Cloudflare prereq**: a workers.dev subdomain must be registered on your account before first deploy. `template/scripts/deploy.mjs` pre-flights and prints the dashboard URL if not — but registering up-front at `https://dash.cloudflare.com/<account>/workers/onboarding` avoids the round-trip.
+**Cloudflare prereq**: a workers.dev subdomain must be registered on your account before first deploy. `template/scripts/deploy.mjs` pre-flights and prints the dashboard URL if not — but registering up-front at `https://dash.cloudflare.com/<account>/workers/onboarding` avoids the round-trip. `deploy.mjs` also confirms the resolved workers.dev URL on every deploy so you don't accidentally inherit a subdomain from an unrelated worker — pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) for non-interactive use.
 
 ## What you gather during curate (between `describe.mjs` and writing `selections.json`)
 
