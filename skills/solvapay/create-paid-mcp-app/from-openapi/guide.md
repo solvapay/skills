@@ -4,7 +4,21 @@ Generate a SolvaPay-wired Cloudflare Workers MCP server from an OpenAPI document
 
 > Arrived from [../guide.md](../guide.md)? Right place. This guide owns scaffold → init → deploy → verify → test end-to-end; hand-tuning at the end returns to [../tool-design.md](../tool-design.md).
 
-## First time? Quickstart
+## Human-driven path: `npm create paid-mcp-app`
+
+For users at a terminal who already have a spec and don't need intent-driven clustering, the fastest path is the published scaffolder:
+
+```bash
+npm create paid-mcp-app my-mcp -- --openapi <url-or-path>
+# or: pnpm create paid-mcp-app my-mcp --openapi <url-or-path>
+# or: yarn create paid-mcp-app my-mcp --openapi <url-or-path>
+```
+
+The scaffolder handles spec parsing, `selections.json` defaults (one-to-one mode, `suggestedTier` per operation), the project-local `npm install`, and the browser-based `solvapay init` (auth + product picker + `.env` writes) in one pass. Use that path whenever the user is invoking from a shell rather than from an agent.
+
+The state-based modules below are still the right path for agents — they own intent-driven mode, per-operation tier curation, and post-scaffold hand-tuning, none of which the CLI exposes in v1.
+
+## Agent-driven path
 
 In Claude Code or Cursor with this skill installed:
 
@@ -41,15 +55,17 @@ describe → curate → scaffold → solvapay-init → deploy → verify → tes
 
 ## One-time setup
 
-**Skill scripts** (`describe.mjs`, `scaffold.mjs`) share a single runtime dep (`@apidevtools/swagger-parser`). Install it once per skill checkout:
+**Scaffolder scripts** (`describe.mjs`, `scaffold.mjs`) live inside the published `create-paid-mcp-app` package (`packages/create-paid-mcp-app/scripts/` in the solvapay-sdk monorepo). They share a single runtime dep (`@apidevtools/swagger-parser`) which the CLI installs lazily on first use — no manual `npm install` step required.
+
+For agents working directly against the package in a local checkout, install the helper deps once:
 
 ```bash
-( cd skills/skills/solvapay/create-paid-mcp-app/from-openapi/scripts && npm install )
+( cd solvapay-sdk/packages/create-paid-mcp-app/scripts && npm install )
 ```
 
 **Scaffolded project scripts** (`verify.mjs`, `test.mjs`) ship inside the generated project. Run them from the project root with `node scripts/<name>.mjs`. `verify.mjs` has no extra deps; `test.mjs` needs `( cd scripts && npm install )` once inside the project (see [test.md](test.md)).
 
-**Cloudflare prereq**: a workers.dev subdomain must be registered on your account before first deploy. `template/scripts/deploy.mjs` pre-flights and prints the dashboard URL if not — but registering up-front at `https://dash.cloudflare.com/<account>/workers/onboarding` avoids the round-trip. `deploy.mjs` also confirms the resolved workers.dev URL on every deploy so you don't accidentally inherit a subdomain from an unrelated worker — pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) for non-interactive use.
+**Cloudflare prereq**: a workers.dev subdomain must be registered on your account before first deploy. `scripts/deploy.mjs` (shipped inside the scaffolded project) pre-flights and prints the dashboard URL if not — but registering up-front at `https://dash.cloudflare.com/<account>/workers/onboarding` avoids the round-trip. `deploy.mjs` also confirms the resolved workers.dev URL on every deploy so you don't accidentally inherit a subdomain from an unrelated worker — pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) for non-interactive use.
 
 ## What you gather during curate (between `describe.mjs` and writing `selections.json`)
 

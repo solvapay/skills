@@ -1,93 +1,124 @@
-# Scaffold a New MCP Server with SolvaPay
+# From-scratch: scaffold and extend
 
-Create a fresh MCP server with SolvaPay paywall + intent tools baked in, targeting Cloudflare Workers. Every template is inline — no cloning, no external repo dependency.
+The fastest way to start a SolvaPay-paywalled MCP server with no spec is the published scaffolder:
+
+```bash
+npm create paid-mcp-app my-mcp -- --no-openapi
+# or: pnpm create paid-mcp-app my-mcp --no-openapi
+# or: yarn create paid-mcp-app my-mcp --no-openapi
+```
 
 > **If the user has an OpenAPI / Swagger spec for the API they want to wrap, stop and route to [../from-openapi/guide.md](../from-openapi/guide.md) instead.** This guide is for hand-written tools; the OpenAPI flow auto-generates them.
 
-## Contents
+The scaffolder asks for a project name + a camelCase tool name (default `helloTool`), then drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
 
-- Prerequisites
-- Pre-read
-- File-creation order
-- Handoff to deploy
+This guide picks up **after** the scaffolder finishes — it's the "I have a fresh scaffold; how do I add more paid tools and ship?" reference.
 
-## Prerequisites
+## What the scaffolder produced
 
-- Node.js 20+, `pnpm` 9.6+ (or `npm` / `yarn` — examples use `pnpm`).
-- Cloudflare account with `wrangler` CLI authenticated: `npx wrangler login`.
-- SolvaPay account with:
-  - A secret key (`sk_...`). Dashboard -> **API Keys** -> secret key.
-  - A product ref (`prd_...`). Dashboard -> **Products** -> create one if none exists.
+A typical from-scratch tree:
 
-If the SolvaPay product doesn't exist yet, pause and route to [../../provider-onboarding/guide.md](../../provider-onboarding/guide.md) to create it.
+```
+my-mcp/
+  package.json           wrangler / vite / @solvapay/mcp / @solvapay/react / zod
+  wrangler.jsonc
+  tsconfig.json
+  vite.config.ts
+  mcp-app.html
+  .env                   SOLVAPAY_SECRET_KEY / SOLVAPAY_PRODUCT_REF / MCP_PUBLIC_BASE_URL
+  .env.example
+  .gitignore             excludes .env
+  scripts/
+    deploy.mjs
+    test.mjs             one-time `( cd scripts && npm install )` required
+    verify.mjs
+  src/
+    worker.ts            createSolvaPayMcpFetch wrapper; do not edit unless you need different CSP/CORS
+    mcp-app.tsx          default checkout/account/topup widget
+    assets.d.ts
+    lib/upstreamFetch.ts
+    tools/
+      <toolName>.ts      placeholder paid tool with TODO body
+      index.ts           registerTools aggregator wired into worker.ts
+```
+
+`SOLVAPAY_SECRET_KEY` and `SOLVAPAY_PRODUCT_REF` are already filled by `solvapay init` — the project is sandbox-ready before you write any business logic.
 
 ## Pre-read
 
 Before writing any tool code, read [../tool-design.md](../tool-design.md). It covers the three response modes, intent composition, annotations, and the rule that payable tools return data for the host to render — not iframes. This is load-bearing for the success of the scaffolded server.
 
-## File-creation order
+## Add another paid tool
 
-Create a new project directory, then write each file from the **Templates** section of [../hosting/cloudflare.md](../hosting/cloudflare.md) into it. Follow this order so each file has the context it depends on before it's referenced:
+1. Create `src/tools/<newTool>.ts`:
 
-1. **`package.json`** — set `name` to your project slug. Keep `dependencies`, `devDependencies`, and `scripts` verbatim from the template.
-2. **`tsconfig.json`** — paste verbatim.
-3. **`wrangler.jsonc`** — set `name` to your Worker slug. Set `routes[0].pattern` to your custom hostname, or remove the `routes` block entirely to serve on the default `*.workers.dev` URL. Keep `vars` placeholders — they're overridden at deploy time.
-4. **`vite.config.ts`** — paste verbatim.
-5. **`mcp-app.html`** — paste verbatim.
-6. **`src/assets.d.ts`** — paste verbatim.
-7. **`src/mcp-app.tsx`** — paste verbatim. This is the default SolvaPay checkout / account / topup widget and usually needs no edits. Remember: the widget renders only when the user deliberately invokes an intent tool (`upgrade` / `topup` / `manage_account`); it is not a gate surface.
-8. **`src/worker.ts`** — paste verbatim, then update the `resourceUri` string to `ui://<your-worker-slug>/mcp-app.html` (match the `name` in `wrangler.jsonc`).
-9. **`scripts/deploy.mjs`** — paste verbatim.
-10. **`.env.example`** — paste verbatim.
-11. **`.gitignore`** — paste verbatim.
+   ```ts
+   import { z } from 'zod'
+   import type { AdditionalToolsContext } from '@solvapay/mcp'
 
-## Add your tools
+   export function registerGetItem(ctx: AdditionalToolsContext): void {
+     ctx.registerPayable('get_item', {
+       title: 'Get item',
+       description:
+         'Returns the requested item. 1 credit per call; when the customer is out of balance, returns a text-only purchase-required narration naming the `upgrade` or `topup` recovery tool.',
+       schema: { id: z.string().min(1) },
+       annotations: { readOnlyHint: true, idempotentHint: true },
+       handler: async ({ id }, c) => {
+         const data = await loadItem(id)
+         const narration = `Item ${id}: ${summarize(data)}. Render as a card with the key fields.`
+         return c.respond(data, { text: narration })
+       },
+     })
+   }
+   ```
 
-Create `src/tools.ts` with your paid tools:
+2. Import and call it from `src/tools/index.ts`:
 
-```ts
-import { z } from 'zod'
-import type { AdditionalToolsContext } from '@solvapay/mcp'
+   ```ts
+   import { registerGetItem } from './getItem'
 
-export function registerMyTools(ctx: AdditionalToolsContext): void {
-  const { registerPayable } = ctx
+   export function registerTools(ctx: AdditionalToolsContext, _env: Env): void {
+     register__TOOL_NAME_PASCAL__(ctx)
+     registerGetItem(ctx)
+   }
+   ```
 
-  registerPayable('get_item', {
-    title: 'Get item',
-    description:
-      'Returns the requested item. 1 credit per call; when the customer is out of balance, returns a text-only purchase-required narration naming the `upgrade` or `topup` recovery tool.',
-    schema: { id: z.string().min(1) },
-    annotations: { readOnlyHint: true, idempotentHint: true },
-    handler: async ({ id }, ctx) => {
-      const data = await loadItem(id)
-      const narration = `Item ${id}: ${summarize(data)}. Render as a card with the key fields.`
-      return ctx.respond(data, { text: narration })
-    },
-  })
-}
-```
+   Drop the underscore prefix on `_env` if your tool reads `env.UPSTREAM_API_KEY` or another binding.
 
-Then wire it into `src/worker.ts` by adding the import and the `additionalTools` field to the `createSolvaPayMcpFetch` call:
+3. If the tool needs upstream HTTP calls, use the shipped helper:
 
-```ts
-import { registerMyTools } from './tools'
+   ```ts
+   import { upstreamFetchJson } from '../lib/upstreamFetch'
+   ```
 
-// inside createSolvaPayMcpFetch({...}):
-additionalTools: registerMyTools,
-```
+   It sends `Accept: application/json`, throws `UpstreamError` on non-2xx / non-JSON, and carries `{ status, contentType, bodySnippet }` on the thrown error so the MCP `isError` envelope tells the LLM exactly why upstream rejected the call.
 
 For the full tool design rules (response modes, narration shape, annotations, naming), see [../tool-design.md](../tool-design.md).
 
+## Replace the placeholder
+
+The scaffolder left a TODO body inside `src/tools/<toolName>.ts`. Treat it as a starting point:
+
+- Rename the function and tool name if you picked a generic placeholder during scaffold.
+- Replace the sample `respond({ ok: true, echoed: ... })` body with your real business logic.
+- Update the `description` to something the LLM can use — it's the only signal the model gets about when to invoke this tool.
+
 ## Handoff to deploy
 
-With all files written, jump to [../hosting/cloudflare.md](../hosting/cloudflare.md) **Step 3 (Install)** onward for install, env, secret, build, local dev, deploy, and gate smoke test.
+With your tools written, deploy:
+
+```bash
+npm run deploy   # uses scripts/deploy.mjs; auto-resolves the workers.dev URL
+```
+
+Then verify and smoke-test (see [../hosting/cloudflare.md](../hosting/cloudflare.md) Step 5 onward for `verify.mjs` / `test.mjs` usage).
 
 ## Task progress
 
-- [ ] Verify prerequisites (Node, pnpm, `wrangler login`, SolvaPay product ref)
+- [ ] Run `npm create paid-mcp-app <name> -- --no-openapi` (or equivalent for pnpm/yarn)
 - [ ] Read [../tool-design.md](../tool-design.md)
-- [ ] Create project directory
-- [ ] Write all files from [../hosting/cloudflare.md](../hosting/cloudflare.md) templates
-- [ ] Add `src/tools.ts` with your paid tools
-- [ ] Wire `additionalTools: registerMyTools` into `src/worker.ts`
-- [ ] Continue to [../hosting/cloudflare.md](../hosting/cloudflare.md) Step 3 for install + deploy
+- [ ] Replace the placeholder tool body in `src/tools/<toolName>.ts`
+- [ ] Add additional paid tools under `src/tools/` and wire them into `src/tools/index.ts`
+- [ ] `npm run deploy` — verify the worker boots
+- [ ] `node scripts/verify.mjs <url>` — confirm MCP contract
+- [ ] `( cd scripts && npm install ) && node scripts/test.mjs` — exercise each tool

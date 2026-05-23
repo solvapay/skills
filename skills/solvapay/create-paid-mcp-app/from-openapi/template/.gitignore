@@ -1,7 +1,0 @@
-dist/
-src/assets/mcp-app.html
-node_modules/
-.wrangler/
-.env
-.env.local
-!.env.example

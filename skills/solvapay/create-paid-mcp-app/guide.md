@@ -37,6 +37,18 @@ Ask once:
 
 If the user has a REST API but no spec yet, the OpenAPI flow can still help — `from-openapi/guide.md` opens with a "no spec yet" branch that walks the upstream API into one. Default to OpenAPI when in doubt; the spec-first path produces a typed server with less hand-coding.
 
+### Human-driven shortcut: `npm create paid-mcp-app`
+
+For users at a terminal (not inside an agent), point them at the published scaffolder before diving into the agent-only modules:
+
+```bash
+npm create paid-mcp-app my-mcp                              # interactive: asks spec? y/n
+npm create paid-mcp-app my-mcp -- --openapi <url-or-path>   # from-openapi (one-to-one mode)
+npm create paid-mcp-app my-mcp -- --no-openapi              # from-scratch with placeholder tool
+```
+
+The CLI ships with both modes, runs the project-local `npm install`, and invokes `solvapay init` for browser auth + product picker in one pass. Use it when the user is invoking SolvaPay from a shell rather than from an LLM. Intent-driven mode (one MCP tool spanning multiple upstream operations) is intentionally only available via the agent path below — it needs an LLM to author the resulting `src/tools/*.ts` files.
+
 ## Hosting
 
 Cloudflare Workers is the recommended default and the only host with inline templates in this skill. Confirm:
