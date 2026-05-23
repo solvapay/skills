@@ -13,7 +13,9 @@ description: >
 
 A SolvaPay-monetized MCP server on Cloudflare Workers. Two input modes share the same destination: OpenAPI auto-generation, or hand-written tools.
 
-> **Human at a terminal?** The fastest path is the published scaffolder: `npm create paid-mcp-app <name>` (or `pnpm create paid-mcp-app`, `yarn create paid-mcp-app`). It ships both from-openapi (one-to-one mode) and from-scratch modes, runs the project-local install, and invokes `solvapay init` for auth + product picker. The modules below are the agent path — they own intent-driven mode and per-operation curation, which the CLI deliberately defers.
+> **Human at a terminal?** Fastest path: `npm create paid-mcp-app <name>` (or `pnpm`/`yarn create paid-mcp-app`). Ships from-openapi (one-to-one) and from-scratch modes, runs install + `solvapay init` in one pass.
+>
+> **Agent (Claude / Cursor / etc.)?** Use the agent path: `scripts/describe.mjs` + `scripts/scaffold.mjs` per [from-openapi/guide.md](from-openapi/guide.md). It owns intent-driven clustering, per-operation curation, and hand-tuned narration — none of which the CLI exposes. The CLI cannot author `src/tools/*.ts` because that authoring step requires an LLM.
 
 ## Mandatory read order
 
@@ -33,7 +35,7 @@ Pick one before scaffolding anything:
 | --- | --- |
 | Existing `create-paid-mcp-app` project (has `wrangler.jsonc`, `src/worker.ts` calling `createSolvaPayMcpFetch`) | **Do not scaffold.** Add tools under `src/tools/`, then run `npm run dev` and `node scripts/verify.mjs http://localhost:8787`. |
 | Greenfield, human at a terminal | Run `npm create paid-mcp-app <name>` (interactive). |
-| Greenfield, agent has an OpenAPI / Swagger doc and needs per-operation curation or intent-driven clustering | Use the agent path: [from-openapi/guide.md](from-openapi/guide.md) with `scripts/describe.mjs` + `scripts/scaffold.mjs`. |
+| Greenfield, agent has an OpenAPI / Swagger doc | **Always use the agent path**: [from-openapi/guide.md](from-openapi/guide.md) with `scripts/describe.mjs` + `scripts/scaffold.mjs`. The published `npm create paid-mcp-app` CLI is for humans at a terminal — it only emits one-to-one tools and cannot author intent-driven dispatchers (those require the LLM). The agent path also supports one-to-one mode via `"mode": "one-to-one"` in `selections.json`, so falling back is one flag away. |
 | Inside an unrelated app repo with no paid-MCP server in scope | **Ask** where the MCP server should live (sibling directory? `apps/mcp/`?). Do not scaffold into the app root. |
 
 ## Quick Start

@@ -34,7 +34,7 @@ If no paid-MCP project is present:
 | --- | --- |
 | Human at a terminal, no spec — wants a working server with one placeholder tool | `npm create paid-mcp-app <name>` (asks "spec? y/n", picks from-scratch on `n`). |
 | Human at a terminal, has an OpenAPI / Swagger URL or file | `npm create paid-mcp-app <name> -- --openapi <url-or-path>` (one-to-one mode). |
-| Agent, has a spec, needs per-operation curation or intent-driven clustering | The agent path — [from-openapi/guide.md](from-openapi/guide.md), which uses `scripts/describe.mjs` + `scripts/scaffold.mjs` and accepts a hand-authored `selections.json`. |
+| Agent, has a spec | **Always the agent path** — [from-openapi/guide.md](from-openapi/guide.md), using `scripts/describe.mjs` + `scripts/scaffold.mjs` with a hand-authored `selections.json`. The published CLI only emits one-to-one tools and cannot author intent-driven dispatchers (those require the LLM). One-to-one is still available via `"mode": "one-to-one"` in `selections.json` when clustering isn't worth it. |
 | Agent, no spec, hand-writing tools | [from-scratch/new.md](from-scratch/new.md) — `npm create paid-mcp-app <name> -- --no-openapi` for the scaffold, then add tools by hand. |
 
 ### Inside an unrelated app repo

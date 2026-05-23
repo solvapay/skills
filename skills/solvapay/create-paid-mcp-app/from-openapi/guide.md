@@ -4,21 +4,7 @@ Generate a SolvaPay-wired Cloudflare Workers MCP server from an OpenAPI document
 
 > Arrived from [../guide.md](../guide.md)? Right place. This guide owns scaffold → init → deploy → verify → test end-to-end; hand-tuning at the end returns to [../tool-design.md](../tool-design.md).
 
-## Human-driven path: `npm create paid-mcp-app`
-
-For users at a terminal who already have a spec and don't need intent-driven clustering, the fastest path is the published scaffolder:
-
-```bash
-npm create paid-mcp-app my-mcp -- --openapi <url-or-path>
-# or: pnpm create paid-mcp-app my-mcp --openapi <url-or-path>
-# or: yarn create paid-mcp-app my-mcp --openapi <url-or-path>
-```
-
-The scaffolder handles spec parsing, `selections.json` defaults (one-to-one mode, `suggestedTier` per operation), the project-local `npm install`, and the browser-based `solvapay init` (auth + product picker + `.env` writes) in one pass. Use that path whenever the user is invoking from a shell rather than from an agent.
-
-The state-based modules below are still the right path for agents — they own intent-driven mode, per-operation tier curation, and post-scaffold hand-tuning, none of which the CLI exposes in v1.
-
-## Agent-driven path
+## Agent-driven path (this is you)
 
 In Claude Code or Cursor with this skill installed:
 
@@ -26,7 +12,21 @@ In Claude Code or Cursor with this skill installed:
 - **Want to expose an existing REST API but no spec yet**: say _"Wrap my REST API at <url> as MCP tools"_ and the agent will help you obtain a spec first
 - **Already scaffolded; need to deploy / verify / test**: say _"My scaffolded MCP server is at `<path>`; help me deploy/verify/test"_
 
-The skill auto-loads and routes to the appropriate module below.
+The skill auto-loads and routes to the appropriate state-based module below (`describe.mjs` → curate → `scaffold.mjs` → `solvapay-init` → deploy → verify → test). Intent-driven clustering, per-operation tier curation, and hand-tuned narration all live on this path.
+
+**Do not use `npm create paid-mcp-app` from an agent context.** The published CLI cannot author `src/tools/*.ts` because that step requires an LLM — it only ever emits one-to-one tools (one file per spec operation), which is rarely the right shape for a host LLM to navigate when the spec has more than a handful of operations.
+
+## Human shortcut (terminal users only)
+
+For humans at a terminal who already have a spec and explicitly want one-to-one tools, the published scaffolder runs the whole flow in one command:
+
+```bash
+npm create paid-mcp-app my-mcp -- --openapi <url-or-path>
+# or: pnpm create paid-mcp-app my-mcp --openapi <url-or-path>
+# or: yarn create paid-mcp-app my-mcp --openapi <url-or-path>
+```
+
+It handles spec parsing, `selections.json` defaults (one-to-one mode, `suggestedTier` per operation), the project-local `npm install`, and the browser-based `solvapay init` (auth + product picker + `.env` writes) in one pass. Use this only when you are a human running it from a shell.
 
 ## Guardrails
 
