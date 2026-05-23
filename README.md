@@ -59,7 +59,7 @@ solvapay/
 ├── SKILL.md                     # Router and shared context
 ├── AGENTS.md -> SKILL.md        # Claude Code compatibility
 ├── metadata.json                # skills.sh leaderboard metadata
-├── create-paid-mcp-app/         # Build a paid MCP app on Cloudflare Workers
+├── create-mcp-app/              # Create or scaffold a paid MCP app on Cloudflare Workers
 │   ├── SKILL.md                 # Frontmatter entry point
 │   ├── AGENTS.md -> SKILL.md    # Claude Code compatibility
 │   ├── guide.md                 # Two-mode router (from-openapi / from-scratch)

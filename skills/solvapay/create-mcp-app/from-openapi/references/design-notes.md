@@ -1,4 +1,4 @@
-# Design notes: create-paid-mcp-app/from-openapi skill ↔ template
+# Design notes: create-mcp-app/from-openapi skill ↔ template
 
 Rationale for individual choices in the template + scaffold contract. Maintainer-facing; the routine happy-path agent doesn't load this. Pair with [tool-template.md](tool-template.md), which states *what* the contract is.
 

@@ -1,6 +1,6 @@
 # intent-driven — author intent tools yourself
 
-> **Recommended when an LLM agent (Cursor/Claude/etc.) is in the loop.** The agent reads `describe.mjs` output, clusters operations into higher-level intents (`manage_pet`, `find_pet`, etc.), and authors `src/tools/<intent>.ts` directly. Terminal-only invocations via `npx create-paid-mcp-app` cannot use this mode — they default to `one-to-one` (see [scaffold.md](scaffold.md)).
+> **Recommended when an LLM agent (Cursor/Claude/etc.) is in the loop.** The agent reads `describe.mjs` output, clusters operations into higher-level intents (`manage_pet`, `find_pet`, etc.), and authors `src/tools/<intent>.ts` directly. Terminal-only invocations via `npx create-solvapay -- --type mcp` cannot use this mode — they default to `one-to-one` (see [scaffold.md](scaffold.md)).
 
 Optional alternative to one-to-one mode. `scaffold.mjs` only bootstraps the project skeleton; you author `src/tools/<intent>.ts` files directly using the templates below.
 

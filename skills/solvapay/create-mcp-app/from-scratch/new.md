@@ -3,9 +3,9 @@
 The fastest way to start a SolvaPay-paywalled MCP server with no spec is the published scaffolder:
 
 ```bash
-npm create paid-mcp-app my-mcp -- --no-openapi
-# or: pnpm create paid-mcp-app my-mcp --no-openapi
-# or: yarn create paid-mcp-app my-mcp --no-openapi
+npm create solvapay my-mcp -- --type mcp --no-openapi
+# or: pnpm create solvapay my-mcp -- --type mcp --no-openapi
+# or: yarn create solvapay my-mcp -- --type mcp --no-openapi
 ```
 
 > **If the user has an OpenAPI / Swagger spec for the API they want to wrap, stop and route to [../from-openapi/guide.md](../from-openapi/guide.md) instead.** This guide is for hand-written tools; the OpenAPI flow auto-generates them.
@@ -115,7 +115,7 @@ Then verify and smoke-test (see [../hosting/cloudflare.md](../hosting/cloudflare
 
 ## Task progress
 
-- [ ] Run `npm create paid-mcp-app <name> -- --no-openapi` (or equivalent for pnpm/yarn)
+- [ ] Run `npm create solvapay <name> -- --type mcp --no-openapi` (or equivalent for pnpm/yarn)
 - [ ] Read [../tool-design.md](../tool-design.md)
 - [ ] Replace the placeholder tool body in `src/tools/<toolName>.ts`
 - [ ] Add additional paid tools under `src/tools/` and wire them into `src/tools/index.ts`

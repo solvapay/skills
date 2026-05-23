@@ -1,6 +1,6 @@
 # Behavioral contract: skill ↔ template
 
-What `scaffold.mjs`, `verify.mjs`, and `test.mjs` assume the template at `create-paid-mcp-app/from-openapi/template/` provides. The template can evolve without breaking the skill as long as this contract holds.
+What `scaffold.mjs`, `verify.mjs`, and `test.mjs` assume the template at `create-solvapay/templates/mcp/from-openapi/` provides. The template can evolve without breaking the skill as long as this contract holds.
 
 Rationale (why arrow wrapper, why single environment, etc.) lives in [design-notes.md](design-notes.md) — maintainer-only.
 
