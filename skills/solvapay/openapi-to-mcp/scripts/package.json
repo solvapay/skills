@@ -1,0 +1,10 @@
+{
+  "name": "@solvapay-skills/openapi-to-mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal runtime deps for openapi-to-mcp skill scripts. Run `npm install` once inside this directory before invoking describe.mjs / scaffold.mjs / test.mjs.",
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0"
+  }
+}

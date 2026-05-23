@@ -12,6 +12,7 @@ The only UI this skill covers is SolvaPay's built-in checkout / account / topup 
 
 - Guardrails
 - Required pre-read
+- OpenAPI fast path
 - Scenarios
 - Hosting
 - Handoff
@@ -30,6 +31,16 @@ The only UI this skill covers is SolvaPay's built-in checkout / account / topup 
 
 Before writing any tool or deploying anything, read [tool-design.md](tool-design.md). It covers the three response modes (silent / nudge / gate), intent composition with the recovery tools, annotations, and the rule that payable tools return data for the host to render — not iframes.
 
+## OpenAPI fast path
+
+Before picking a scenario, ask:
+
+> "Do you have an OpenAPI / Swagger document for the API you want to expose as MCP tools? (yes / no)"
+
+If yes, hand off to [../openapi-to-mcp/guide.md](../openapi-to-mcp/guide.md). That skill auto-generates a Cloudflare Workers MCP server from the spec in one-to-one or intent-driven mode, then hands back to [tool-design.md](tool-design.md) for hand-tuning. Don't continue with the Scenarios below — the OpenAPI flow owns scaffold + paywall wiring + deploy end-to-end.
+
+If no, continue with Scenarios.
+
 ## Scenarios
 
 Pick one. If the user's intent is ambiguous, ask:
@@ -38,6 +49,7 @@ Pick one. If the user's intent is ambiguous, ask:
 
 | Scenario | Route to |
 | --- | --- |
+| Generate from an OpenAPI / Swagger spec | [../openapi-to-mcp/guide.md](../openapi-to-mcp/guide.md) |
 | Scaffold a new MCP server with SolvaPay baked in | [new-mcp/guide.md](new-mcp/guide.md) |
 | Add SolvaPay (paywall + intent tools + OAuth bridge) to an MCP server that already exists | [existing-mcp/guide.md](existing-mcp/guide.md) |
 
@@ -75,7 +87,8 @@ When the chosen scenario + host guide completes, confirm:
 
 - [ ] Confirm scope (data-returning tools, not custom UI)
 - [ ] Read [tool-design.md](tool-design.md)
-- [ ] Pick scenario: new vs existing MCP
+- [ ] Ask whether user has an OpenAPI / Swagger spec; if yes, route to [../openapi-to-mcp/guide.md](../openapi-to-mcp/guide.md)
+- [ ] Otherwise pick scenario: new vs existing MCP
 - [ ] Confirm host: Cloudflare (default) or alternatives
 - [ ] Complete the chosen scenario + host guide
 - [ ] Verify success + gate paths in sandbox
