@@ -39,7 +39,7 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | Field | Source | Notes |
 | --- | --- | --- |
 | `workerName` | Agent suggests, user confirms | Kebab-case, no spaces. Used as Wrangler `name`. |
-| `solvapayProductRef` | **Optional** | Omit during curate — `npx solvapay init` lists account products and prompts (or auto-picks). Include only when you want a specific ref written at scaffold time. If the user has no product yet, route to [solvapay/provider-onboarding/guide.md](../../provider-onboarding/guide.md) or [solvapay/mcp-pay/guide.md](../../mcp-pay/guide.md) before init. |
+| `solvapayProductRef` | **Optional** | Omit during curate — `npx solvapay init` lists account products and prompts (or auto-picks). Include only when you want a specific ref written at scaffold time. If the user has no product yet, ask them to create one in SolvaPay Console (https://app.solvapay.com) before init. |
 | `mcpPublicBaseUrl` | Agent default + deploy auto-resolve | Use `http://localhost:8787` initially. `deploy.mjs` auto-resolves the live `*.workers.dev` URL on first deploy when still a placeholder. For custom domains, set explicitly before deploy (see [../deploy.md](../deploy.md) step 2). |
 | `mode` | **Optional**, agent asks user once after `describe.mjs` (recommends `'intent-driven'` when running inside the skill) | `'one-to-one'` (default) for faithful per-op mapping; `'intent-driven'` for agent-authored clusters. See [../intent-driven.md](../intent-driven.md). The standalone `npx create-solvapay -- --type mcp` CLI always writes `'one-to-one'`. |
 | `upstreamAuth.kind` | Agent reads from `describe.mjs` security schemes, then confirms with user | One of `none` / `bearer` / `apiKey`. |

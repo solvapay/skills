@@ -78,15 +78,10 @@ solvapay/
 │   ├── reference.md             # Package map and API operations
 │   ├── webhooks.md              # Signature verification and events
 │   └── {nextjs,react,express,mcp-server}/guide.md
-├── mcp-pay/                     # No-code hosted MCP monetization
-│   └── guide.md
 ├── website-checkout/            # Hosted checkout for web apps
 │   ├── guide.md                 # Entry point with stack support
 │   ├── nextjs/{guide,01-setup,02-auth,03-checkout}.md
 │   └── react/guide.md
-├── lovable-checkout/            # Paste-in checkout for Lovable (preview)
-│   └── guide.md
-└── provider-onboarding/         # Account onboarding through go-live
-    ├── guide.md                 # Entry point with step overview
-    └── {01-create-account,02-create-product-and-plan,03-test-in-sandbox,04-go-live}.md
+└── lovable-checkout/            # Paste-in checkout for Lovable (preview)
+    └── guide.md
 ```

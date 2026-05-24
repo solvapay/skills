@@ -106,7 +106,7 @@ The OpenAPI flow targets Cloudflare end-to-end; the from-scratch flows reference
 
 Both modes call [solvapay-init.md](solvapay-init.md) after scaffold to populate `SOLVAPAY_SECRET_KEY` (via `npx solvapay init` browser auth) and `SOLVAPAY_PRODUCT_REF` (via interactive product picker). Read that file once you have a scaffolded project.
 
-If the SolvaPay product doesn't exist yet, route to [../provider-onboarding/guide.md](../provider-onboarding/guide.md) before init.
+If the SolvaPay product doesn't exist yet, ask the user to create one in SolvaPay Console (https://app.solvapay.com) before init.
 
 ## Documentation Sources
 

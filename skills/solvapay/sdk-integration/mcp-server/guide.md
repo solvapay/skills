@@ -2,9 +2,7 @@
 
 Add paywall protection and self-service tools to an MCP server using `@solvapay/mcp` (batteries-included factory) or `@solvapay/server` (low-level primitives).
 
-This guide is for SDK-based integrations where you self-host the MCP server and add paywall/auth
-logic in code. If you want SolvaPay to host auth, billing, and paywall enforcement through a
-managed proxy (no paywall code in your server), use [MCP Pay guide](../../mcp-pay/guide.md).
+This guide is for SDK-based MCP server integrations where you self-host the server and add paywall/auth logic in code.
 
 ## Contents
 

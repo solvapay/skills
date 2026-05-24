@@ -5,7 +5,7 @@ Implement hosted checkout for web apps with minimal PCI surface.
 ## Purpose
 
 Use this guide when the user wants hosted checkout + customer portal quickly in a web app.
-This guide is for web checkout flows, not Hosted MCP Pay configuration.
+This guide is for web checkout flows, not paid MCP server implementation.
 
 ## Stack Support
 

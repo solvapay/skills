@@ -38,7 +38,7 @@ The CLI:
 
 - Populate `MCP_PUBLIC_BASE_URL`. Scaffold writes `http://localhost:8787`; `deploy.mjs` auto-resolves the live workers.dev URL on first deploy.
 - Populate `UPSTREAM_API_KEY`. Scaffold writes it from `selections.upstreamAuth.key`.
-- Create a product. If the account has none, init warns and points to Console — route to [../provider-onboarding/guide.md](../provider-onboarding/guide.md) first.
+- Create a product. If the account has none, init warns and points to Console at https://app.solvapay.com — direct the user there to create one first.
 - Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md) deploy section).
 
 ## Sandbox vs live

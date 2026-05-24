@@ -25,7 +25,7 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 
 - A running MCP server you control, built on `@modelcontextprotocol/sdk` or an MCP-compatible framework.
 - Ability to add a dependency (`@solvapay/mcp` + `@solvapay/server`) and edit the HTTP entrypoint.
-- SolvaPay account with a secret key (`sk_...`) and a product ref (`prd_...`). If the product doesn't exist yet, pause and route to [../../provider-onboarding/guide.md](../../provider-onboarding/guide.md).
+- SolvaPay account with a secret key (`sk_...`) and a product ref (`prd_...`). If the product doesn't exist yet, pause and ask the user to create one in SolvaPay Console (https://app.solvapay.com).
 
 ## Audit
 
