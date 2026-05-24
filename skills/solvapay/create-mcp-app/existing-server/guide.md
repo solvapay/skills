@@ -1,6 +1,13 @@
-# Integrate SolvaPay Into an Existing MCP Server
+# Add SolvaPay to an existing MCP server
 
 Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already exists. The low-level wiring lives in [../../sdk-integration/mcp-server/guide.md](../../sdk-integration/mcp-server/guide.md); this guide audits your server and routes you there.
+
+## When to read this
+
+- You have an MCP server you control (any runtime, any transport) and want to add a SolvaPay paywall.
+- Your server was built directly on `@modelcontextprotocol/sdk` or an MCP-compatible framework — **not** via `npm create solvapay`.
+- If you want to scaffold a new paid MCP server from an OpenAPI spec, stop and route to [../from-openapi/guide.md](../from-openapi/guide.md).
+- If you want to scaffold a new paid MCP server by hand (no spec), stop and route to [../from-scratch/guide.md](../from-scratch/guide.md).
 
 ## Contents
 

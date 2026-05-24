@@ -62,7 +62,7 @@ solvapay/
 ├── create-mcp-app/              # Create or scaffold a paid MCP app on Cloudflare Workers
 │   ├── SKILL.md                 # Frontmatter entry point
 │   ├── AGENTS.md -> SKILL.md    # Claude Code compatibility
-│   ├── guide.md                 # Two-mode router (from-openapi / from-scratch)
+│   ├── guide.md                 # Three-mode router (from-openapi / from-scratch / existing-server)
 │   ├── tool-design.md           # Shared tool-design contract (load-bearing)
 │   ├── solvapay-init.md         # Credential bootstrap (npx solvapay init)
 │   ├── hosting/{cloudflare,alternatives}.md
@@ -71,7 +71,8 @@ solvapay/
 │   │   ├── scripts/             # describe.mjs, scaffold.mjs, lib/
 │   │   ├── template/            # Cloudflare Workers MCP template
 │   │   └── references/{selections-schema,tool-template,design-notes}.md
-│   └── from-scratch/{new,existing}.md  # Hand-written tools
+│   ├── from-scratch/{guide,scaffold-and-extend}.md  # Hand-written tools (greenfield)
+│   └── existing-server/guide.md # Add SolvaPay to an MCP server that already exists
 ├── sdk-integration/             # SDK paywall, checkout, usage, webhooks
 │   ├── guide.md                 # Entry point with stack detection
 │   ├── reference.md             # Package map and API operations

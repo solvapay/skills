@@ -1,6 +1,18 @@
-# From-scratch: scaffold and extend
+# Scaffold and extend a hand-written paid MCP server
 
-The fastest way to start a SolvaPay-paywalled MCP server with no spec is the published scaffolder:
+This guide picks up **after** the scaffolder finishes. It covers orienting on what `npm create solvapay -- --type mcp --no-openapi` produced, replacing the placeholder paid tool, adding more paid tools by hand, and handing off to deploy.
+
+## When to read this
+
+- You ran (or are about to run) `npm create solvapay <name> -- --type mcp --no-openapi` and want to know what's in the project.
+- You want to replace the placeholder paid tool with real business logic.
+- You want to add another paid tool to a scaffolded hand-written project.
+- If you have an OpenAPI / Swagger spec for the API you want to wrap, stop and route to [../from-openapi/guide.md](../from-openapi/guide.md) instead — the OpenAPI flow auto-generates tools.
+- If you have an MCP server that already exists and want to add SolvaPay paywall to it, stop and route to [../existing-server/guide.md](../existing-server/guide.md).
+
+## Scaffolder shortcut
+
+If you haven't scaffolded yet:
 
 ```bash
 npm create solvapay my-mcp -- --type mcp --no-openapi
@@ -8,11 +20,7 @@ npm create solvapay my-mcp -- --type mcp --no-openapi
 # or: yarn create solvapay my-mcp -- --type mcp --no-openapi
 ```
 
-> **If the user has an OpenAPI / Swagger spec for the API they want to wrap, stop and route to [../from-openapi/guide.md](../from-openapi/guide.md) instead.** This guide is for hand-written tools; the OpenAPI flow auto-generates them.
-
 The scaffolder asks for a project name + a camelCase tool name (default `helloTool`), then drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
-
-This guide picks up **after** the scaffolder finishes — it's the "I have a fresh scaffold; how do I add more paid tools and ship?" reference.
 
 ## What the scaffolder produced
 

@@ -23,7 +23,7 @@ Before writing any tool code, load these files in order:
 
 1. [guide.md](guide.md) — routing decision (existing project vs greenfield, input mode, host).
 2. [tool-design.md](tool-design.md) — the response-mode contract, gate rules, `registerPayable` shape.
-3. Exactly one input-mode guide: [from-openapi/guide.md](from-openapi/guide.md) **or** [from-scratch/new.md](from-scratch/new.md) **or** [from-scratch/existing.md](from-scratch/existing.md).
+3. Exactly one input-mode guide: [from-openapi/guide.md](from-openapi/guide.md) **or** [from-scratch/guide.md](from-scratch/guide.md) **or** [existing-server/guide.md](existing-server/guide.md).
 
 Do not write `registerPayable(...)`, `additionalTools`, or new files under `src/tools/` until those three files are loaded. The detailed guardrails live in `guide.md` and `tool-design.md`; this block is the entry gate, not a duplicate of them.
 
@@ -44,8 +44,8 @@ Pick one before scaffolding anything:
 2. Read [tool-design.md](tool-design.md) before writing any tool (load-bearing).
 3. Follow the chosen input mode end-to-end:
    - [from-openapi/guide.md](from-openapi/guide.md) — generate from a spec (agent path)
-   - [from-scratch/new.md](from-scratch/new.md) — guide for adding more paid tools after `npm create solvapay -- --type mcp`
-   - [from-scratch/existing.md](from-scratch/existing.md) — add SolvaPay to an existing MCP server
+   - [from-scratch/guide.md](from-scratch/guide.md) — hand-write paid tools after `npm create solvapay -- --type mcp --no-openapi`
+   - [existing-server/guide.md](existing-server/guide.md) — add SolvaPay to an MCP server that already exists
 4. Wire credentials via [solvapay-init.md](solvapay-init.md).
 5. Deploy to Cloudflare per [hosting/cloudflare.md](hosting/cloudflare.md) (or [hosting/alternatives.md](hosting/alternatives.md) for other hosts).
 
@@ -56,4 +56,5 @@ Pick one before scaffolding anything:
 - Credential bootstrap: [solvapay-init.md](solvapay-init.md)
 - OpenAPI mode: [from-openapi/](from-openapi/)
 - Hand-written mode: [from-scratch/](from-scratch/)
+- Existing-server integration: [existing-server/](existing-server/)
 - Host details: [hosting/](hosting/)

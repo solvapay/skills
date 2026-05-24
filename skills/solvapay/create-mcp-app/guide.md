@@ -22,7 +22,7 @@ A "paid-MCP project" is a directory that has **all** of:
 
 If those exist, **do not scaffold**. Skip ahead to:
 
-1. Add new paid tools per [from-scratch/new.md](from-scratch/new.md).
+1. Add new paid tools per [from-scratch/scaffold-and-extend.md](from-scratch/scaffold-and-extend.md).
 2. Run `npm run dev` (widget watch + `wrangler dev` together) and verify with `node scripts/verify.mjs http://localhost:8787`.
 3. Deploy with `npm run deploy` per [hosting/cloudflare.md](hosting/cloudflare.md).
 
@@ -35,7 +35,7 @@ If no paid-MCP project is present:
 | Human at a terminal, no spec — wants a working server with one placeholder tool | `npm create solvapay <name> -- --type mcp` (asks "spec? y/n", picks from-scratch on `n`). |
 | Human at a terminal, has an OpenAPI / Swagger URL or file | `npm create solvapay <name> -- --type mcp --openapi <url-or-path>` (one-to-one mode). |
 | Agent, has a spec | **Always the agent path** — [from-openapi/guide.md](from-openapi/guide.md), using `scripts/describe.mjs` + `scripts/scaffold.mjs` with a hand-authored `selections.json`. The published CLI only emits one-to-one tools and cannot author intent-driven dispatchers (those require the LLM). One-to-one is still available via `"mode": "one-to-one"` in `selections.json` when clustering isn't worth it. |
-| Agent, no spec, hand-writing tools | [from-scratch/new.md](from-scratch/new.md) — `npm create solvapay <name> -- --type mcp --no-openapi` for the scaffold, then add tools by hand. |
+| Agent, no spec, hand-writing tools | [from-scratch/guide.md](from-scratch/guide.md) — `npm create solvapay <name> -- --type mcp --no-openapi` for the scaffold, then add tools by hand. |
 
 ### Inside an unrelated app repo
 
@@ -72,8 +72,8 @@ Ask once:
 | Answer | Route to |
 | --- | --- |
 | I have an OpenAPI / Swagger spec | [from-openapi/guide.md](from-openapi/guide.md) |
-| I am hand-writing tools — new project | [from-scratch/new.md](from-scratch/new.md) |
-| I am hand-writing tools — adding SolvaPay to an existing MCP server | [from-scratch/existing.md](from-scratch/existing.md) |
+| I am hand-writing tools — new project | [from-scratch/guide.md](from-scratch/guide.md) |
+| I am adding SolvaPay to an MCP server that already exists | [existing-server/guide.md](existing-server/guide.md) |
 
 If the user has a REST API but no spec yet, the OpenAPI flow can still help — `from-openapi/guide.md` opens with a "no spec yet" branch that walks the upstream API into one. Default to OpenAPI when in doubt; the spec-first path produces a typed server with less hand-coding.
 
