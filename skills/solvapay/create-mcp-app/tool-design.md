@@ -66,6 +66,38 @@ return ctx.respond(
 
 The host LLM reads the narration to decide presentation (table, card, list, chart), and the `structuredContent` carries the raw data for programmatic consumers.
 
+## Free-tier tools (`ctx.server.registerTool`)
+
+Some tools aren't paid — free reads, public catalogue lookups, status pings. These use the lower-level `ctx.server.registerTool` from the MCP SDK directly, *not* `registerPayable`. The response shape is different (no `c.respond` helper — that lives on the payable context), but the **render-instruction narration principle is the same**: capable hosts still need a text hint to decide how to present the data.
+
+```ts
+ctx.server.registerTool(
+  'list_categories',
+  {
+    title: 'List categories',
+    description: 'Returns the merchant catalogue\'s top-level categories. Free, no balance required.',
+    inputSchema: { /* zod schema */ },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  },
+  async (input) => {
+    const data = await loadCategories()
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Returned ${data.length} categories. Render as a vertical list grouped by parent.`,
+        },
+      ],
+      structuredContent: { categories: data },
+    }
+  },
+)
+```
+
+The narration in `content[0].text` plays the same role as the `text` field in `c.respond(...)` for paid tools — it tells the host LLM how to present the data. Put the raw data in `structuredContent` so programmatic consumers don't have to parse the narration.
+
+**Do not** mix free tools with `c.respond` — the helper is part of the payable handler's `c` parameter and isn't available in the `registerTool` callback signature.
+
 ## Hide transport tools from text hosts
 
 `createSolvaPayMcp*({ hideToolsByAudience: ['ui'] })` drops UI-only virtual tools (`create_checkout_session`, `process_payment`, …) from `tools/list` so text-only hosts don't reason about iframe transport tools meant for the embedded widget. Always set this unless you have a specific reason not to.

@@ -63,8 +63,16 @@ Each `operations[i]`:
 | `GET`, `HEAD` | `free` |
 | `POST`, `PUT`, `PATCH`, `DELETE` | `paid` |
 | `deprecated: true` or `x-internal: true` | `skip` |
+| `requestBody.content` includes `multipart/form-data` or `application/octet-stream` (binary uploads) | `skip` |
+| Response body is a binary stream (`application/octet-stream`, `image/*`, `application/pdf`) | `skip` |
 
 These are suggestions only. The user (via you) picks the final tier per operation in `selections.json`.
+
+**Why `skip` for binary I/O:** MCP tools return text or `structuredContent`, not file streams. An operation that consumes a `multipart/form-data` upload or returns a raw binary payload can't be wrapped as a useful MCP tool — the LLM cannot synthesise the bytes, and the host has no surface for inline downloads.
+
+**How to find them** (in v1, `describe.mjs` does not surface content types — it normalises `requestBody` to `contentType: 'application/json'`). After running `describe.mjs`, grep the original spec for `multipart/form-data`, `application/octet-stream`, `image/`, and `application/pdf` under `requestBody.content` and response `content` keys. For each operation that matches, set `tier: "skip"` in `selections.json` unless you have a specific workaround (e.g. wrapping the upload behind a pre-signed-URL endpoint).
+
+Common offenders: `uploadFile`, `uploadImage`, `downloadAttachment`, anything in a `/files` or `/upload` path.
 
 ## Sample-input synthesis
 

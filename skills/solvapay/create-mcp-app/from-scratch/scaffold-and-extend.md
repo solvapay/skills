@@ -77,6 +77,30 @@ Before writing any tool code, read [../tool-design.md](../tool-design.md). It co
          return c.respond(data, { text: narration })
        },
      })
+
+     // Optional: surface the tool as a slash-command for hosts with
+     // prompt UI (Claude Desktop). Hosts without prompt support silently
+     // ignore it. Skip this block for tools the LLM should discover on
+     // its own without chrome.
+     ctx.server.registerPrompt(
+       'get_item',
+       {
+         title: 'Get item',
+         description: 'Fetch a single item by id and render it as a card.',
+         argsSchema: { id: z.string().optional() },
+       },
+       async ({ id }) => ({
+         messages: [
+           {
+             role: 'user' as const,
+             content: {
+               type: 'text' as const,
+               text: `Get the item with id "${id ?? ''}" and render it as a card.`,
+             },
+           },
+         ],
+       }),
+     )
    }
    ```
 
@@ -105,11 +129,12 @@ For the full tool design rules (response modes, narration shape, annotations, na
 
 ## Replace the placeholder
 
-The scaffolder left a TODO body inside `src/tools/<toolName>.ts`. Treat it as a starting point:
+The scaffolder left a working echo tool inside `src/tools/<toolName>.ts` so the paywall is verifiable on first deploy. Treat it as a starting point:
 
 - Rename the function and tool name if you picked a generic placeholder during scaffold.
 - Replace the sample `respond({ ok: true, echoed: ... })` body with your real business logic.
-- Update the `description` to something the LLM can use — it's the only signal the model gets about when to invoke this tool.
+- Replace the placeholder `description` (currently flags itself as a demo echo) with what the LLM needs to decide *when* to invoke this tool. The description is the only signal the model gets.
+- Update the matching `server.registerPrompt(...)` description and `argsSchema` to match the new tool, or delete it entirely if you don't want the slash-command surface.
 
 ## Handoff to deploy
 
