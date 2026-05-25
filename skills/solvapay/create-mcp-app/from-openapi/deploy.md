@@ -30,8 +30,9 @@ npm run deploy
 - Reads `.env` and forwards `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, and `SOLVAPAY_API_BASE_URL` as `--var` overrides to `wrangler deploy`.
 - Uploads `SOLVAPAY_SECRET_KEY` from `.env` as a Worker secret on the first deploy. Skipped when already present on the worker.
 - Uploads `UPSTREAM_API_KEY` from `.env` automatically when scaffold wrote it (i.e. when `selections.json.upstreamAuth.kind` was `bearer` or `apiKey`). Skipped when the key is absent from `.env` (`kind: "none"`) or already on the worker.
+- Uploads the `UPSTREAM_OAUTH_*` secrets from `.env` automatically when scaffold wrote them (i.e. when `selections.json.upstreamAuth.kind` was `oauth2-client-credentials`). Required: `UPSTREAM_OAUTH_TOKEN_URL`, `UPSTREAM_OAUTH_CLIENT_ID`, `UPSTREAM_OAUTH_CLIENT_SECRET`. Optional, uploaded only when present: `UPSTREAM_OAUTH_SCOPE`, `UPSTREAM_OAUTH_AUDIENCE`. The deploy aborts if `.env` carries only some of the three required keys.
 
-Both secrets go through `npx wrangler secret put` under the hood — never `--var`.
+All secrets go through `npx wrangler secret put` under the hood — never `--var`.
 
 Before invoking `wrangler deploy`, the script prints the resolved workers.dev URL and asks `[Y/n]`. Press Enter to accept. Decline (`n`) to abort and follow the printed instructions — either rename the account-wide workers.dev subdomain in the Cloudflare dashboard (affects every Worker on the account), or attach a `custom_domain` route (see Step 2). Pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) to skip the prompt; it's also skipped automatically when `wrangler.jsonc` has a `custom_domain` route or stdin is not a TTY.
 

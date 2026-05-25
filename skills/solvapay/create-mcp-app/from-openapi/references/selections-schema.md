@@ -23,6 +23,14 @@ type UpstreamAuth =
   | { kind: 'none' }
   | { kind: 'bearer'; key: string }
   | { kind: 'apiKey'; in: 'header'; name: string; key: string }
+  | {
+      kind: 'oauth2-client-credentials'
+      tokenUrl: string         // from `securitySchemes[*].flows.clientCredentials.tokenUrl`
+      clientId: string         // user-supplied
+      clientSecret: string     // user-supplied (treat like `bearer.key`)
+      scope?: string           // optional, space-delimited; default empty
+      audience?: string        // optional; some providers (e.g. Auth0) require this
+    }
 ```
 
 ## Mode
@@ -42,9 +50,12 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | `solvapayProductRef` | **Optional** | Omit during curate — `npx solvapay init` lists account products and prompts (or auto-picks). Include only when you want a specific ref written at scaffold time. If the user has no product yet, ask them to create one in SolvaPay Console (https://app.solvapay.com) before init. |
 | `mcpPublicBaseUrl` | Agent default + deploy auto-resolve | Use `http://localhost:8787` initially. `deploy.mjs` auto-resolves the live `*.workers.dev` URL on first deploy when still a placeholder. For custom domains, set explicitly before deploy (see [../deploy.md](../deploy.md) step 2). |
 | `mode` | **Optional**, agent asks user once after `describe.mjs` (recommends `'intent-driven'` when running inside the skill) | `'one-to-one'` (default) for faithful per-op mapping; `'intent-driven'` for agent-authored clusters. See [../intent-driven.md](../intent-driven.md). The standalone `npx create-solvapay -- --type mcp` CLI always writes `'one-to-one'`. |
-| `upstreamAuth.kind` | Agent reads from `describe.mjs` security schemes, then confirms with user | One of `none` / `bearer` / `apiKey`. |
+| `upstreamAuth.kind` | Agent reads from `describe.mjs` security schemes, then confirms with user | One of `none` / `bearer` / `apiKey` / `oauth2-client-credentials`. |
 | `upstreamAuth.key` | **User-supplied** | The literal upstream API key. Treat like a secret — see `scaffold.md`'s "selections.json lifecycle". |
 | `upstreamAuth.name` | Agent reads from `describe.mjs` | Header name for `apiKey` (e.g. `X-API-Key`). Only `in: "header"` is supported in v1. |
+| `upstreamAuth.tokenUrl` | Agent reads from `describe.mjs.securitySchemes[*].tokenUrl` | OAuth 2.0 token endpoint. Must be HTTPS (or `http://localhost` for local tests). |
+| `upstreamAuth.clientId` / `clientSecret` | **User-supplied** | OAuth client credentials. Both treated as secrets. |
+| `upstreamAuth.scope` / `audience` | **Optional, user-supplied** | `scope` is a space-delimited list (defaults to empty); `audience` is only required by some providers (Auth0). |
 | `operations[].tier` | Agent default (from `describe.mjs.suggestedTier`) + user override | Per-operation override happens during curate. Only used in `one-to-one` mode. |
 | `solvapaySecretKey` | **Intentionally absent** | `solvapay-init` writes it directly to `.env`. Not part of this file ever. |
 
@@ -80,13 +91,34 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 }
 ```
 
+### OAuth 2.0 client_credentials
+
+```jsonc
+{
+  "workerName": "roaring-mcp",
+  "mcpPublicBaseUrl": "http://localhost:8787",
+  "upstreamAuth": {
+    "kind": "oauth2-client-credentials",
+    "tokenUrl": "https://api.roaring.io/token",
+    "clientId": "rrg_client_…",
+    "clientSecret": "rrg_secret_…",
+    "scope": "company:read"
+    // "audience": "https://api.roaring.io"   // only when the provider requires it
+  },
+  "mode": "intent-driven"
+}
+```
+
+Scaffold writes the five `UPSTREAM_OAUTH_*` keys to `.env`; `scripts/deploy.mjs` uploads them as Worker Secrets on first deploy. `src/lib/upstreamOAuth.ts` (shipped in `_base`) exchanges the credentials for a short-lived bearer token, caches it in the Workers isolate until ~30s before expiry, and stamps each upstream call with `Authorization: Bearer <token>`.
+
 ## Validation
 
 `scaffold.mjs` validates this schema and refuses to proceed on shape mismatch:
 
-- `kind` must be one of `none`, `bearer`, `apiKey`.
+- `kind` must be one of `none`, `bearer`, `apiKey`, `oauth2-client-credentials`.
 - `kind: "bearer"` requires `key`.
 - `kind: "apiKey"` requires `in: "header"`, `name`, and `key`. Query / cookie shapes are routed to the "unsupported, generate without auth" advisory path.
+- `kind: "oauth2-client-credentials"` requires `tokenUrl`, `clientId`, and `clientSecret`. `tokenUrl` must parse as a URL and must be `https:` (only `http://localhost` / `http://127.0.0.1` are permitted for local tests). `scope` and `audience` are optional strings. Other OAuth2 flows (`authorizationCode`, `implicit`, `password`) are still unsupported and routed through the advisories path.
 - `mode` (when provided) must be `'one-to-one'` or `'intent-driven'`.
 - When `mode === 'one-to-one'` (or absent), `operations[]` is required. Each `operations[].tier` must be `free`, `paid`, or `skip`, and every `operationId` referenced must exist in the OpenAPI document.
 - When `mode === 'intent-driven'`, `operations[]` is ignored if present (no per-op codegen runs).

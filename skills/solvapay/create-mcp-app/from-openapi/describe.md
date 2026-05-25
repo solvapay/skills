@@ -93,8 +93,10 @@ If any value falls back to step 6, the operation is flagged `"examplesQuality": 
 | --- | --- | --- |
 | `http-bearer` | `true` | `Authorization: Bearer <UPSTREAM_API_KEY>` |
 | `apiKey-header` | `true` | `<headerName>: <UPSTREAM_API_KEY>` |
+| `oauth2-clientCredentials` | `true` | Exchange `client_id` + `client_secret` for a short-lived bearer at `tokenUrl`; the resulting `Authorization: Bearer <token>` is cached in-isolate. Surfaced as `{ tokenUrl, scopes, flow: 'clientCredentials' }`. |
 | `apiKey-unsupported` | `false` | `apiKey` in query or cookie — not supported in v1 |
-| `oauth2`, `openIdConnect` | `false` | Not supported in v1 |
+| `oauth2` | `false` | OAuth 2.0 flows other than `clientCredentials` (`authorizationCode`, `implicit`, `password`) — not supported in v1 |
+| `openIdConnect` | `false` | Not supported in v1 |
 
 If `supported: false` appears on a scheme used by at least one selected operation, the `advisories` array carries one entry per affected operation with two remediations:
 
