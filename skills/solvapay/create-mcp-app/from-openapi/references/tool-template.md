@@ -70,13 +70,16 @@ Never fall back to `Record<string, unknown>` — it advertises object-shape the 
 
 ### Auth header selection
 
-| `upstreamAuth.kind` | Header | Per-operation signature |
-| --- | --- | --- |
-| `none` | No header | `(ctx: AdditionalToolsContext)` |
-| `bearer` | `` authorization: `Bearer ${env.UPSTREAM_API_KEY}` `` | `(ctx: AdditionalToolsContext, env: Env)` |
-| `apiKey` | `` '<name>': `${env.UPSTREAM_API_KEY}` `` | `(ctx: AdditionalToolsContext, env: Env)` |
+| `upstreamAuth.kind` | Header | Per-operation signature | Per-handler pre-call |
+| --- | --- | --- | --- |
+| `none` | No header | `(ctx: AdditionalToolsContext)` | — |
+| `bearer` | `` authorization: `Bearer ${env.UPSTREAM_API_KEY}` `` | `(ctx: AdditionalToolsContext, env: Env)` | — |
+| `apiKey` | `` '<name>': `${env.UPSTREAM_API_KEY}` `` | `(ctx: AdditionalToolsContext, env: Env)` | — |
+| `oauth2-client-credentials` | `` authorization: `Bearer ${token}` `` | `(ctx: AdditionalToolsContext, env: Env)` | `const token = await getAccessToken(env)` (imported from `'../lib/upstreamOAuth'`) right before URL construction |
 
 `Accept: application/json` is set by `upstreamFetchJson` — generated tools never set it explicitly.
+
+For the OAuth row, the helper at `src/lib/upstreamOAuth.ts` (shipped in `_base`) exchanges `UPSTREAM_OAUTH_CLIENT_ID` + `UPSTREAM_OAUTH_CLIENT_SECRET` against `UPSTREAM_OAUTH_TOKEN_URL` (HTTP Basic, `grant_type=client_credentials`), optionally passing `UPSTREAM_OAUTH_SCOPE` and `UPSTREAM_OAUTH_AUDIENCE`. The returned token is cached at module scope inside the Workers isolate until 30s before `expires_in` — every tool that runs in the same isolate reuses it.
 
 ## Upstream helper
 
@@ -97,11 +100,11 @@ The thrown `UpstreamError` is **not caught** in the generated handler — both c
 
 | Writer | Keys |
 | --- | --- |
-| `scaffold.mjs` | `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, `UPSTREAM_API_KEY` (only when `kind` is `bearer` or `apiKey`) |
+| `scaffold.mjs` | `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, `UPSTREAM_API_KEY` (only when `kind` is `bearer` or `apiKey`), `UPSTREAM_OAUTH_TOKEN_URL` / `UPSTREAM_OAUTH_CLIENT_ID` / `UPSTREAM_OAUTH_CLIENT_SECRET` plus optional `UPSTREAM_OAUTH_SCOPE` / `UPSTREAM_OAUTH_AUDIENCE` (only when `kind` is `oauth2-client-credentials`) |
 | `npx solvapay init` | `SOLVAPAY_SECRET_KEY` — appended via the CLI's append-safe writer, no clobber |
 | Agent | One-time edit to `MCP_PUBLIC_BASE_URL` for custom-domain deploys (see [../deploy.md](../deploy.md) step 2) |
 
-`SOLVAPAY_SECRET_KEY` and `UPSTREAM_API_KEY` are uploaded as Worker Secrets; see [../deploy.md](../deploy.md) for the lifecycle.
+`SOLVAPAY_SECRET_KEY`, `UPSTREAM_API_KEY`, and the `UPSTREAM_OAUTH_*` family are all uploaded as Worker Secrets; see [../deploy.md](../deploy.md) for the lifecycle.
 
 ## Placeholders the skill substitutes
 

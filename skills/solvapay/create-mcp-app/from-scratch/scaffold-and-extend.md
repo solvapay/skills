@@ -45,6 +45,7 @@ my-mcp/
     mcp-app.tsx          default checkout/account/topup widget
     assets.d.ts
     lib/upstreamFetch.ts
+    lib/upstreamOAuth.ts opt-in helper for OAuth 2.0 client_credentials upstreams
     tools/
       <toolName>.ts      placeholder paid tool with TODO body
       index.ts           registerTools aggregator wired into worker.ts
@@ -124,6 +125,22 @@ Before writing any tool code, read [../tool-design.md](../tool-design.md). It co
    ```
 
    It sends `Accept: application/json`, throws `UpstreamError` on non-2xx / non-JSON, and carries `{ status, contentType, bodySnippet }` on the thrown error so the MCP `isError` envelope tells the LLM exactly why upstream rejected the call.
+
+4. If the upstream uses OAuth 2.0 client_credentials, use the OAuth helper alongside `upstreamFetchJson`:
+
+   ```ts
+   import { getAccessToken } from '../lib/upstreamOAuth'
+   import { upstreamFetchJson } from '../lib/upstreamFetch'
+
+   // …inside the handler:
+   const token = await getAccessToken(env)
+   const data = await upstreamFetchJson<MyShape>(url, {
+     method: 'GET',
+     headers: { authorization: `Bearer ${token}` },
+   })
+   ```
+
+   Populate `UPSTREAM_OAUTH_TOKEN_URL`, `UPSTREAM_OAUTH_CLIENT_ID`, `UPSTREAM_OAUTH_CLIENT_SECRET` (and optional `UPSTREAM_OAUTH_SCOPE` / `UPSTREAM_OAUTH_AUDIENCE`) in `.env`. `scripts/deploy.mjs` uploads them as Worker Secrets on the first deploy. The helper caches the exchanged token in the Workers isolate until ~30s before expiry — every tool in the same isolate reuses it.
 
 For the full tool design rules (response modes, narration shape, annotations, naming), see [../tool-design.md](../tool-design.md).
 

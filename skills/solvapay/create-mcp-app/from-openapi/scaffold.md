@@ -38,26 +38,33 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 
 ## What it does
 
-1. Validates `selections.json` (discriminated union on `upstreamAuth.kind`; `mode` optional with `'one-to-one'` default).
+1. Validates `selections.json` (discriminated union on `upstreamAuth.kind` — one of `none` / `bearer` / `apiKey` / `oauth2-client-credentials`; `mode` optional with `'one-to-one'` default).
 2. Hard-fails if `<target-dir>` exists, or if `--selections` resolves inside `<target-dir>`.
 3. Copies the template (`template/`) to `<target-dir>`, substituting placeholders (`__WORKER_NAME__`, `__RESOURCE_URI_SLUG__`, `__SOLVAPAY_PRODUCT_REF__`, `__MCP_PUBLIC_BASE_URL__`). Preserves `.env.example` verbatim. Includes `scripts/verify.mjs`, `scripts/test.mjs`, and `scripts/lib/` for post-deploy checks (see [verify.md](verify.md) and [test.md](test.md)).
 4. **In one-to-one mode (default)**, for each operation with `tier !== 'skip'`, writes `src/tools/<operationId>.ts` with:
    - `register{OperationId}(ctx, env)` (or `(ctx)` when `upstreamAuth.kind === 'none'`).
    - `ctx.registerPayable(...)` for paid tiers, `ctx.server.registerTool(...)` for free tiers.
-   - Correct auth header (`Authorization: Bearer ${env.UPSTREAM_API_KEY}` for `kind: "bearer"`, `<name>: ${env.UPSTREAM_API_KEY}` for `kind: "apiKey"`).
+   - Correct auth header per `upstreamAuth.kind`:
+     - `bearer` → `Authorization: Bearer ${env.UPSTREAM_API_KEY}`
+     - `apiKey` → `<name>: ${env.UPSTREAM_API_KEY}`
+     - `oauth2-client-credentials` → `const token = await getAccessToken(env)` right before URL construction, then `Authorization: Bearer ${token}`. The `getAccessToken` helper lives in `src/lib/upstreamOAuth.ts` (shipped in `_base`) and caches the exchanged token in-isolate.
 
    **In intent-driven mode**, skips per-op codegen entirely. The agent (you) authors `src/tools/<intent>.ts` files directly after scaffold finishes — see [intent-driven.md](intent-driven.md) for templates and clustering guidance.
 5. Writes `src/tools/index.ts`:
    - **One-to-one**: imports + calls every generated `register{OperationId}` from one `registerTools(ctx, env)` aggregator. Removes the template's example tool.
    - **Intent-driven**: writes an empty aggregator (`registerTools(_ctx, _env) { /* Intent tools registered here. See intent-driven.md. */ }`). You edit this file each time you add a new intent tool.
-6. Writes `.env` with `SOLVAPAY_PRODUCT_REF` (or the `__SOLVAPAY_PRODUCT_REF__` placeholder when `solvapayProductRef` is omitted from `selections.json`), `MCP_PUBLIC_BASE_URL`, and (when applicable) `UPSTREAM_API_KEY`. **Does not write `SOLVAPAY_SECRET_KEY`** — that's [../solvapay-init.md](../solvapay-init.md).
+6. Writes `.env` with `SOLVAPAY_PRODUCT_REF` (or the `__SOLVAPAY_PRODUCT_REF__` placeholder when `solvapayProductRef` is omitted from `selections.json`), `MCP_PUBLIC_BASE_URL`, and per `upstreamAuth.kind`:
+   - `bearer` / `apiKey` → `UPSTREAM_API_KEY`
+   - `oauth2-client-credentials` → `UPSTREAM_OAUTH_TOKEN_URL`, `UPSTREAM_OAUTH_CLIENT_ID`, `UPSTREAM_OAUTH_CLIENT_SECRET`, plus `UPSTREAM_OAUTH_SCOPE` / `UPSTREAM_OAUTH_AUDIENCE` when supplied.
+
+   **Does not write `SOLVAPAY_SECRET_KEY`** — that's [../solvapay-init.md](../solvapay-init.md).
 7. Ensures `.gitignore` covers `.env`.
 8. Prints a JSON summary on stdout: mode used, files written, operations generated (empty in intent-driven mode), secrets seeded, and reminders. In intent-driven mode the reminders include a pointer to `intent-driven.md`.
 
 ## What it refuses to do
 
 - Overwrite an existing `<target-dir>`. Re-running scaffold against an existing project is an open follow-up. Delete and re-run for now.
-- Generate a tool that requires an unsupported security scheme (oauth2, openIdConnect, query/cookie apiKey, combined schemes) unless either the operation is `tier: "skip"` or `upstreamAuth.kind = "none"`. The error message names the offending operation and both remediations.
+- Generate a tool that requires an unsupported security scheme (non-`clientCredentials` oauth2 flows, openIdConnect, query/cookie apiKey, combined schemes) unless either the operation is `tier: "skip"` or `upstreamAuth.kind = "none"`. The error message names the offending operation and both remediations. OAuth2 `clientCredentials` IS supported — set `upstreamAuth.kind: "oauth2-client-credentials"` with `tokenUrl`, `clientId`, and `clientSecret`.
 - Write `selections.json` into the scaffolded project.
 - Populate `SOLVAPAY_SECRET_KEY`. That's [../solvapay-init.md](../solvapay-init.md)'s job.
 

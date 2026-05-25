@@ -76,6 +76,7 @@ For agents working directly against the package in a local checkout, install the
 3. **`upstreamAuth` shape** — pick from `describe.mjs.securitySchemes`:
    - `http-bearer` → `{ kind: 'bearer', key: '<user supplies>' }`
    - `apiKey-header` → `{ kind: 'apiKey', in: 'header', name: '<from spec>', key: '<user supplies>' }`
+   - `oauth2-clientCredentials` → `{ kind: 'oauth2-client-credentials', tokenUrl: '<from spec>', clientId: '<user supplies>', clientSecret: '<user supplies>', scope?: '<optional, space-delimited>', audience?: '<optional, some providers require>' }`. `tokenUrl` comes straight from the spec; ask the user for `clientId` + `clientSecret`. `scope` defaults to empty; `audience` is only needed for providers like Auth0 that require it.
    - No supported scheme → `{ kind: 'none' }` (only viable if the upstream tolerates anonymous calls)
 4. **`mcpPublicBaseUrl`** — use `http://localhost:8787`. `deploy.mjs` auto-resolves the live workers.dev URL on first deploy. For custom domains, set explicitly (see [deploy.md](deploy.md) step 2).
 5. **`workerName`** — kebab-case, used as both the Wrangler `name` and the resource URI slug.
@@ -109,7 +110,7 @@ Pick a spec whose `servers[0]` (or, for Swagger 2.0, `host` + `basePath`) actual
 ## What's intentionally out of scope (v1)
 
 - **Idempotent regeneration** — re-running scaffold against an existing project hard-fails. Delete and re-scaffold.
-- **OAuth2 / OpenID Connect / query / cookie auth** — emits an advisory; remediate with `tier: "skip"` per operation or `upstreamAuth.kind: "none"`.
+- **OAuth2 `authorizationCode` / `implicit` / `password` / OpenID Connect / query / cookie auth** — emits an advisory; remediate with `tier: "skip"` per operation or `upstreamAuth.kind: "none"`. OAuth2 `clientCredentials` *is* supported (see step 3 above).
 - **Per-customer upstream credentials** — v1 uses a single server-side `UPSTREAM_API_KEY`.
 - **Complex `oneOf` / `allOf` / `anyOf` request bodies** — fall back to `z.record(z.unknown())` with a TODO comment.
 
