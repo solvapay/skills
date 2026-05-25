@@ -44,6 +44,49 @@ Deployed solvapay-mcp-petstore triggers (1.2 sec)
   https://petstore-mcp.<account>.workers.dev
 ```
 
+## Step 1a — verify merchant bootstrap
+
+`scripts/deploy.mjs` calls `GET /v1/sdk/merchant` before `wrangler deploy` runs, so if the secret key in `.env` has no merchant on the SolvaPay backend the deploy aborts with a recovery message instead of silently uploading a doomed secret. **This is the agent-runnable check** — it hits SolvaPay directly with the raw `SOLVAPAY_SECRET_KEY`, no OAuth, no browser. If the preflight passes and `wrangler deploy` succeeds, the deploy is bootstrapped correctly.
+
+The optional follow-up below proves the **deployed** worker (not just the local key) can reach its merchant under bearer auth. It requires a human at a browser — autonomous agents should skip this and rely on the preflight.
+
+> **Requires a human at a browser.** `mcpjam oauth login` defaults to `--auth-mode interactive`, which opens a system browser and blocks until you click "Approve" on the SolvaPay consent screen. SolvaPay workers only advertise the `authorization_code` grant type, so `--auth-mode client_credentials` is not viable and the headless flow still needs a human approval click. If you're running this step inside an autonomous agent, stop here.
+
+Install the [MCPJam CLI](https://www.npmjs.com/package/@mcpjam/cli) once per machine:
+
+```bash
+npm i -g @mcpjam/cli
+# or, no global install: prefix every call with `npx -y @mcpjam/cli@latest`
+```
+
+Then mint a token and re-run `verify.mjs`:
+
+```bash
+# 1. Mint a bearer token for the deployed worker (one-time per session).
+#    Opens a browser; click "Approve". The worker mounts MCP at /mcp by
+#    default, so pass <deployed-url>/mcp.
+mcpjam oauth login --url <deployed-url>/mcp --credentials-out /tmp/creds.json
+
+# 2. Run verify.mjs with the credentials so the merchantBootstrap check
+#    actually exercises the SolvaPay layer. verify.mjs takes the worker
+#    root and appends /mcp itself.
+node scripts/verify.mjs <deployed-url> --credentials-file /tmp/creds.json
+```
+
+`merchantBootstrap` is the only check that hits the worker's SolvaPay layer with a real bearer token — `passed` means the deployed worker can reach its merchant; `failed` with `Provider not found` text means the secret key on the worker has no matching merchant (re-run `npx solvapay init` and redeploy). `failed` with `401` or `Bearer realm` text usually means the token expired — re-run the `mcpjam oauth login` command to refresh `/tmp/creds.json` (the file stores `accessToken` only; `verify.mjs` doesn't auto-refresh).
+
+Without `--credentials-file`, `verify.mjs` still runs every other check and reports `merchantBootstrap: { status: 'skipped' }`. You can also fall back to the raw MCPJam path if your scripts directory is not up to date:
+
+```bash
+mcpjam tools call \
+  --url <deployed-url>/mcp \
+  --tool-name manage_account \
+  --credentials-file /tmp/creds.json \
+  --quiet --format json
+```
+
+`mcpjam tools call` returns the full envelope — assert `isError: false` and that `content[0].text` does not contain `Provider not found`.
+
 ## Step 2 — custom domain only (optional)
 
 Skip this step on a default `*.workers.dev` deploy — `deploy.mjs` auto-resolves `MCP_PUBLIC_BASE_URL` before the first deploy (see step 1).

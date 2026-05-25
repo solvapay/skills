@@ -17,14 +17,40 @@ node scripts/verify.mjs https://my-worker.<account>.workers.dev
 
 Works against any reachable URL. For local dev, pass `http://localhost:8787`. No `npm install` in `scripts/` is required — `verify.mjs` uses only Node stdlib plus the bundled MCP client helper.
 
+Run anonymous first — the `oauthProtectedResource`, `oauthAuthorizationServer`, and `toolsList` checks all pass without credentials (a 401 with a well-formed `WWW-Authenticate` challenge satisfies `toolsList`). The `merchantBootstrap` check is the only one that strictly needs a bearer token and is therefore the one that needs human-in-the-loop OAuth.
+
+> **`merchantBootstrap` requires a human at a browser.** `mcpjam oauth login` defaults to `--auth-mode interactive`, which opens a system browser and blocks until you click "Approve" on the SolvaPay consent screen. SolvaPay workers only advertise the `authorization_code` grant type, so neither `--auth-mode client_credentials` nor the headless flow can complete without that human click. Autonomous agents should run `verify.mjs` anonymous, accept `merchantBootstrap: { status: 'skipped' }`, and rely on `scripts/deploy.mjs`'s pre-deploy `GET /v1/sdk/merchant` preflight (no OAuth) to catch the merchant-not-found failure mode.
+
+To exercise the `merchantBootstrap` check (and `paywallGate` against auth-gated workers), install the [MCPJam CLI](https://www.npmjs.com/package/@mcpjam/cli) (one-time):
+
+```bash
+npm i -g @mcpjam/cli
+# or prefix the next command with `npx -y @mcpjam/cli@latest` to skip the global install
+```
+
+Then mint a token. The worker mounts MCP at `/mcp` by default, so pass `<worker-url>/mcp` to `mcpjam`; `verify.mjs` itself still takes the worker root and appends `/mcp`:
+
+```bash
+# Opens a browser; click "Approve" on the SolvaPay consent screen.
+mcpjam oauth login \
+  --url https://my-worker.<account>.workers.dev/mcp \
+  --credentials-out /tmp/creds.json
+
+node scripts/verify.mjs https://my-worker.<account>.workers.dev \
+  --credentials-file /tmp/creds.json
+```
+
+`merchantBootstrap: { status: 'failed' }` with `401` or `Bearer realm` text in `value.message` means the token has expired — re-run the `mcpjam oauth login` command above to refresh `/tmp/creds.json`. The credentials file stores `accessToken` only; `verify.mjs` does not auto-refresh from `refreshToken`.
+
 ## What it checks
 
 | Check | Asserts | Skip behaviour |
 | --- | --- | --- |
 | `oauthProtectedResource` | `/.well-known/oauth-protected-resource` returns `{ resource, authorization_servers: [...] }`. | Never skipped — a hard requirement. |
 | `oauthAuthorizationServer` | `/.well-known/oauth-authorization-server` returns `{ issuer, authorization_endpoint, token_endpoint }`. | Never skipped. |
-| `toolsList` | Either: (a) anonymous `tools/list` succeeds and includes the four intent tools (`upgrade`, `topup`, `activate_plan`, `manage_account`) with no UI-only tools leaked, OR (b) the worker returns `401` with a well-formed `WWW-Authenticate: Bearer resource_metadata="…"` challenge (the SDK default — `requireAuth: true`). | Never skipped. |
-| `paywallGate` | Calling any non-intent tool with empty args returns text-only narration in `content[0].text`, the narration names a recovery intent tool, and `_meta.ui` is absent on the gate. | `skipped` when no candidate tool returns a gate, OR when `toolsList` couldn't enumerate the catalog (worker requires bearer auth). |
+| `toolsList` | Either: (a) `tools/list` (anonymous, or with `--credentials-file` bearer token) succeeds and includes the four intent tools (`upgrade`, `topup`, `activate_plan`, `manage_account`) with no UI-only tools leaked, OR (b) the worker returns `401` with a well-formed `WWW-Authenticate: Bearer resource_metadata="…"` challenge (the SDK default — `requireAuth: true`). | Never skipped. |
+| `paywallGate` | Calling any non-intent tool with empty args returns text-only narration in `content[0].text`, the narration names a recovery intent tool, and `_meta.ui` is absent on the gate. | `skipped` when no candidate tool returns a gate, OR when `toolsList` couldn't enumerate the catalog (worker requires bearer auth and no `--credentials-file` passed). |
+| `merchantBootstrap` | Calling `manage_account` (`{ mode: 'text' }`) with a real bearer token returns a non-error envelope that does not narrate a `bootstrap`/`Provider not found` failure — i.e. the deployed worker can reach its SolvaPay merchant. | `skipped` when `--credentials-file` is not supplied. |
 
 `paywallGate` reports `skipped` (not `failed`) when no tool returns a gate. It only fails when a tool **does** return a gate but the shape is wrong (text missing, iframe leaked into the gate, intent tool not named in the narration).
 

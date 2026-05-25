@@ -42,7 +42,28 @@ Per operation:
 
 Plus one `paywallGate` probe: tries a candidate tool with empty args; passes when the response is a text-only gate that names a recovery intent tool, skips when no tool gates, fails when a gate response has malformed shape.
 
-When the worker requires bearer auth (the SDK default — `requireAuth: true`), `test.mjs` can't enumerate the catalog anonymously, so it exits `0` with `overall: "skipped"` and `reason: "worker requires bearer auth; anonymous probe cannot enumerate tools"` plus the `WWW-Authenticate` challenge so you can confirm the gate is well-formed. To actually exercise tools against an auth-gated worker, either pass a bearer token out-of-band (planned follow-up; not in v1) or temporarily flip the worker to `requireAuth: false` in `createSolvaPayMcpFetch` for the smoke run. This mirrors [verify.md](verify.md)'s auth-aware `toolsList` behaviour.
+When the worker requires bearer auth (the SDK default — `requireAuth: true`), pass `--credentials-file <path>` so `test.mjs` can enumerate the catalog and call tools as a real OAuth client. Mint the token with the [MCPJam CLI](https://www.npmjs.com/package/@mcpjam/cli):
+
+> **Requires a human at a browser.** `mcpjam oauth login` defaults to `--auth-mode interactive`, which opens a system browser and blocks until you click "Approve" on the SolvaPay consent screen. SolvaPay workers only advertise the `authorization_code` grant type, so neither `--auth-mode client_credentials` nor the headless flow can complete without that human click. Autonomous agents should stop after `verify.mjs` (which can run anonymous against any worker) and not attempt `test.mjs --credentials-file`.
+
+```bash
+# 0. One-time install of the MCPJam CLI.
+npm i -g @mcpjam/cli
+# or skip the global install and prefix the next command with `npx -y @mcpjam/cli@latest`.
+
+# 1. Mint a bearer token (one-time per session). Opens a browser; click
+#    "Approve". The worker mounts MCP at /mcp by default, so pass
+#    <worker-url>/mcp.
+mcpjam oauth login --url <worker-url>/mcp --credentials-out /tmp/creds.json
+
+# 2. Pass the credentials file to test.mjs. test.mjs takes the worker root
+#    and appends /mcp itself.
+node scripts/test.mjs <worker-url> \
+  --spec path/to/openapi.json \
+  --credentials-file /tmp/creds.json
+```
+
+The credentials file is a JSON dump with `accessToken`, `refreshToken`, `expiresAt`. `test.mjs` only reads `accessToken`, so when it expires every tool call comes back `failed` with `401`/`Bearer realm` text in `response.textPreview` — re-run `mcpjam oauth login --url <worker-url>/mcp --credentials-out /tmp/creds.json` (which opens the browser again) to refresh `/tmp/creds.json`, then retry. Without `--credentials-file`, `test.mjs` keeps the old skip-on-401 behaviour and exits `0` with `overall: "skipped"`, `reason: "worker requires bearer auth; pass \`--credentials-file <path>\` …"` so existing CI loops don't break.
 
 ## Reading a `failed` result
 
