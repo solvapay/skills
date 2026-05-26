@@ -8,13 +8,13 @@
 ## Required Packages
 
 ```bash
-npx solvapay init
+npx -y solvapay@latest init
 npm install @solvapay/next @solvapay/react @solvapay/react-supabase @supabase/supabase-js
 ```
 
 ## Environment Variables
 
-`npx solvapay init` writes `SOLVAPAY_SECRET_KEY` to `.env`. Add the remaining variables:
+`npx -y solvapay@latest init` writes `SOLVAPAY_SECRET_KEY` to `.env`. Add the remaining variables:
 
 ```env
 NEXT_PUBLIC_PRODUCT_REF=prd_...

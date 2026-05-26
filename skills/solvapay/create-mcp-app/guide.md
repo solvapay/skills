@@ -40,10 +40,10 @@ If no paid-MCP project is present:
 
 | Situation | Path |
 | --- | --- |
-| Human at a terminal, no spec — wants a working server with one placeholder tool | `npm create solvapay <name> -- --type mcp` (asks "spec? y/n", picks from-scratch on `n`). |
-| Human at a terminal, has an OpenAPI / Swagger URL or file | `npm create solvapay <name> -- --type mcp --openapi <url-or-path>` (one-to-one mode). |
+| Human at a terminal, no spec — wants a working server with one placeholder tool | `npm create solvapay@latest <name> -- --type mcp` (asks "spec? y/n", picks from-scratch on `n`). |
+| Human at a terminal, has an OpenAPI / Swagger URL or file | `npm create solvapay@latest <name> -- --type mcp --openapi <url-or-path>` (one-to-one mode). |
 | Agent, has a spec | **Always the agent path** — [from-openapi/guide.md](from-openapi/guide.md), using `scripts/describe.mjs` + `scripts/scaffold.mjs` with a hand-authored `selections.json`. The published CLI only emits one-to-one tools and cannot author intent-driven dispatchers (those require the LLM). One-to-one is still available via `"mode": "one-to-one"` in `selections.json` when clustering isn't worth it. |
-| Agent, no spec, hand-writing tools | [from-scratch/guide.md](from-scratch/guide.md) — `npm create solvapay <name> -- --type mcp --no-openapi` for the scaffold, then add tools by hand. |
+| Agent, no spec, hand-writing tools | [from-scratch/guide.md](from-scratch/guide.md) — `npm create solvapay@latest <name> -- --type mcp --no-openapi` for the scaffold, then add tools by hand. |
 
 ### Inside an unrelated app repo
 
@@ -85,14 +85,14 @@ Ask once:
 
 If the user has a REST API but no spec yet, the OpenAPI flow can still help — `from-openapi/guide.md` opens with a "no spec yet" branch that walks the upstream API into one. Default to OpenAPI when in doubt; the spec-first path produces a typed server with less hand-coding.
 
-### Human-driven shortcut: `npm create solvapay -- --type mcp`
+### Human-driven shortcut: `npm create solvapay@latest -- --type mcp`
 
-For users at a terminal (not inside an agent), point them at the published scaffolder before diving into the agent-only modules:
+For users at a terminal (not inside an agent), point them at the published scaffolder before diving into the agent-only modules. The `@latest` suffix forces npm to re-resolve the registry every run, so the user always picks up the freshest scaffolder without manually clearing the npx cache:
 
 ```bash
-npm create solvapay my-mcp -- --type mcp                              # interactive: asks spec? y/n
-npm create solvapay my-mcp -- --type mcp --openapi <url-or-path>   # from-openapi (one-to-one mode)
-npm create solvapay my-mcp -- --type mcp --no-openapi              # from-scratch with placeholder tool
+npm create solvapay@latest my-mcp -- --type mcp                              # interactive: asks spec? y/n
+npm create solvapay@latest my-mcp -- --type mcp --openapi <url-or-path>   # from-openapi (one-to-one mode)
+npm create solvapay@latest my-mcp -- --type mcp --no-openapi              # from-scratch with placeholder tool
 ```
 
 The CLI ships with both modes, runs the project-local `npm install`, and invokes `solvapay init` for browser auth + product picker in one pass. Use it when the user is invoking SolvaPay from a shell rather than from an LLM. Intent-driven mode (one MCP tool spanning multiple upstream operations) is intentionally only available via the agent path below — it needs an LLM to author the resulting `src/tools/*.ts` files.
@@ -112,7 +112,7 @@ The OpenAPI flow targets Cloudflare end-to-end; the from-scratch flows reference
 
 ## SolvaPay credentials
 
-Both modes call [solvapay-init.md](solvapay-init.md) after scaffold to populate `SOLVAPAY_SECRET_KEY` (via `npx solvapay init` browser auth) and `SOLVAPAY_PRODUCT_REF` (via interactive product picker). Read that file once you have a scaffolded project.
+Both modes call [solvapay-init.md](solvapay-init.md) after scaffold to populate `SOLVAPAY_SECRET_KEY` (via `npx -y solvapay@latest init` browser auth) and `SOLVAPAY_PRODUCT_REF` (via interactive product picker). Read that file once you have a scaffolded project.
 
 If the SolvaPay product doesn't exist yet, ask the user to create one in SolvaPay Console (https://app.solvapay.com) before init.
 

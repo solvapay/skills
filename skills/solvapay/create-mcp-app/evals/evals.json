@@ -104,6 +104,22 @@
         "The Zod schema validates `topic: z.string()` (required) and `mood: z.enum(['serene','melancholy','playful']).optional()`",
         "The agent read `from-scratch/guide.md` AND `from-scratch/scaffold-and-extend.md` AND `tool-design.md` (visible in transcript) — all three are load-bearing for the placeholder-replacement workflow"
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "Context: the describe.mjs and scaffold.mjs scripts are at /Users/tommy/projects/solvapay/solvapay-sdk/packages/create-solvapay/scripts/mcp/ and their npm deps are already installed there. Task: I want to set up a paid MCP server, but I'm running on Node + Express (NOT Cloudflare Workers) — my company doesn't use Cloudflare. Walk me through how to wire SolvaPay into an Express app from scratch: which package subpath, which factory, how to mount the OAuth bridge, how to wrap a paid tool. I'll write the actual `app.listen` glue myself; you produce a minimal `server.ts` (Express handler + SolvaPay factory + one example paid tool) that compiles and a `package.json` listing the right deps. Save everything under `./express-mcp/`.",
+      "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` wired to `StreamableHTTPServerTransport`, with `createMcpOAuthBridge` from `@solvapay/mcp/express` mounted as middleware. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
+      "files": [],
+      "expectations": [
+        "`./express-mcp/server.ts` imports `createSolvaPayMcpServer` from `@solvapay/mcp` AND `createMcpOAuthBridge` from `@solvapay/mcp/express` — NOT `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch` and NOT a nonexistent `createSolvaPayMcpExpress`",
+        "`./express-mcp/server.ts` uses `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` to bridge the MCP server to Express (req, res)",
+        "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`, and `express` as dependencies",
+        "Env vars are read via `process.env.SOLVAPAY_SECRET_KEY` etc. — NOT a Workers `Env` interface and NOT `env.SOLVAPAY_SECRET_KEY` from a Workers fetch signature",
+        "No `wrangler.jsonc` is created (Cloudflare-specific; not applicable on Express)",
+        "At least one paid tool is registered via `ctx.registerPayable(name, { title, description, schema, handler })` with the 2-arg shape, and its handler returns `c.respond(data, { text })`",
+        "The agent did NOT run the OpenAPI agent path (`describe.mjs` / `scaffold.mjs` from `scripts/mcp/`) — there is no OpenAPI spec in this task",
+        "The agent read `hosting/alternatives.md` (visible in transcript) — it is the routing doc that documents the Node + Express wiring pattern"
+      ]
     }
   ]
 }

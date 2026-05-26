@@ -14,17 +14,19 @@ In Claude Code or Cursor with this skill installed:
 
 The skill auto-loads and routes to the appropriate state-based module below (`describe.mjs` → curate → `scaffold.mjs` → `solvapay-init` → deploy → verify → test). Intent-driven clustering, per-operation tier curation, and hand-tuned narration all live on this path.
 
-**Do not use `npm create solvapay` from an agent context.** The published CLI cannot author `src/tools/*.ts` because that step requires an LLM — it only ever emits one-to-one tools (one file per spec operation), which is rarely the right shape for a host LLM to navigate when the spec has more than a handful of operations.
+**Do not use `npm create solvapay@latest` from an agent context.** The published CLI cannot author `src/tools/*.ts` because that step requires an LLM — it only ever emits one-to-one tools (one file per spec operation), which is rarely the right shape for a host LLM to navigate when the spec has more than a handful of operations.
 
 ## Human shortcut (terminal users only)
 
 For humans at a terminal who already have a spec and explicitly want one-to-one tools, the published scaffolder runs the whole flow in one command:
 
 ```bash
-npm create solvapay my-mcp -- --type mcp --openapi <url-or-path>
-# or: pnpm create solvapay my-mcp -- --type mcp --openapi <url-or-path>
-# or: yarn create solvapay my-mcp -- --type mcp --openapi <url-or-path>
+npm create solvapay@latest my-mcp -- --type mcp --openapi <url-or-path>
+# or: pnpm create solvapay@latest my-mcp -- --type mcp --openapi <url-or-path>
+# or: yarn create solvapay@latest my-mcp -- --type mcp --openapi <url-or-path>
 ```
+
+The `@latest` suffix re-resolves the npm registry every run so the user picks up the freshest scaffolder without clearing the npx cache.
 
 It handles spec parsing, `selections.json` defaults (one-to-one mode, `suggestedTier` per operation), the project-local `npm install`, and the browser-based `solvapay init` (auth + product picker + `.env` writes) in one pass. Use this only when you are a human running it from a shell.
 
@@ -91,7 +93,7 @@ For agents working directly against the package in a local checkout, install the
 1. **Tier overrides (Gate G4, fires at standard + chatty, one-to-one only)** — start from `describe.mjs`'s `suggestedTier` and surface G4 as a batched table per [describe.md](describe.md). Mutating operations default to `paid`; if the user wants to ship paid-only later, mark them `skip` for now.
 
    **Read-only-first when the API is unfamiliar.** If you're wrapping an upstream you've never integrated before, ship the read-only / idempotent operations first (mostly `GET` / `HEAD`) and `tier: "skip"` the mutating ones. Get auth, errors, and the verifier checks green against the safe surface before exposing `POST` / `PUT` / `PATCH` / `DELETE` to the LLM. Add the mutating operations in a follow-up once their semantics and pricing are explicitly approved. Skip this rule when the product's core value *is* a write/action workflow (e.g. "send transactional email", "create invoice") — but still keep `annotations: { destructiveHint: true }` on those tools and confirm the destructive scope with the user before scaffolding.
-2. **`solvapayProductRef`** — optional in `selections.json`. Omit it during curate; `npx solvapay init` lists the account's products and asks the user to pick one (or auto-picks when there's only one / when `--yes` is set). Only the prereq survives: the user must have at least one product before running init. If they have none yet, ask the user to create a product in SolvaPay Console (https://app.solvapay.com), then resume at init.
+2. **`solvapayProductRef`** — optional in `selections.json`. Omit it during curate; `npx -y solvapay@latest init` lists the account's products and asks the user to pick one (or auto-picks when there's only one / when `--yes` is set). Only the prereq survives: the user must have at least one product before running init. If they have none yet, ask the user to create a product in SolvaPay Console (https://app.solvapay.com), then resume at init.
 3. **`upstreamAuth` shape + key (Gate G5, always fires)** — pick from `describe.mjs.securitySchemes` and surface G5 per [describe.md](describe.md) to confirm `kind` and collect the secret. Even at `auto`, G5 fires because the user must supply the secret. Shape options:
    - `http-bearer` → `{ kind: 'bearer', key: '<user supplies>' }`
    - `apiKey-header` → `{ kind: 'apiKey', in: 'header', name: '<from spec>', key: '<user supplies>' }`
@@ -102,7 +104,7 @@ For agents working directly against the package in a local checkout, install the
 
 Then write `selections.json` to a non-project path (`/tmp/selections-<uuid>.json`) and pass it via `--selections` to `scaffold.mjs`.
 
-`SOLVAPAY_SECRET_KEY` is **not** in `selections.json` — `npx solvapay init` populates it after scaffold.
+`SOLVAPAY_SECRET_KEY` is **not** in `selections.json` — `npx -y solvapay@latest init` populates it after scaffold.
 
 ## Inputs the modules accept
 

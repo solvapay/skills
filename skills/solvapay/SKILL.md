@@ -78,6 +78,15 @@ Default if still ambiguous after one question:
 - If request is MCP-focused and code-based but not clearly greenfield, route to `create-mcp-app/guide.md` (the umbrella asks input-mode follow-up).
 - Otherwise, route to `sdk-integration/guide.md`.
 
+## Dev mode (skill author / internal testing only)
+
+If — and only if — the user explicitly says they're testing this skill against the SolvaPay dev backend, append `--dev` to every published-CLI invocation:
+
+- `npm create solvapay@latest <name> -- --type mcp --dev`
+- `npx -y solvapay@latest init --dev`
+
+The flag writes `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` into `.env` and routes browser-auth, `wrangler dev`, the deploy preflight, and the deployed worker to the dev backend in one pass. Never enable `--dev` for end users — production secret keys are rejected by `api-dev`.
+
 ## Task Progress
 
 - [ ] Identify primary intent

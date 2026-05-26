@@ -16,7 +16,7 @@ type Selections = {
     operationId: string
     tier: 'free' | 'paid' | 'skip'
   }>
-  // solvapaySecretKey is intentionally absent — populated by `npx solvapay init`.
+  // solvapaySecretKey is intentionally absent — populated by `npx -y solvapay@latest init`.
 }
 
 type UpstreamAuth =
@@ -38,7 +38,7 @@ type UpstreamAuth =
 | `mode` | Meaning |
 | --- | --- |
 | `'intent-driven'` (recommended in skill / agent context) | `scaffold.mjs` only bootstraps the project skeleton + an empty aggregator. The agent then authors `src/tools/<intent>.ts` files directly per [`../intent-driven.md`](../intent-driven.md). `operations[]` is ignored if present. Best for LLM consumption — fewer, more semantic tools. Requires an agent (Cursor/Claude/etc.) in the loop. |
-| `'one-to-one'` (default in `scaffold.mjs`; only mode supported by `npx create-solvapay -- --type mcp`) | One generated tool per non-skipped OpenAPI operation. `scaffold.mjs` writes every `src/tools/<operationId>.ts` and the `registerTools` aggregator. Requires `operations[]`. Produces working tools without an agent. |
+| `'one-to-one'` (default in `scaffold.mjs`; only mode supported by `npx -y create-solvapay@latest -- --type mcp`) | One generated tool per non-skipped OpenAPI operation. `scaffold.mjs` writes every `src/tools/<operationId>.ts` and the `registerTools` aggregator. Requires `operations[]`. Produces working tools without an agent. |
 
 Intent definitions are not part of `selections.json` — the intent tool source files ARE the contract. There is no `intents[]` field.
 
@@ -47,9 +47,9 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | Field | Source | Notes |
 | --- | --- | --- |
 | `workerName` | Agent suggests, user confirms | Kebab-case, no spaces. Used as Wrangler `name`. |
-| `solvapayProductRef` | **Optional** | Omit during curate — `npx solvapay init` lists account products and prompts (or auto-picks). Include only when you want a specific ref written at scaffold time. If the user has no product yet, ask them to create one in SolvaPay Console (https://app.solvapay.com) before init. |
+| `solvapayProductRef` | **Optional** | Omit during curate — `npx -y solvapay@latest init` lists account products and prompts (or auto-picks). Include only when you want a specific ref written at scaffold time. If the user has no product yet, ask them to create one in SolvaPay Console (https://app.solvapay.com) before init. |
 | `mcpPublicBaseUrl` | Agent default + deploy auto-resolve | Use `http://localhost:8787` initially. `deploy.mjs` auto-resolves the live `*.workers.dev` URL on first deploy when still a placeholder. For custom domains, set explicitly before deploy (see [../deploy.md](../deploy.md) step 2). |
-| `mode` | **Optional**, agent asks user once after `describe.mjs` (recommends `'intent-driven'` when running inside the skill) | `'one-to-one'` (default) for faithful per-op mapping; `'intent-driven'` for agent-authored clusters. See [../intent-driven.md](../intent-driven.md). The standalone `npx create-solvapay -- --type mcp` CLI always writes `'one-to-one'`. |
+| `mode` | **Optional**, agent asks user once after `describe.mjs` (recommends `'intent-driven'` when running inside the skill) | `'one-to-one'` (default) for faithful per-op mapping; `'intent-driven'` for agent-authored clusters. See [../intent-driven.md](../intent-driven.md). The standalone `npx -y create-solvapay@latest -- --type mcp` CLI always writes `'one-to-one'`. |
 | `upstreamAuth.kind` | Agent reads from `describe.mjs` security schemes, then confirms with user | One of `none` / `bearer` / `apiKey` / `oauth2-client-credentials`. |
 | `upstreamAuth.key` | **User-supplied** | The literal upstream API key. Treat like a secret — see `scaffold.md`'s "selections.json lifecycle". |
 | `upstreamAuth.name` | Agent reads from `describe.mjs` | Header name for `apiKey` (e.g. `X-API-Key`). Only `in: "header"` is supported in v1. |
@@ -131,6 +131,6 @@ Scaffold writes the five `UPSTREAM_OAUTH_*` keys to `.env`; `scripts/deploy.mjs`
 
 ## What's intentionally NOT in this schema
 
-- `solvapaySecretKey` — `npx solvapay init` writes it directly to `.env`. Never include it here.
+- `solvapaySecretKey` — `npx -y solvapay@latest init` writes it directly to `.env`. Never include it here.
 - `apiBaseUrl` for the upstream — derived from the OpenAPI document's `servers[0].url` at scaffold time.
 - `selectionsForRotation` — there is no rotation flow that goes through scaffold. Rotation is handled by re-running [../../solvapay-init.md](../../solvapay-init.md) + [../deploy.md](../deploy.md).

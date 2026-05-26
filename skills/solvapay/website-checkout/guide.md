@@ -14,7 +14,7 @@ This guide is for web checkout flows, not paid MCP server implementation.
 
 ## Prerequisites
 
-Before stack-specific implementation, run `npx solvapay init` to configure
+Before stack-specific implementation, run `npx -y solvapay@latest init` to configure
 `SOLVAPAY_SECRET_KEY` and install base SDK packages.
 
 For advanced use cases (usage metering, Express/MCP paths, webhook-heavy flows), use [../sdk-integration/guide.md](../sdk-integration/guide.md).

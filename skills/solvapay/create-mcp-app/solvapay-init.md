@@ -15,8 +15,15 @@ From inside the freshly scaffolded directory:
 
 ```bash
 cd /path/to/petstore-mcp
-npx solvapay init
+npx -y solvapay@latest init
+
+# Internal testing only — target the SolvaPay dev backend. Writes
+# SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com to .env so the
+# worker, wrangler dev, and the deploy preflight all hit api-dev.
+npx -y solvapay@latest init --dev
 ```
+
+The `@latest` suffix re-resolves the registry every run (so cached CLIs never lag behind); `-y` auto-confirms the npx install prompt (required for non-interactive / agent execution).
 
 The CLI:
 

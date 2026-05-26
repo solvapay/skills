@@ -101,7 +101,7 @@ The thrown `UpstreamError` is **not caught** in the generated handler — both c
 | Writer | Keys |
 | --- | --- |
 | `scaffold.mjs` | `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, `UPSTREAM_API_KEY` (only when `kind` is `bearer` or `apiKey`), `UPSTREAM_OAUTH_TOKEN_URL` / `UPSTREAM_OAUTH_CLIENT_ID` / `UPSTREAM_OAUTH_CLIENT_SECRET` plus optional `UPSTREAM_OAUTH_SCOPE` / `UPSTREAM_OAUTH_AUDIENCE` (only when `kind` is `oauth2-client-credentials`) |
-| `npx solvapay init` | `SOLVAPAY_SECRET_KEY` — appended via the CLI's append-safe writer, no clobber |
+| `npx -y solvapay@latest init` | `SOLVAPAY_SECRET_KEY` — appended via the CLI's append-safe writer, no clobber |
 | Agent | One-time edit to `MCP_PUBLIC_BASE_URL` for custom-domain deploys (see [../deploy.md](../deploy.md) step 2) |
 
 `SOLVAPAY_SECRET_KEY`, `UPSTREAM_API_KEY`, and the `UPSTREAM_OAUTH_*` family are all uploaded as Worker Secrets; see [../deploy.md](../deploy.md) for the lifecycle.

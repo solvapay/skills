@@ -12,7 +12,7 @@ Orchestration prose, no script. Whatever `SOLVAPAY_SECRET_KEY` is in `.env` is w
 - `wrangler login` succeeded once for this account. If not, `npm run deploy` exits early with `npx wrangler login` instructions.
 - On a **fresh Cloudflare account**, register a workers.dev subdomain once before the first deploy. `scripts/deploy.mjs` pre-flights this and prints `https://dash.cloudflare.com/<account>/workers/onboarding` instead of letting `wrangler deploy` fail with a buried link.
 - `.env` is populated. Run [../solvapay-init.md](../solvapay-init.md) first if it isn't.
-- Dependencies are installed. `npx solvapay init` already ran `npm install` (or the detected package manager equivalent) — no need to re-run unless `package.json` changed.
+- Dependencies are installed. `npx -y solvapay@latest init` already ran `npm install` (or the detected package manager equivalent) — no need to re-run unless `package.json` changed.
 
 ## Step 1 — deploy
 
@@ -33,6 +33,8 @@ npm run deploy
 - Uploads the `UPSTREAM_OAUTH_*` secrets from `.env` automatically when scaffold wrote them (i.e. when `selections.json.upstreamAuth.kind` was `oauth2-client-credentials`). Required: `UPSTREAM_OAUTH_TOKEN_URL`, `UPSTREAM_OAUTH_CLIENT_ID`, `UPSTREAM_OAUTH_CLIENT_SECRET`. Optional, uploaded only when present: `UPSTREAM_OAUTH_SCOPE`, `UPSTREAM_OAUTH_AUDIENCE`. The deploy aborts if `.env` carries only some of the three required keys.
 
 All secrets go through `npx wrangler secret put` under the hood — never `--var`.
+
+When `.env` carries `SOLVAPAY_API_BASE_URL` (either seeded by `npm create solvapay@latest … --dev` / `npx -y solvapay@latest init --dev` or set manually), `deploy.mjs` forwards it as a `--var` override and the preflight `GET /v1/sdk/merchant` hits the same origin. No extra step — one knob, one source of truth.
 
 Before invoking `wrangler deploy`, the script prints the resolved workers.dev URL and asks `[Y/n]`. Press Enter to accept. Decline (`n`) to abort and follow the printed instructions — either rename the account-wide workers.dev subdomain in the Cloudflare dashboard (affects every Worker on the account), or attach a `custom_domain` route (see Step 2). Pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) to skip the prompt; it's also skipped automatically when `wrangler.jsonc` has a `custom_domain` route or stdin is not a TTY.
 
@@ -94,7 +96,7 @@ mcpjam oauth login --url <deployed-url>/mcp --credentials-out /tmp/creds.json
 node scripts/verify.mjs <deployed-url> --credentials-file /tmp/creds.json
 ```
 
-`merchantBootstrap` is the only check that hits the worker's SolvaPay layer with a real bearer token — `passed` means the deployed worker can reach its merchant; `failed` with `Provider not found` text means the secret key on the worker has no matching merchant (re-run `npx solvapay init` and redeploy). `failed` with `401` or `Bearer realm` text usually means the token expired — re-run the `mcpjam oauth login` command to refresh `/tmp/creds.json` (the file stores `accessToken` only; `verify.mjs` doesn't auto-refresh).
+`merchantBootstrap` is the only check that hits the worker's SolvaPay layer with a real bearer token — `passed` means the deployed worker can reach its merchant; `failed` with `Provider not found` text means the secret key on the worker has no matching merchant (re-run `npx -y solvapay@latest init` and redeploy). `failed` with `401` or `Bearer realm` text usually means the token expired — re-run the `mcpjam oauth login` command to refresh `/tmp/creds.json` (the file stores `accessToken` only; `verify.mjs` doesn't auto-refresh).
 
 Without `--credentials-file`, `verify.mjs` still runs every other check and reports `merchantBootstrap: { status: 'skipped' }`. You can also fall back to the raw MCPJam path if your scripts directory is not up to date:
 

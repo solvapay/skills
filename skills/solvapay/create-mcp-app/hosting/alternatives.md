@@ -16,6 +16,7 @@ Decision matrix for deploying a SolvaPay MCP server on a runtime other than Clou
 | Supabase Edge Functions | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [../../sdk-integration/supabase-edge/guide.md](../../sdk-integration/supabase-edge/guide.md) |
 | Deno | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Deno docs: https://docs.deno.com/runtime/fundamentals/http_server/ |
 | Bun | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Bun docs: https://bun.sh/docs/api/http |
+| Node + Express | `@solvapay/mcp` + `@solvapay/mcp/express` | `createSolvaPayMcpServer` + `createMcpOAuthBridge` | See Node + Express below |
 | Framework-neutral / custom transport | `@solvapay/mcp` | `createSolvaPayMcpServer` | [../../sdk-integration/mcp-server/guide.md](../../sdk-integration/mcp-server/guide.md) |
 
 ## Shared wiring
@@ -78,6 +79,51 @@ Bun.serve({ fetch: handler, port: 8787 })
 
 Bun HTTP docs: https://bun.sh/docs/api/http.
 
+### Node + Express
+
+No `createSolvaPayMcpExpress` turnkey factory exists yet. Use `createSolvaPayMcpServer` (framework-neutral) + `StreamableHTTPServerTransport` (from `@modelcontextprotocol/sdk`) + `createMcpOAuthBridge` (from `@solvapay/mcp/express`).
+
+```ts
+import express from 'express'
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+import { createSolvaPay } from '@solvapay/server'
+import { createSolvaPayMcpServer } from '@solvapay/mcp'
+import { createMcpOAuthBridge } from '@solvapay/mcp/express'
+
+const solvaPay = createSolvaPay({ apiKey: process.env.SOLVAPAY_SECRET_KEY! })
+
+const mcpServer = createSolvaPayMcpServer({
+  solvaPay,
+  productRef: process.env.SOLVAPAY_PRODUCT_REF!,
+  publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
+  mode: 'json-stateless',
+  additionalTools: (ctx) => {
+    ctx.registerPayable('my_tool', {
+      title: 'My tool',
+      description: '...',
+      schema: { /* zod shape */ },
+      handler: async (input, c) => c.respond(data, { text: narration }),
+    })
+  },
+})
+
+export const app = express()
+app.use(express.json())
+app.use(...createMcpOAuthBridge({
+  publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
+  productRef: process.env.SOLVAPAY_PRODUCT_REF!,
+  apiBaseUrl: process.env.SOLVAPAY_API_BASE_URL ?? 'https://api.solvapay.com',
+}))
+
+app.post('/mcp', async (req, res) => {
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+  await mcpServer.connect(transport)
+  await transport.handleRequest(req, res, req.body)
+})
+```
+
+Required deps: `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`, `express`, `zod`. No `wrangler.jsonc`. Read env via `process.env` (not Workers `Env` interface).
+
 ### Framework-neutral
 
 If you have a custom HTTP framework or need to mount the MCP server on a non-standard transport (stdio, WebSocket, SSE), use `createSolvaPayMcpServer` from `@solvapay/mcp`. It returns an `McpServer` instance pre-loaded with the SolvaPay tool surface; you mount it on whatever transport you already have. Full reference: [../../sdk-integration/mcp-server/guide.md](../../sdk-integration/mcp-server/guide.md).
@@ -93,8 +139,3 @@ If you have a custom HTTP framework or need to mount the MCP server on a non-sta
 
 When in doubt, start with `'json-stateless'` — it works everywhere and only loses efficiency under high per-session streaming load.
 
-## Currently unsupported
-
-Node + Express is not a supported deployment target for `create-mcp-app`. The SDK currently only ships `createMcpOAuthBridge` middleware from `@solvapay/mcp/express` — there is no turnkey `createSolvaPayMcpExpress` factory comparable to `createSolvaPayMcpFetch`, so any scaffolded Express server would still need the developer to wire up `createSolvaPayMcpServer` + `StreamableHTTPServerTransport` by hand. Once a `createSolvaPayMcpExpress` factory lands in `@solvapay/mcp/express`, the Node + Express row will be restored to the matrix above.
-
-<!-- TODO(solvapay-sdk): add createSolvaPayMcpExpress factory; then restore Node + Express row -->

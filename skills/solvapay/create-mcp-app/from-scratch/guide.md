@@ -16,10 +16,12 @@ In Claude Code or Cursor with this skill installed:
 For humans at a terminal:
 
 ```bash
-npm create solvapay my-mcp -- --type mcp --no-openapi
-# or: pnpm create solvapay my-mcp -- --type mcp --no-openapi
-# or: yarn create solvapay my-mcp -- --type mcp --no-openapi
+npm create solvapay@latest my-mcp -- --type mcp --no-openapi
+# or: pnpm create solvapay@latest my-mcp -- --type mcp --no-openapi
+# or: yarn create solvapay@latest my-mcp -- --type mcp --no-openapi
 ```
+
+The `@latest` suffix re-resolves the npm registry every run, so the user picks up the freshest scaffolder without clearing the npx cache.
 
 The CLI asks for a project name and a camelCase tool name (default `helloTool`), drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
 
@@ -42,7 +44,7 @@ See [../guide.md](../guide.md) for the umbrella's guardrails block. All apply to
 ## End-to-end happy path
 
 ```
-npm create solvapay (--no-openapi) → scaffold-and-extend → tool-design (read before authoring) → solvapay-init → deploy → verify → test
+npm create solvapay@latest (--no-openapi) → scaffold-and-extend → tool-design (read before authoring) → solvapay-init → deploy → verify → test
 ```
 
 `solvapay init`, deploy, verify, and test work the same way as the from-openapi flow — see [../solvapay-init.md](../solvapay-init.md) and [../hosting/cloudflare.md](../hosting/cloudflare.md) for the shared steps.
@@ -60,7 +62,7 @@ Read [../tool-design.md](../tool-design.md) before writing any tool code. It cov
 
 ## Task progress
 
-- [ ] Run `npm create solvapay <name> -- --type mcp --no-openapi`
+- [ ] Run `npm create solvapay@latest <name> -- --type mcp --no-openapi`
 - [ ] Read [../tool-design.md](../tool-design.md)
 - [ ] Follow [scaffold-and-extend.md](scaffold-and-extend.md) to replace the placeholder and add more paid tools
 - [ ] Run [../solvapay-init.md](../solvapay-init.md) to populate credentials
