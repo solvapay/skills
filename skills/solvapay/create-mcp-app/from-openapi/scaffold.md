@@ -51,14 +51,20 @@ Per [../hitl-conventions.md#redaction](../hitl-conventions.md#redaction), before
 
 Leave everything else verbatim — `upstreamAuth.kind`, `tokenUrl`, `clientId`, `name`, `in`, `scope`, `audience`, `mode`, `workerName`, `mcpPublicBaseUrl`, and the full `operations` / `solvapayProductRef` payload. The user needs to see exactly what `scaffold.mjs` will consume.
 
-Render the redacted JSON as a fenced ```jsonc``` block above the options. Example:
+Render the redacted JSON as a fenced ```jsonc``` block above the options.
+
+> **Mode matters for the JSON shape:**
+> - **`mode: "one-to-one"`** includes the `operations[]` array — one entry per operationId with its resolved tier. Render it.
+> - **`mode: "intent-driven"`** has **no `operations[]` field**. Tier-per-op lives implicitly in the cluster proposal you already approved at G2; `selections.json` for intent-driven only carries `mode`, `workerName`, `mcpPublicBaseUrl`, `upstreamAuth`, and `solvapayProductRef`. **Do not invent an `operations[]` array in the intent-driven G6 preview** — if you see one in your draft, you have leaked one-to-one shape into intent-driven mode; drop it before rendering.
+
+One-to-one example:
 
 ````
 ### G6 — run scaffold with this selections.json?
 
 ```jsonc
 {
-  "mode": "intent-driven",
+  "mode": "one-to-one",
   "workerName": "petstore-mcp",
   "mcpPublicBaseUrl": "http://localhost:8787",
   "upstreamAuth": {
@@ -75,6 +81,30 @@ Render the redacted JSON as a fenced ```jsonc``` block above the options. Exampl
 
 - a: Run scaffold — write the project
 - b: Edit — change tiers, auth, worker name, or mode
+
+Reply with a / b.
+````
+
+Intent-driven example (note: no `operations[]`):
+
+````
+### G6 — run scaffold with this selections.json?
+
+```jsonc
+{
+  "mode": "intent-driven",
+  "workerName": "petstore-mcp",
+  "mcpPublicBaseUrl": "http://localhost:8787",
+  "upstreamAuth": {
+    "kind": "bearer",
+    "key": "<redacted>"
+  },
+  "solvapayProductRef": "prd_..."
+}
+```
+
+- a: Run scaffold — write the project
+- b: Edit — change auth, worker name, or mode
 
 Reply with a / b.
 ````

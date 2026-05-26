@@ -10,6 +10,19 @@ Optional alternative to one-to-one mode. `scaffold.mjs` only bootstraps the proj
 - You've already written `selections.json` with `"mode": "intent-driven"` and run `scaffold.mjs`.
 - You now own `src/tools/` and `src/tools/index.ts`.
 
+## STOP — read [../tool-design.md](../tool-design.md) before authoring any intent file
+
+This is **not** optional and **not** a "polish later" step. Intent tools use the same `registerPayable(name, config)` two-argument shape and the same `c.respond(data, { text })` response-mode contract as one-to-one tools — both rules live only in [../tool-design.md](../tool-design.md), not here. The templates below assume you have already internalised them; if you author from these templates without `tool-design.md`, you will silently invent a wrong shape (most common failures: missing `title`, dropping the `text` narration, returning raw `content` arrays from paid handlers).
+
+Required read order for intent-driven:
+1. [guide.md](guide.md) — routing and the mode question
+2. [describe.md](describe.md) — `describe.mjs` output, gates G1/G4/G5
+3. **[../tool-design.md](../tool-design.md) — the `registerPayable` shape, the `c.respond` contract, narration rules**
+4. This file ([intent-driven.md](intent-driven.md)) — clustering + the three patterns
+5. [scaffold.md](scaffold.md) — G6 preview rules and `scaffold.mjs` invocation
+
+If you cannot recite the two-argument `registerPayable(name, { title, description, schema, handler, annotations? })` shape and the `c.respond(data, { text })` rule from memory, go back to step 3 before continuing.
+
 ## When to pick intent-driven vs one-to-one
 
 | Use intent-driven when | Use one-to-one when |

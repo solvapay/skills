@@ -72,7 +72,8 @@
         "The agent identified the correct env var split: SOLVAPAY_SECRET_KEY is a Worker secret (uploaded once via npx wrangler secret put, never in wrangler.jsonc and never as a --var flag); SOLVAPAY_PRODUCT_REF and MCP_PUBLIC_BASE_URL live in wrangler.jsonc [vars] as placeholders/defaults AND get overridden at deploy time via --var flags from scripts/deploy.mjs sourcing .env",
         "The agent identified npm run deploy (or wrangler deploy) as the deploy command",
         "No new scaffolded project directories were created",
-        "The original ./petstore-mcp/package.json, wrangler.jsonc, and src/worker.ts were not overwritten"
+        "./petstore-mcp/src/worker.ts was NOT re-scaffolded or rewritten (its contents must remain the original createSolvaPayMcpFetch call) — re-scaffolding worker.ts means the agent treated the existing project as greenfield, which is the failure to catch",
+        "./petstore-mcp/package.json and ./petstore-mcp/wrangler.jsonc MAY be augmented for deploy (adding scripts/deploy.mjs to scripts, adding [vars] block with SOLVAPAY_PRODUCT_REF/MCP_PUBLIC_BASE_URL placeholders, adding observability, etc.) — augmentation is expected. They must NOT be reduced to a scaffold default or have unrelated existing keys removed."
       ]
     },
     {
