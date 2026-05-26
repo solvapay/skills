@@ -16,7 +16,6 @@ Decision matrix for deploying a SolvaPay MCP server on a runtime other than Clou
 | Supabase Edge Functions | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [../../sdk-integration/supabase-edge/guide.md](../../sdk-integration/supabase-edge/guide.md) |
 | Deno | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Deno docs: https://docs.deno.com/runtime/fundamentals/http_server/ |
 | Bun | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Bun docs: https://bun.sh/docs/api/http |
-| Node + Express | `@solvapay/mcp/express` | `createSolvaPayMcpExpress` | [../../sdk-integration/express/guide.md](../../sdk-integration/express/guide.md) |
 | Framework-neutral / custom transport | `@solvapay/mcp` | `createSolvaPayMcpServer` | [../../sdk-integration/mcp-server/guide.md](../../sdk-integration/mcp-server/guide.md) |
 
 ## Shared wiring
@@ -25,7 +24,7 @@ The factory call shape is identical across fetch-first runtimes. The only things
 
 1. How environment variables are read (`env` binding on Workers, `process.env` on Node/Bun, `Deno.env` on Deno/Supabase Edge).
 2. How the widget HTML is loaded (inlined string via Wrangler Text rule on Workers; `Deno.readTextFile` on Deno/Supabase Edge; `fs.readFileSync` at build time on Node).
-3. How the handler is mounted (`export default { fetch }` on Workers; `Deno.serve(handler)` on Deno; `Bun.serve({ fetch: handler })` on Bun; Express middleware on Node+Express).
+3. How the handler is mounted (`export default { fetch }` on Workers; `Deno.serve(handler)` on Deno; `Bun.serve({ fetch: handler })` on Bun).
 
 Everything else — `createSolvaPay`, `createSolvaPayMcpFetch`, paywall wrapping, OAuth bridge, intent tools, widget resource — works the same way. See [../../sdk-integration/mcp-server/guide.md](../../sdk-integration/mcp-server/guide.md) for the runtime-neutral reference.
 
@@ -79,10 +78,6 @@ Bun.serve({ fetch: handler, port: 8787 })
 
 Bun HTTP docs: https://bun.sh/docs/api/http.
 
-### Node + Express
-
-Use `@solvapay/mcp/express` for first-class Express middleware. The factory mounts `/oauth/*`, `/.well-known/*`, and the MCP endpoint in one call. Full guide: [../../sdk-integration/express/guide.md](../../sdk-integration/express/guide.md).
-
 ### Framework-neutral
 
 If you have a custom HTTP framework or need to mount the MCP server on a non-standard transport (stdio, WebSocket, SSE), use `createSolvaPayMcpServer` from `@solvapay/mcp`. It returns an `McpServer` instance pre-loaded with the SolvaPay tool surface; you mount it on whatever transport you already have. Full reference: [../../sdk-integration/mcp-server/guide.md](../../sdk-integration/mcp-server/guide.md).
@@ -95,6 +90,11 @@ If you have a custom HTTP framework or need to mount the MCP server on a non-sta
 | Supabase Edge Functions | `'json-stateless'` |
 | Deno deploy (serverless) | `'json-stateless'` |
 | Deno / Bun (long-running process) | `'streaming'` or `'json-stateless'` depending on session needs |
-| Node + Express (long-running) | `'streaming'` default; `'json-stateless'` for serverless deployments |
 
 When in doubt, start with `'json-stateless'` — it works everywhere and only loses efficiency under high per-session streaming load.
+
+## Currently unsupported
+
+Node + Express is not a supported deployment target for `create-mcp-app`. The SDK currently only ships `createMcpOAuthBridge` middleware from `@solvapay/mcp/express` — there is no turnkey `createSolvaPayMcpExpress` factory comparable to `createSolvaPayMcpFetch`, so any scaffolded Express server would still need the developer to wire up `createSolvaPayMcpServer` + `StreamableHTTPServerTransport` by hand. Once a `createSolvaPayMcpExpress` factory lands in `@solvapay/mcp/express`, the Node + Express row will be restored to the matrix above.
+
+<!-- TODO(solvapay-sdk): add createSolvaPayMcpExpress factory; then restore Node + Express row -->

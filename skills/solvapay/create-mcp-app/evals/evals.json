@@ -20,11 +20,11 @@
     {
       "id": 2,
       "prompt": "Context: the describe.mjs and scaffold.mjs scripts are at /Users/tommy/projects/solvapay/solvapay-sdk/packages/create-solvapay/scripts/mcp/ and their npm deps are already installed there. Use absolute paths when running them. Task: Wrap `https://petstore3.swagger.io/api/v3/openapi.json` as MCP tools. Greenfield, one-to-one mode is fine.",
-      "expected_output": "One-to-one scaffold with per-operation files. Agent fetches spec to a temp file before describe.mjs. Agent flags the serverProbeMismatch advisory (Petstore v3 has relative servers[0] = /api/v3). Agent skips uploadFile (binary, unfit for MCP text tools). scaffold.mjs succeeds on first attempt (no 'target dir exists' error).",
+      "expected_output": "One-to-one scaffold with per-operation files. Agent fetches spec to a temp file before describe.mjs. Agent flags the serverProbeError advisory (Petstore v3 has relative servers[0] = /api/v3). Agent skips uploadFile (binary, unfit for MCP text tools). scaffold.mjs succeeds on first attempt (no 'target dir exists' error).",
       "files": [],
       "expectations": [
         "The agent fetched the spec URL to a local temp file (e.g. /tmp/spec-*.json) BEFORE running describe.mjs — the URL was NOT passed directly to describe.mjs",
-        "The agent flagged the serverProbeMismatch advisory (Petstore v3's servers[0] is relative '/api/v3', not an absolute URL) and either fixed it in selections.json or surfaced it to the user as a known issue",
+        "The agent flagged the serverProbeError advisory (Petstore v3's servers[0] is relative '/api/v3', not an absolute URL) and either fixed it in selections.json or surfaced it to the user as a known issue",
         "The agent set tier='skip' for uploadFile (or equivalent binary/multipart operation) in selections.json — these are unfit for MCP text tools",
         "scaffold.mjs succeeded on the first invocation (no 'target dir exists' error in transcript; agent did not have to retry)",
         "src/tools/ contains one file per non-skipped Petstore v3 operation (one-to-one mode — many files like getPetById.ts, findPetsByStatus.ts, etc.)",
@@ -72,6 +72,37 @@
         "The agent identified npm run deploy (or wrangler deploy) as the deploy command",
         "No new scaffolded project directories were created",
         "The original ./petstore-mcp/package.json, wrangler.jsonc, and src/worker.ts were not overwritten"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Context: the describe.mjs and scaffold.mjs scripts are at /Users/tommy/projects/solvapay/solvapay-sdk/packages/create-solvapay/scripts/mcp/ and their npm deps are already installed there. Use absolute paths when running them. Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp-gated`. Use intent-driven mode at the default (standard) confirmation level, then author the intent-tool files matching the cluster proposal you surfaced at G2.",
+      "expected_output": "The agent surfaces gate G2 — a structured cluster proposal listing the proposed intent_name / ops covered / tier / one-line description rows — BEFORE writing selections.json or invoking scaffold.mjs. After G2 approval, the agent surfaces gate G6 (selections.json preview with upstreamAuth.key redacted, showing the resolved mode / workerName / upstreamAuth payload) before running scaffold.mjs. After scaffold, the agent authors one `src/tools/<intent>.ts` per row of the G2 proposal and wires the aggregator. Gates use stable id strings (G2:approve, G6:run).",
+      "files": [],
+      "expectations": [
+        "The agent presented a cluster proposal (gate G2) BEFORE authoring any src/tools/*.ts file or invoking scaffold.mjs — the proposal lists at least intent_name + ops covered + tier per row",
+        "The G2 proposal labels the gate explicitly (e.g. 'G2', 'Gate G2', or includes the canonical option ids approve / edit / oneToOne) so eval transcripts can grep for it",
+        "The agent waited for user approval on G2 before writing selections.json — did NOT skip straight from describe.mjs output to scaffold.mjs in one turn",
+        "The agent surfaced gate G6 (selections.json preview) before invoking scaffold.mjs — the preview redacts upstreamAuth.key as '<redacted>' (or equivalent) and shows the resolved mode / workerName / upstreamAuth payload (note: in intent-driven mode there is no operations[] field — that exists only in one-to-one mode)",
+        "selections.json is NOT found anywhere inside ./petstore-mcp-gated/ (the secret-key redaction in G6 is render-time only; the file written to /tmp still contains the real key)",
+        "The agent read from-openapi/intent-driven.md and from-openapi/scaffold.md (visible in transcript) — both define the gates this eval asserts",
+        "src/tools/ contains intent-driven action-verb files (manage_pet.ts, find_pet.ts, etc.) after scaffold + authoring, matching the cluster proposal surfaced at G2"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Context: the create-solvapay scaffolder lives at /Users/tommy/projects/solvapay/solvapay-sdk/packages/create-solvapay/ and its deps are already installed. Task: Scaffold a brand-new paid MCP server (no OpenAPI input) into `./haiku-mcp`. I want a single paid tool called `generate_haiku` that takes a `topic` string and an optional `mood` enum ('serene' | 'melancholy' | 'playful'), and returns a 3-line haiku as `{ lines: string[3] }`. Replace the scaffolder's placeholder tool — don't leave it dangling.",
+      "expected_output": "A fresh Cloudflare Workers project at `./haiku-mcp/` produced from the from-scratch (no-OpenAPI) scaffold flow. Exactly one paid tool, `generate_haiku`, lives in its own `src/tools/generate_haiku.ts` exporting `registerGenerateHaiku(ctx)`. The placeholder tool from the scaffold is gone — neither its file nor its register-call survives. `src/tools/index.ts` imports + calls `registerGenerateHaiku`. Handler uses `c.respond(data, { text })` narration. Schema validates `topic: z.string()` and `mood: z.enum(['serene','melancholy','playful']).optional()`. No OpenAPI scripts (describe.mjs / scaffold.mjs from `scripts/mcp/`) were invoked — those are the spec-first agent path.",
+      "files": [],
+      "expectations": [
+        "The agent ran `npm create solvapay` with `--type mcp --no-openapi` (or `pnpm/yarn create solvapay --no-openapi`) — not describe.mjs/scaffold.mjs from the OpenAPI agent path",
+        "The project is rooted at `./haiku-mcp/` with `package.json`, `wrangler.jsonc`, and `src/worker.ts` calling `createSolvaPayMcpFetch` (or equivalent fetch-first factory)",
+        "`src/tools/generate_haiku.ts` exists and exports `registerGenerateHaiku(ctx, env?)` (per the file-layout convention)",
+        "The scaffolder's placeholder tool (e.g. `helloTool`/`placeholder`/`hello`) is no longer registered — its file is deleted or replaced, and `src/tools/index.ts` does NOT import/call any leftover placeholder register function",
+        "`generate_haiku` is registered via `ctx.registerPayable('generate_haiku', { title, description, schema, handler, annotations? })` — the 2-arg shape, second arg a single config object",
+        "The handler returns `c.respond({ lines: [...] }, { text: <narration with render instruction> })` — not raw content arrays, not iframe payloads",
+        "The Zod schema validates `topic: z.string()` (required) and `mood: z.enum(['serene','melancholy','playful']).optional()`",
+        "The agent read `from-scratch/guide.md` AND `from-scratch/scaffold-and-extend.md` AND `tool-design.md` (visible in transcript) — all three are load-bearing for the placeholder-replacement workflow"
       ]
     }
   ]

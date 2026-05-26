@@ -27,6 +27,8 @@ Before writing any tool code, load these files in order:
 
 Do not write `registerPayable(...)`, `additionalTools`, or new files under `src/tools/` until those three files are loaded. The detailed guardrails live in `guide.md` and `tool-design.md`; this block is the entry gate, not a duplicate of them.
 
+**`tool-design.md` is non-negotiable**, including when you think you've seen the patterns before. It is the only file that pins down the `registerPayable(name, config)` two-argument shape, the `c.respond(data, { text })` response-mode contract, and the rule that paid handlers never return raw `content` arrays. Routing past it and authoring tools "from memory" is the single most common failure mode in this skill — the input-mode guides (`from-openapi/`, `from-scratch/`, `existing-server/`) build on it and do not duplicate its contract. If you find yourself about to call `registerPayable` and you cannot recall those rules verbatim, you have not read `tool-design.md`; stop and read it.
+
 ## First-decision routing
 
 Pick one before scaffolding anything:

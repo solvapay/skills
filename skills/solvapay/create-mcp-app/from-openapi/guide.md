@@ -32,6 +32,25 @@ It handles spec parsing, `selections.json` defaults (one-to-one mode, `suggested
 
 See [../guide.md](../guide.md) for the umbrella's guardrails block. All apply to OpenAPI-generated tools.
 
+## Gates (HITL contract)
+
+This flow uses **numbered, named gates** so the user picks confirmation level once (G0 in [../guide.md](../guide.md)) and the rest follows. Full contract — confirmation levels, structured-question shape, markdown fallback, redaction rules — lives in [../hitl-conventions.md](../hitl-conventions.md).
+
+| Gate                            | Fires at                               | Where                                          |
+| ------------------------------- | -------------------------------------- | ---------------------------------------------- |
+| G0 — pick confirmation level    | always                                 | [../guide.md](../guide.md) opener              |
+| G1 — generation mode            | always                                 | [describe.md](describe.md) hand-off            |
+| G2 — cluster proposal           | standard, chatty (intent-driven only)  | [intent-driven.md](intent-driven.md)           |
+| G3 — per-intent design          | chatty only (intent-driven only)       | [intent-driven.md](intent-driven.md)           |
+| G4 — tier overrides             | standard, chatty (one-to-one only)     | [describe.md](describe.md) curate              |
+| G5 — upstreamAuth shape + key   | always                                 | [describe.md](describe.md) curate              |
+| G6 — selections.json preview    | standard, chatty                       | [scaffold.md](scaffold.md) pre-run             |
+| G7 — post-scaffold file summary | chatty only                            | [intent-driven.md](intent-driven.md)           |
+| G8 — deploy confirm             | standard, chatty (auto passes `--yes`) | [deploy.md](deploy.md)                         |
+| G9 — go-live key swap           | always (overrides auto)                | [deploy.md](deploy.md) Go-live                 |
+
+Irreversible gates (G5 auth key, G6 scaffold, G8 deploy, G9 go-live) always fire even at `auto`. Cosmetic gates (G2 cluster naming, G3 per-intent design, G4 tier picks, G7 file summary) collapse at `auto`.
+
 ## State-based routing
 
 | User state | Route to |
@@ -68,12 +87,12 @@ For agents working directly against the package in a local checkout, install the
 
 ## What you gather during curate (between `describe.mjs` and writing `selections.json`)
 
-0. **Mode** — after `describe.mjs` returns, count the operations and tell the user: *"Your spec has N operations. Two ways to shape the generated MCP tools: (1) **Intent-driven** (recommended in this context) — I cluster the N operations into a small number of higher-level semantic tools like `manage_pet` or `find_pet` and author them directly. The host LLM picks fewer, more meaningful tools better. (2) **One-to-one** — generate exactly N tool files matching the spec verbatim. Useful when the API surface IS the user-facing model, or when you want byte-for-byte traceability between the spec and the tools."*. If intent-driven (recommended), set `"mode": "intent-driven"` explicitly in `selections.json`, skip step 1 below, and route to [intent-driven.md](intent-driven.md) right after `scaffold.mjs` finishes — author `src/tools/<intent>.ts` files directly. If one-to-one, set `"mode": "one-to-one"` (or omit `mode` — `scaffold.mjs` defaults to one-to-one for terminal-safety) and continue with the remaining steps.
-1. **Tier overrides** per operation (`free` / `paid` / `skip`) — start from `describe.mjs`'s `suggestedTier` and confirm with the user. Mutating operations default to `paid`; if the user wants to ship paid-only later, mark them `skip` for now.
+0. **Mode (Gate G1, always fires)** — after `describe.mjs` returns, count the operations and surface G1 per [describe.md](describe.md) hand-off. The two options are **intent-driven** (cluster N operations into a few semantic tools; recommended when an LLM is in the loop) and **one-to-one** (one tool file per operation; useful when the API surface IS the user-facing model). If intent-driven, set `"mode": "intent-driven"` in `selections.json`, skip step 1, and route to [intent-driven.md](intent-driven.md) right after `scaffold.mjs` finishes — author `src/tools/<intent>.ts` files directly. If one-to-one, set `"mode": "one-to-one"` (or omit; `scaffold.mjs` defaults to one-to-one) and continue.
+1. **Tier overrides (Gate G4, fires at standard + chatty, one-to-one only)** — start from `describe.mjs`'s `suggestedTier` and surface G4 as a batched table per [describe.md](describe.md). Mutating operations default to `paid`; if the user wants to ship paid-only later, mark them `skip` for now.
 
    **Read-only-first when the API is unfamiliar.** If you're wrapping an upstream you've never integrated before, ship the read-only / idempotent operations first (mostly `GET` / `HEAD`) and `tier: "skip"` the mutating ones. Get auth, errors, and the verifier checks green against the safe surface before exposing `POST` / `PUT` / `PATCH` / `DELETE` to the LLM. Add the mutating operations in a follow-up once their semantics and pricing are explicitly approved. Skip this rule when the product's core value *is* a write/action workflow (e.g. "send transactional email", "create invoice") — but still keep `annotations: { destructiveHint: true }` on those tools and confirm the destructive scope with the user before scaffolding.
 2. **`solvapayProductRef`** — optional in `selections.json`. Omit it during curate; `npx solvapay init` lists the account's products and asks the user to pick one (or auto-picks when there's only one / when `--yes` is set). Only the prereq survives: the user must have at least one product before running init. If they have none yet, ask the user to create a product in SolvaPay Console (https://app.solvapay.com), then resume at init.
-3. **`upstreamAuth` shape** — pick from `describe.mjs.securitySchemes`:
+3. **`upstreamAuth` shape + key (Gate G5, always fires)** — pick from `describe.mjs.securitySchemes` and surface G5 per [describe.md](describe.md) to confirm `kind` and collect the secret. Even at `auto`, G5 fires because the user must supply the secret. Shape options:
    - `http-bearer` → `{ kind: 'bearer', key: '<user supplies>' }`
    - `apiKey-header` → `{ kind: 'apiKey', in: 'header', name: '<from spec>', key: '<user supplies>' }`
    - `oauth2-clientCredentials` → `{ kind: 'oauth2-client-credentials', tokenUrl: '<from spec>', clientId: '<user supplies>', clientSecret: '<user supplies>', scope?: '<optional, space-delimited>', audience?: '<optional, some providers require>' }`. `tokenUrl` comes straight from the spec; ask the user for `clientId` + `clientSecret`. `scope` defaults to empty; `audience` is only needed for providers like Auth0 that require it.

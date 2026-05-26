@@ -27,6 +27,62 @@ Full `selections.json` schema lives in [references/selections-schema.md](referen
 
 `scaffold.mjs` refuses to run if the `--selections` path resolves inside `<target-dir>`. It never writes `selections.json` into the scaffolded project. This prevents a follow-up `git add .` from leaking the key.
 
+## Gate G6 — selections.json preview (always at standard + chatty; auto: confirm-only, no preview)
+
+Last reviewable artifact before the destructive scaffold step. **G6 always fires** — even at `auto` — because `scaffold.mjs` writes files to disk. The difference between levels:
+
+- **`standard` + `chatty`**: render the full resolved JSON with secrets redacted, then ask for `run` or `edit`.
+- **`auto`**: skip the JSON preview, just ask one short confirmation (`run` / cancel) before invoking `scaffold.mjs`. The scaffold step itself is not collapsible at any level.
+
+```
+GateId: G6
+Prompt: Here's the resolved selections.json. Run scaffold, or edit?
+Options:
+  - run:  Run scaffold — write the project
+  - edit: Edit — change tiers, auth, worker name, or mode
+```
+
+### Redaction rules
+
+Per [../hitl-conventions.md#redaction](../hitl-conventions.md#redaction), before rendering replace these fields with `"<redacted>"`:
+
+- `upstreamAuth.key` (when `kind` is `bearer` or `apiKey`)
+- `upstreamAuth.clientSecret` (when `kind` is `oauth2-client-credentials`)
+
+Leave everything else verbatim — `upstreamAuth.kind`, `tokenUrl`, `clientId`, `name`, `in`, `scope`, `audience`, `mode`, `workerName`, `mcpPublicBaseUrl`, and the full `operations` / `solvapayProductRef` payload. The user needs to see exactly what `scaffold.mjs` will consume.
+
+Render the redacted JSON as a fenced ```jsonc``` block above the options. Example:
+
+````
+### G6 — run scaffold with this selections.json?
+
+```jsonc
+{
+  "mode": "intent-driven",
+  "workerName": "petstore-mcp",
+  "mcpPublicBaseUrl": "http://localhost:8787",
+  "upstreamAuth": {
+    "kind": "bearer",
+    "key": "<redacted>"
+  },
+  "operations": [
+    { "operationId": "getPetById", "tier": "free" },
+    { "operationId": "addPet",     "tier": "paid" }
+    // ...
+  ]
+}
+```
+
+- a: Run scaffold — write the project
+- b: Edit — change tiers, auth, worker name, or mode
+
+Reply with a / b.
+````
+
+On `G6:edit`, accept the change description, mutate the in-memory selections, re-render the redacted JSON once, and re-ask. On `G6:run`, write the file to a non-project path (`/tmp/selections-<uuid>.json`) and proceed to [Run](#run).
+
+The redacted preview is render-time only — the file written to `/tmp/selections-<uuid>.json` still carries the real `key` / `clientSecret`, because `scaffold.mjs` needs them to seed `.env`.
+
 ## Run
 
 Assumes you already ran the one-time `( cd scripts && npm install )` from [describe.md](describe.md).

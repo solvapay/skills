@@ -61,6 +61,112 @@ Three rules, applied in order during curate (before writing `selections.json`):
 
 When in doubt, ship fewer intents. You can always add a second intent later by dropping another file into `src/tools/`.
 
+## Gate G2 — propose the cluster set (always at standard + chatty, intent-driven only)
+
+Before writing `selections.json`, surface your proposed clusters as a single approval gate. This is **G2** in the gate reference. Skipped at `auto` — the agent writes `selections.json` directly with the proposed clusters and continues to scaffold.
+
+Apply the [clustering heuristics](#clustering-heuristics) above to draft the cluster set first, then ask:
+
+```
+GateId: G2
+Prompt: I'd cluster the N operations into M intent tools. Approve, edit, or switch to one-to-one mode?
+Options:
+  - approve:  Approve — write selections.json and run scaffold
+  - edit:     Edit — describe merges, splits, or renames
+  - oneToOne: Switch to one-to-one mode (one file per operation)
+```
+
+Render the cluster proposal as a supporting table above the options. One row per proposed intent:
+
+```
+| intent_name  | ops covered                                  | tier | one-line description |
+| ------------ | -------------------------------------------- | ---- | -------------------- |
+| manage_pet   | POST /pet, PUT /pet, DELETE /pet/{id}        | paid | CRUD on pets         |
+| find_pet     | GET /pet/{id}, GET /pet/findByStatus         | free | read-only lookups    |
+| manage_order | POST /store/order, GET /store/order/{id}     | paid | order management     |
+```
+
+Markdown fallback:
+
+```
+### G2 — approve the proposed intent cluster?
+
+| intent_name  | ops covered                                  | tier | one-line description |
+| ------------ | -------------------------------------------- | ---- | -------------------- |
+| manage_pet   | POST /pet, PUT /pet, DELETE /pet/{id}        | paid | CRUD on pets         |
+| find_pet     | GET /pet/{id}, GET /pet/findByStatus         | free | read-only lookups    |
+| manage_order | POST /store/order, GET /store/order/{id}     | paid | order management     |
+
+- a: Approve — write selections.json and run scaffold
+- b: Edit — describe merges, splits, or renames
+- c: Switch to one-to-one mode
+
+Reply with a / b / c, or describe changes.
+```
+
+On `G2:edit`, accept free-form changes ("merge `find_pet` and `find_order` into one `search`", "rename `manage_pet` to `pet_admin`") and re-render the table once before continuing. On `G2:oneToOne`, set `"mode": "one-to-one"` in `selections.json`, route back to [describe.md](describe.md) for **G4** (tier overrides), and proceed from there.
+
+The `tier` column on each intent follows the "paid wins" rule (see [Tier rules](#tier-rules)) — any intent that covers a mutating backing op is `paid`; pure-read intents are `free`.
+
+## Gate G3 — per-intent design review (chatty only, intent-driven only)
+
+Only fires at `chatty`. Skipped at `standard` and `auto` — those trust your design.
+
+For each non-trivial intent (>3 ops merged, fan-out across multiple resources, or any intent with `destructiveHint: true`), surface a per-intent design preview before authoring the file. Trivial intents (rename pattern, 1:1 mapping) do not need G3 even at `chatty`.
+
+```
+GateId: G3
+Prompt: Here's the design for `<intent_name>`. Approve, or edit?
+Options:
+  - approve: Approve — author src/tools/<intent_name>.ts as designed
+  - edit:    Edit — describe schema changes or merge-strategy changes
+```
+
+Render the design as a supporting block above the options:
+
+```
+intent_name: manage_pet
+pattern:     Action (1 intent ← N ops via discriminator)
+backing ops: POST /pet, PUT /pet, DELETE /pet/{petId}
+inputSchema:
+  - action: 'create' | 'update' | 'delete' (required, discriminator)
+  - petId:  number (required for update/delete)
+  - name:   string (required for create, optional for update)
+  - status: 'available' | 'pending' | 'sold' (optional)
+annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true }
+narration:   `Created/updated/deleted pet ${petId}. Render as a card.`
+tier:        paid (registerPayable) — any mutating branch gates the whole intent
+```
+
+On `G3:edit`, accept changes ("drop the `status` field on delete", "add a `tag` filter to `find_pet`"). Re-render the design block once before authoring. Loop through G3 for each non-trivial intent — one prompt per intent, not one prompt for the whole batch (the user needs to see each schema in isolation).
+
+## Gate G7 — post-scaffold file summary (chatty only, intent-driven only)
+
+Only fires at `chatty`. Skipped at `standard` and `auto` — those let you author the files directly.
+
+After `scaffold.mjs` bootstraps the project skeleton (`src/tools/index.ts` empty in intent-driven mode), and before you start writing `src/tools/<intent>.ts` files, surface one summary gate listing every file you're about to author or edit.
+
+```
+GateId: G7
+Prompt: I'm about to author M files under src/tools/ and edit the aggregator. Author, or edit the list?
+Options:
+  - author: Author — write all files as listed
+  - edit:   Edit — describe additions, removals, or renames
+```
+
+Render the file list as a supporting table above the options:
+
+```
+| file                              | purpose                                                    |
+| --------------------------------- | ---------------------------------------------------------- |
+| src/tools/manage_pet.ts (new)     | Action pattern — CRUD on pets via `action` discriminator   |
+| src/tools/find_pet.ts (new)       | Rename pattern — read-only lookup by ID or status filter   |
+| src/tools/pet_dashboard.ts (new)  | Fan-out pattern — pet + inventory in parallel              |
+| src/tools/index.ts (edit)         | Add 3 imports + 3 register*() calls to registerTools       |
+```
+
+On `G7:edit`, accept changes ("don't author `pet_dashboard.ts` yet — defer to follow-up"). Re-render the list once before authoring. After `G7:author` (or skipping at `standard`/`auto`), author the files per [The three patterns](#the-three-patterns) below and update the aggregator per [Aggregator update](#aggregator-update).
+
 ## The three patterns
 
 Every intent tool follows one of these three shapes. Copy the template, fill in the spec-specific bits, drop it into `src/tools/`.

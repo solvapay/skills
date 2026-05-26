@@ -8,6 +8,14 @@ This skill covers **any MCP server whose tools return text or `structuredContent
 
 The only UI this skill ships is SolvaPay's built-in checkout / account / topup widget, which mounts only when the user deliberately invokes an intent tool (`upgrade` / `topup` / `manage_account`). If you also want custom graphical widgets for your own tools, use this skill for the server + paywall wiring and add the MCP Apps UI guidance at [../sdk-integration/mcp-server/guide.md](../sdk-integration/mcp-server/guide.md) and [../sdk-integration/react/guide.md](../sdk-integration/react/guide.md) — the two compose.
 
+## Confirmation level (G0 — ask once, applies to the whole flow)
+
+Before any other gate, ask the user how chatty you should be. This is **G0** in the gate reference. See [hitl-conventions.md](hitl-conventions.md) for the structured-question contract, level semantics, and the full gate index.
+
+> "How chatty should I be? `standard` (default) confirms each big decision; `auto` only confirms irreversible steps (scaffold, deploy, go-live); `chatty` reviews every intent and file."
+
+Once the user picks, remember it for the rest of the flow. Every downstream gate (`G1`–`G9`) decides whether to fire based on this level.
+
 ## First-decision routing (before any scaffold)
 
 Run this gate before reading further. Picking the wrong branch is the most expensive mistake an agent can make in this skill — scaffolding into an existing project clobbers files; scaffolding into the wrong directory of a multi-package repo means later cleanup.
@@ -18,7 +26,7 @@ A "paid-MCP project" is a directory that has **all** of:
 
 - `package.json` with `@solvapay/mcp` (or `@solvapay/server`) in `dependencies`.
 - `wrangler.jsonc` or `wrangler.toml`.
-- `src/worker.ts` (or similar entrypoint) that calls `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` / `createSolvaPayMcpExpress`.
+- `src/worker.ts` (or similar entrypoint) that calls `createSolvaPayMcpFetch` / `createSolvaPayMcpServer`.
 
 If those exist, **do not scaffold**. Skip ahead to:
 

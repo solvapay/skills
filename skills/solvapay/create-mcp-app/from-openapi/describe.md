@@ -133,11 +133,84 @@ Pass `--no-probe` to skip the live calls entirely — useful for private upstrea
 - Pick tiers or auth shape — only suggests.
 - Cache state. Every invocation re-parses the spec from disk.
 
-## Hand-off
+## Hand-off — curate gates
 
-Before writing `selections.json`, ask the user once which generation mode they want — count operations from this script's output first:
+Three gates run in this phase, in order. Each follows the structured-question contract in [../hitl-conventions.md](../hitl-conventions.md) — present it through the host's native primitive (e.g. Cursor `AskQuestion`) when available, otherwise the markdown fallback.
 
-> *"Your spec has N operations. Two ways to shape the generated MCP tools: (1) **Intent-driven** (recommended in this context) — I cluster the N operations into a small number of higher-level semantic tools like `manage_pet` or `find_pet` and author them directly. The host LLM picks fewer, more meaningful tools better. (2) **One-to-one** — generate exactly N tool files matching the spec verbatim. Useful when the API surface IS the user-facing model, or when you want byte-for-byte traceability between the spec and the tools."*
+Count operations from this script's output first; you'll need `N` for G1.
 
-- **Intent-driven (recommended)**: read [intent-driven.md](intent-driven.md) before writing `selections.json` — you'll need its clustering heuristics to pick a good `workerName` and to design the intents you'll author after scaffold bootstraps the project. Set `"mode": "intent-driven"` explicitly in `selections.json`.
-- **One-to-one (default in `scaffold.mjs`)**: curate per-op tiers and `upstreamAuth`, then move to [scaffold.md](scaffold.md). Set `"mode": "one-to-one"` or omit `mode` entirely — `scaffold.mjs` defaults to one-to-one for terminal-safety.
+### Gate G1 — generation mode (always fires)
+
+```
+GateId: G1
+Prompt: Your spec has N operations. Cluster them into intent tools (recommended when an LLM is in the loop), or generate one tool per operation?
+Options:
+  - intentDriven: Intent-driven — cluster into a few semantic tools like manage_pet / find_pet
+  - oneToOne:     One-to-one — generate exactly N tool files matching the spec verbatim
+```
+
+Markdown fallback:
+
+```
+### G1 — how should I shape the generated MCP tools?
+
+Your spec has N operations.
+
+- a: Intent-driven (recommended) — I cluster the N operations into a small number of higher-level semantic tools like `manage_pet` or `find_pet`. The host LLM picks fewer, more meaningful tools better.
+- b: One-to-one — generate exactly N tool files matching the spec verbatim. Useful when the API surface IS the user-facing model, or for byte-for-byte traceability.
+
+Reply with a / b.
+```
+
+- **`G1:intentDriven`**: read [intent-driven.md](intent-driven.md) before writing `selections.json` — you'll need its clustering heuristics. Set `"mode": "intent-driven"` explicitly in `selections.json`. Skip G4 (intent tier is decided per-intent in G2, not per-operation). Continue to G5.
+- **`G1:oneToOne`**: set `"mode": "one-to-one"` or omit `mode` entirely. Continue to G4.
+
+### Gate G4 — tier overrides (one-to-one only; fires at standard + chatty)
+
+Skipped entirely when `G1:intentDriven`. Skipped at `auto` (the agent applies `describe.mjs`'s `suggestedTier` defaults verbatim and continues to G5).
+
+```
+GateId: G4
+Prompt: Here are the suggested tiers per operation. Approve, or edit?
+Options:
+  - approve: Approve — use the suggested tiers
+  - edit:    Edit — describe overrides (e.g. "skip uploadFile, paid for createOrder")
+```
+
+Render the operation list as a supporting table above the options. Batch — don't ask per-op:
+
+```
+| operationId         | method | path               | suggestedTier | overrideTier |
+| ------------------- | ------ | ------------------ | ------------- | ------------ |
+| getPetById          | GET    | /pet/{petId}       | free          |              |
+| addPet              | POST   | /pet               | paid          |              |
+| uploadFile          | POST   | /pet/{petId}/uploadImage | skip    |              |
+| ...                                                                                |
+```
+
+**Read-only-first when the API is unfamiliar.** If you're wrapping an upstream you've never integrated before, ship the read-only / idempotent operations first (mostly `GET` / `HEAD`) and `tier: "skip"` the mutating ones. Get auth, errors, and the verifier checks green against the safe surface before exposing `POST` / `PUT` / `PATCH` / `DELETE` to the LLM. Add the mutating operations in a follow-up once their semantics and pricing are explicitly approved. Skip this rule when the product's core value *is* a write/action workflow (e.g. "send transactional email", "create invoice") — but still keep `annotations: { destructiveHint: true }` on those tools and confirm the destructive scope with the user.
+
+When the user picks `G4:edit`, accept overrides as free-form text and reflect each change in the `overrideTier` column before moving on. Re-show the table after edits when the override count is non-trivial.
+
+### Gate G5 — upstreamAuth shape + key (always fires, even at `auto`)
+
+`auto` does not collapse this gate — the user must supply the secret. There is no automated path.
+
+```
+GateId: G5
+Prompt: Confirm upstream auth shape, then paste the credential(s).
+Options:
+  - bearer:           HTTP Bearer — paste API key
+  - apiKey:           API key in header — paste API key
+  - oauth2:           OAuth2 client credentials — paste clientId + clientSecret
+  - none:             No auth (upstream tolerates anonymous calls)
+```
+
+Pick the default option from `describe.mjs.securitySchemes` (the first `supported: true` entry). After the user picks, prompt for the secret(s) per [guide.md](guide.md#what-you-gather-during-curate-between-describemjs-and-writing-selectionsjson) step 3. The resolved value lands in `selections.json.upstreamAuth` — `key` for `bearer`/`apiKey`, `clientId` + `clientSecret` (plus optional `scope` / `audience`) for `oauth2-client-credentials`. Treat the file as a secret per [scaffold.md](scaffold.md#selectionsjson-lifecycle-important).
+
+### Next gate
+
+Once G1 + (G4 when applicable) + G5 are resolved, move to:
+
+- **`G1:intentDriven`** → [intent-driven.md](intent-driven.md) for **G2** (cluster proposal). Then [scaffold.md](scaffold.md) for **G6** (selections.json preview) + scaffold run.
+- **`G1:oneToOne`** → [scaffold.md](scaffold.md) for **G6** (selections.json preview) + scaffold run.

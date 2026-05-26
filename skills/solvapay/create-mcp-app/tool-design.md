@@ -34,7 +34,7 @@ On a gate, the user (or LLM) reads the narration and decides whether to invoke a
 
 ## Intent composition with recovery tools
 
-Every paid business tool pairs with the built-in recovery intents, which ship for free from `@solvapay/mcp` when you use `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` / `createSolvaPayMcpExpress`:
+Every paid business tool pairs with the built-in recovery intents, which ship for free from `@solvapay/mcp` when you use `createSolvaPayMcpFetch` / `createSolvaPayMcpServer`:
 
 | Intent tool | Purpose |
 | --- | --- |

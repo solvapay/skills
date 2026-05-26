@@ -73,7 +73,6 @@ const handler = createSolvaPayMcpFetch({
 
 export default { fetch: handler } // Cloudflare Worker export
 // or: Deno.serve(handler)
-// or: app.use(handler)  // Express via createSolvaPayMcpExpress from @solvapay/mcp/express
 ```
 
 Key behaviors baked in:

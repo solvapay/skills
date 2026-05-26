@@ -42,6 +42,28 @@ Answer these before writing code:
 
 Read [../tool-design.md](../tool-design.md) before wrapping any existing tool. It covers the three response modes, intent composition, the `_meta.ui.resourceUri` rule, and how `registerPayable` handles gate narration automatically — none of which you'll infer from your existing code.
 
+## File layout convention
+
+When you add or wrap a tool, put it in its own file under `src/tools/<intent>.ts`, exporting a `register<Intent>(ctx, env)` function — even if it's the first tool in the project. The aggregator at `src/tools/index.ts` only imports and calls those register functions; it should not contain handler bodies.
+
+```ts
+// src/tools/manage_pet.ts
+import type { AdditionalToolsContext } from '@solvapay/mcp'
+export function registerManagePet(ctx: AdditionalToolsContext, env: Env) {
+  ctx.registerPayable('manage_pet', { title, description, schema, handler })
+}
+```
+
+```ts
+// src/tools/index.ts
+import { registerManagePet } from './manage_pet'
+export function registerTools(ctx: AdditionalToolsContext, env: Env) {
+  registerManagePet(ctx, env)
+}
+```
+
+**Why**: each intent owns its narration, schema, and handler — keeping them isolated makes it cheap to retire one, swap response shape, or grep for who calls upstream. Inlining the handler in `index.ts` blocks all of that and bloats the aggregator into a god-file the moment you add a second tool. The same convention is used by [from-openapi/intent-driven.md](../from-openapi/intent-driven.md); existing-server flows should match.
+
 ## Pick your entrypoint
 
 Match your runtime to the right `@solvapay/mcp` subpath:
@@ -49,7 +71,6 @@ Match your runtime to the right `@solvapay/mcp` subpath:
 | Runtime | Subpath | Factory |
 | --- | --- | --- |
 | Cloudflare Workers, Deno, Supabase Edge, Bun, any fetch-first | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` |
-| Node + Express | `@solvapay/mcp/express` | `createSolvaPayMcpExpress` |
 | Framework-neutral / custom transport | `@solvapay/mcp` | `createSolvaPayMcpServer` |
 
 See [../hosting/alternatives.md](../hosting/alternatives.md) for the full matrix with platform docs links.
@@ -60,7 +81,7 @@ Follow [../../sdk-integration/mcp-server/guide.md](../../sdk-integration/mcp-ser
 
 - Installing `@solvapay/mcp` + `@solvapay/server`
 - Initializing `createSolvaPay` with your secret key
-- Calling the matching factory (`createSolvaPayMcpFetch` / `createSolvaPayMcpExpress` / `createSolvaPayMcpServer`)
+- Calling the matching factory (`createSolvaPayMcpFetch` / `createSolvaPayMcpServer`)
 - Mounting the OAuth bridge (`/oauth/*` + `/.well-known/*`)
 - Wrapping handlers with `payable.mcp()` / `registerPayable(...)`
 - Resolving customer identity from the bearer token

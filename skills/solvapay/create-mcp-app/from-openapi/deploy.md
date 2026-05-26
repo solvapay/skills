@@ -36,6 +36,26 @@ All secrets go through `npx wrangler secret put` under the hood — never `--var
 
 Before invoking `wrangler deploy`, the script prints the resolved workers.dev URL and asks `[Y/n]`. Press Enter to accept. Decline (`n`) to abort and follow the printed instructions — either rename the account-wide workers.dev subdomain in the Cloudflare dashboard (affects every Worker on the account), or attach a `custom_domain` route (see Step 2). Pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) to skip the prompt; it's also skipped automatically when `wrangler.jsonc` has a `custom_domain` route or stdin is not a TTY.
 
+### Gate G8 — deploy confirm
+
+This `[Y/n]` prompt **is** G8 in the gate reference (see [../hitl-conventions.md](../hitl-conventions.md)).
+
+```
+GateId: G8
+Prompt: Deploy to <resolved-workers-dev-url>?
+Options:
+  - deploy: Deploy — push to Cloudflare
+  - cancel: Cancel — rename the workers.dev subdomain or attach a custom_domain first
+```
+
+| Confirmation level | G8 behavior                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `standard`         | Run `npm run deploy` without `--yes` — the script's interactive prompt is the gate.                                       |
+| `chatty`           | Same as `standard`.                                                                                                       |
+| `auto`             | Pass `--yes` (`npm run deploy -- --yes`) or export `SOLVAPAY_DEPLOY_YES=1`. The script still prints the resolved URL.     |
+
+Auto skips the prompt but does **not** skip the deploy — there is no "auto-cancel deploy" path. If the user wants to skip deploy entirely, don't invoke `npm run deploy` in the first place.
+
 On a default `*.workers.dev` deploy, **one** `npm run deploy` is enough — you do not need a second deploy to pin `MCP_PUBLIC_BASE_URL`.
 
 Note the deployed URL in the wrangler output (for custom-domain setups). It looks like:
@@ -136,6 +156,20 @@ The first deploy provisions the cert; expect ~30s–3min before the worker is re
 
 When the user has verified the sandbox worker behaves correctly:
 
+### Gate G9 — go-live key swap (always fires, overrides `auto`)
+
+This is the single point where the worker switches from sandbox (`sk_test_…`) to production (`sk_live_…`). Even at `auto` confirmation level, G9 **always** fires — `auto` does not collapse this gate. Real money starts moving on the next deploy.
+
+```
+GateId: G9
+Prompt: Swap SOLVAPAY_SECRET_KEY from sk_test_... to sk_live_... and redeploy? Real charges will start on the next paid tool call.
+Options:
+  - goLive: Go live — upload the live key as a Worker secret and redeploy
+  - stay:   Stay on sandbox — keep sk_test_... for now
+```
+
+On `G9:stay`, do nothing — the worker keeps serving with the sandbox key. On `G9:goLive`, proceed:
+
 1. Generate a live key (`sk_live_…`) in the SolvaPay Console under **API Keys**.
 2. Replace `SOLVAPAY_SECRET_KEY=sk_test_…` with `SOLVAPAY_SECRET_KEY=sk_live_…` in `.env`.
 3. The first-deploy auto-upload only runs when no `SOLVAPAY_SECRET_KEY` is present on the worker. Since one is already there, push the new value explicitly, then redeploy:
@@ -146,6 +180,8 @@ When the user has verified the sandbox worker behaves correctly:
    ```
 
 No separate `--env production`, no `.env.prod`. The same worker just serves live traffic now.
+
+(The redeploy in step 3 also goes through G8; at `auto` you can still pass `--yes` because G8 is independently configurable per level. G9 is the only "live money" decision and never collapses.)
 
 ## Template's deploy script
 
