@@ -1,5 +1,6 @@
 {
   "skill_name": "create-mcp-app",
+  "dev_mode_suffix": "\n\nDev-mode note: this run targets the SolvaPay dev backend (api-dev.solvapay.com). Pass `--dev` to every published-CLI invocation (`npm create solvapay@latest ... --dev`) and to the agent-path scaffolder (`node scripts/scaffold.mjs ... --dev`); both seed `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` into the project `.env`. When no scaffolder runs (the prompt fixes `.env` contents, or the task is to hand-write a server), set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` yourself — append the line to any `.env` the setup block created, and read the var via `env.SOLVAPAY_API_BASE_URL` / `process.env.SOLVAPAY_API_BASE_URL` in code.",
   "evals": [
     {
       "id": 1,
