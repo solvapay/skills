@@ -59,6 +59,20 @@ solvapay/
 ├── SKILL.md                     # Router and shared context
 ├── AGENTS.md -> SKILL.md        # Claude Code compatibility
 ├── metadata.json                # skills.sh leaderboard metadata
+├── create-mcp-app/              # Create or scaffold a paid MCP app on Cloudflare Workers
+│   ├── SKILL.md                 # Frontmatter entry point
+│   ├── AGENTS.md -> SKILL.md    # Claude Code compatibility
+│   ├── guide.md                 # Three-mode router (from-openapi / from-scratch / existing-server)
+│   ├── tool-design.md           # Shared tool-design contract (load-bearing)
+│   ├── solvapay-init.md         # Credential bootstrap (npx solvapay init)
+│   ├── hosting/{cloudflare,alternatives}.md
+│   ├── from-openapi/            # Generate from an OpenAPI / Swagger spec
+│   │   ├── {guide,describe,scaffold,intent-driven,deploy,verify,test}.md
+│   │   ├── scripts/             # describe.mjs, scaffold.mjs, lib/
+│   │   ├── template/            # Cloudflare Workers MCP template
+│   │   └── references/{selections-schema,tool-template,design-notes}.md
+│   ├── from-scratch/{guide,scaffold-and-extend}.md  # Hand-written tools (greenfield)
+│   └── existing-server/guide.md # Add SolvaPay to an MCP server that already exists
 ├── sdk-integration/             # SDK paywall, checkout, usage, webhooks
 │   ├── guide.md                 # Entry point with stack detection
 │   ├── reference.md             # Package map and API operations
@@ -68,7 +82,6 @@ solvapay/
 │   ├── guide.md                 # Entry point with stack support
 │   ├── nextjs/{guide,01-setup,02-auth,03-checkout}.md
 │   └── react/guide.md
-└── provider-onboarding/         # Account onboarding through go-live
-    ├── guide.md                 # Entry point with step overview
-    └── {01-create-account,02-create-product-and-plan,03-test-in-sandbox,04-go-live}.md
+└── lovable-checkout/            # Paste-in checkout for Lovable (preview)
+    └── guide.md
 ```

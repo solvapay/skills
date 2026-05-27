@@ -4,7 +4,7 @@ Use this when the project is React-first and backend routes exist separately.
 
 ## Prerequisites
 
-- Run `npx solvapay init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
+- Run `npx -y solvapay@latest init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
   `.env`, and install base SDK packages.
 - Install additional packages for this flow:
 

@@ -2,9 +2,7 @@
 
 Add paywall protection and self-service tools to an MCP server using `@solvapay/mcp` (batteries-included factory) or `@solvapay/server` (low-level primitives).
 
-This guide is for SDK-based integrations where you self-host the MCP server and add paywall/auth
-logic in code. If you want SolvaPay to host auth, billing, and paywall enforcement through a
-managed proxy (no paywall code in your server), use [MCP Pay guide](../../mcp-pay/guide.md).
+This guide is for SDK-based MCP server integrations where you self-host the server and add paywall/auth logic in code.
 
 ## Contents
 
@@ -28,7 +26,7 @@ managed proxy (no paywall code in your server), use [MCP Pay guide](../../mcp-pa
 
 ## Prerequisites
 
-- Run `npx solvapay init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
+- Run `npx -y solvapay@latest init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
   `.env`, and install base SDK packages.
 - Install `@solvapay/mcp` for the batteries-included factory:
 
@@ -75,7 +73,6 @@ const handler = createSolvaPayMcpFetch({
 
 export default { fetch: handler } // Cloudflare Worker export
 // or: Deno.serve(handler)
-// or: app.use(handler)  // Express via createSolvaPayMcpExpress from @solvapay/mcp/express
 ```
 
 Key behaviors baked in:

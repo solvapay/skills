@@ -5,7 +5,7 @@ Implement hosted checkout for web apps with minimal PCI surface.
 ## Purpose
 
 Use this guide when the user wants hosted checkout + customer portal quickly in a web app.
-This guide is for web checkout flows, not Hosted MCP Pay configuration.
+This guide is for web checkout flows, not paid MCP server implementation.
 
 ## Stack Support
 
@@ -14,7 +14,7 @@ This guide is for web checkout flows, not Hosted MCP Pay configuration.
 
 ## Prerequisites
 
-Before stack-specific implementation, run `npx solvapay init` to configure
+Before stack-specific implementation, run `npx -y solvapay@latest init` to configure
 `SOLVAPAY_SECRET_KEY` and install base SDK packages.
 
 For advanced use cases (usage metering, Express/MCP paths, webhook-heavy flows), use [../sdk-integration/guide.md](../sdk-integration/guide.md).

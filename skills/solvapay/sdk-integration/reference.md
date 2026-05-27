@@ -385,7 +385,7 @@ Docs topic hint: `payment intents create` and `payment intents process`.
 Preferred setup (SDK integration):
 
 ```bash
-npx solvapay init
+npx -y solvapay@latest init
 ```
 
 Manual fallback (when CLI setup cannot run):

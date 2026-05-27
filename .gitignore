@@ -1,0 +1,4 @@
+.DS_Store
+
+# Eval run outputs (regenerable, see evals/ for the specs)
+skills/solvapay/create-mcp-app-workspace/

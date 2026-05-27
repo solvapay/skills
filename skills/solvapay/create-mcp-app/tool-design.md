@@ -34,7 +34,7 @@ On a gate, the user (or LLM) reads the narration and decides whether to invoke a
 
 ## Intent composition with recovery tools
 
-Every paid business tool pairs with the built-in recovery intents, which ship for free from `@solvapay/mcp` when you use `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` / `createSolvaPayMcpExpress`:
+Every paid business tool pairs with the built-in recovery intents, which ship for free from `@solvapay/mcp` when you use `createSolvaPayMcpFetch` / `createSolvaPayMcpServer`:
 
 | Intent tool | Purpose |
 | --- | --- |
@@ -65,6 +65,38 @@ return ctx.respond(
 ```
 
 The host LLM reads the narration to decide presentation (table, card, list, chart), and the `structuredContent` carries the raw data for programmatic consumers.
+
+## Free-tier tools (`ctx.server.registerTool`)
+
+Some tools aren't paid — free reads, public catalogue lookups, status pings. These use the lower-level `ctx.server.registerTool` from the MCP SDK directly, *not* `registerPayable`. The response shape is different (no `c.respond` helper — that lives on the payable context), but the **render-instruction narration principle is the same**: capable hosts still need a text hint to decide how to present the data.
+
+```ts
+ctx.server.registerTool(
+  'list_categories',
+  {
+    title: 'List categories',
+    description: 'Returns the merchant catalogue\'s top-level categories. Free, no balance required.',
+    inputSchema: { /* zod schema */ },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  },
+  async (input) => {
+    const data = await loadCategories()
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Returned ${data.length} categories. Render as a vertical list grouped by parent.`,
+        },
+      ],
+      structuredContent: { categories: data },
+    }
+  },
+)
+```
+
+The narration in `content[0].text` plays the same role as the `text` field in `c.respond(...)` for paid tools — it tells the host LLM how to present the data. Put the raw data in `structuredContent` so programmatic consumers don't have to parse the narration.
+
+**Do not** mix free tools with `c.respond` — the helper is part of the payable handler's `c` parameter and isn't available in the `registerTool` callback signature.
 
 ## Hide transport tools from text hosts
 
@@ -161,3 +193,65 @@ For Cloudflare Workers, the full server template is in [hosting/cloudflare.md](h
 - Do not return data from a gated call by running the handler first and then checking balance. `registerPayable` runs the gate check before your handler — don't re-order it.
 - Do not depend on the widget mounting "somewhere automatically" for merchant tools. The widget is only for the three intent tools; merchant tools always return data.
 - Do not skip annotations. `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint` are required, not optional.
+
+### Wrong / right — three high-cost patterns
+
+These are the mistakes most expensive to recover from. Snippets are deliberately short; the full contract is above.
+
+**1. `_meta.ui.resourceUri` on a merchant payable tool**
+
+```ts
+// WRONG — hosts MUST open the iframe on every advertised call (SEP-1865),
+// which flashes an empty widget on every silent success.
+ctx.server.registerTool('get_item', {
+  _meta: { ui: { resourceUri: 'ui://my-mcp/mcp-app.html' } },
+  // ...
+}, handler)
+
+// RIGHT — registerPayable refuses resourceUri on merchant tools by design.
+ctx.registerPayable('get_item', {
+  schema: { id: z.string() },
+  annotations: { readOnlyHint: true, idempotentHint: true },
+  handler: async ({ id }, c) => c.respond(await loadItem(id), { text: `Item ${id}.` }),
+})
+```
+
+**2. Hand-rolled paywall response**
+
+```ts
+// WRONG — bypasses registerPayable, returns a custom iframe / structured UI on
+// the gate path, and the non-intrusive contract is gone.
+if (!hasBalance(customer)) {
+  return {
+    content: [{ type: 'resource', resource: { uri: 'ui://my-mcp/paywall.html' } }],
+  }
+}
+
+// RIGHT — let registerPayable own the gate. It emits text-only narration in
+// content[0].text naming the recovery intent (`upgrade` / `topup` /
+// `activate_plan`); structuredContent carries the gate payload for programmatic
+// consumers; the widget mounts only on a deliberate recovery-tool call.
+ctx.registerPayable('get_item', {
+  /* ... */
+  handler: async ({ id }, c) => c.respond(await loadItem(id), { text: `Item ${id}.` }),
+})
+```
+
+**3. Running expensive handler logic before the gate check**
+
+```ts
+// WRONG — pays for the upstream call (latency + spend) on a gated request,
+// then throws it away when the user can't be charged.
+handler: async (input, c) => {
+  const data = await expensiveUpstreamCall(input) // runs even when gated
+  if (!c.hasBalance) return c.gate()              // wrong shape too
+  return c.respond(data, { text: '…' })
+}
+
+// RIGHT — registerPayable runs the gate check before invoking your handler.
+// Your handler only runs on the happy path; no need to guard it yourself.
+handler: async (input, c) => {
+  const data = await expensiveUpstreamCall(input) // only runs on success
+  return c.respond(data, { text: '…' })
+}
+```

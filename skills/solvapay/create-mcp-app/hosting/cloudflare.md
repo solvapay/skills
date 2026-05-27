@@ -25,6 +25,7 @@ Step-by-step deploy of a SolvaPay MCP server on Cloudflare Workers, with every f
   - `src/worker.ts`
   - `src/mcp-app.tsx`
   - `scripts/deploy.mjs`
+  - `scripts/dev.mjs`
   - `.env.example`
   - `.gitignore`
 - Troubleshooting
@@ -32,7 +33,7 @@ Step-by-step deploy of a SolvaPay MCP server on Cloudflare Workers, with every f
 ## Guardrails
 
 - Never commit `.env`. Only `.env.example` is tracked. The gitignore template below enforces this.
-- Never put `SOLVAPAY_SECRET_KEY` in `wrangler.jsonc` `vars` or in a `--var` flag. Upload it once via `wrangler secret put SOLVAPAY_SECRET_KEY`; it persists across deploys.
+- Never put `SOLVAPAY_SECRET_KEY` in `wrangler.jsonc` `vars` or in a `--var` flag. `npm run deploy` uploads it from `.env` as a Worker secret on first deploy; it persists across deploys after that.
 - Never remove `mode: 'json-stateless'` from the `createSolvaPayMcpFetch` call. Workers isolates don't pin across requests — stateful MCP sessions break.
 - Never set `_meta.ui.resourceUri` on merchant payable tools. `registerPayable` enforces this, but if you drop down to `registerPayableTool`, don't pass a `resourceUri`.
 - Always keep `hideToolsByAudience: ['ui']` unless you have a specific reason not to.
@@ -61,7 +62,8 @@ my-mcp/
 ├── .env.example
 ├── .gitignore
 ├── scripts/
-│   └── deploy.mjs
+│   ├── deploy.mjs
+│   └── dev.mjs
 └── src/
     ├── assets.d.ts
     ├── worker.ts
@@ -90,15 +92,9 @@ Edit in place:
 cp .env.example .env
 ```
 
-Edit `.env` with real values for `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`. Keep `SOLVAPAY_API_BASE_URL` blank unless you're pointing at a non-production API origin.
+Edit `.env` with real values for `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`. Keep `SOLVAPAY_API_BASE_URL` blank unless you're pointing at a non-production API origin (skill authors / internal testing: pass `--dev` to `npm create solvapay@latest` or `npx -y solvapay@latest init` to set this to `https://api-dev.solvapay.com` automatically).
 
-Upload the secret to Cloudflare once (persists across deploys):
-
-```bash
-pnpm exec wrangler secret put SOLVAPAY_SECRET_KEY
-```
-
-Paste the `sk_...` value when prompted. The `.env` keeps the secret available to `wrangler dev` for local testing; the production Worker reads it from Cloudflare's secret store.
+`npm run deploy` (step 8) uploads `SOLVAPAY_SECRET_KEY` from `.env` to Cloudflare Worker Secrets automatically on the first deploy. The local `.env` keeps the secret available to `wrangler dev`; the deployed Worker reads it from Cloudflare's secret store after that.
 
 ### 6. Build the widget
 
@@ -111,10 +107,14 @@ This runs Vite to bundle `src/mcp-app.tsx` into a single-file `dist/mcp-app.html
 ### 7. Local dev
 
 ```bash
-pnpm serve:local
+pnpm dev
 ```
 
-This runs `wrangler dev` on `http://localhost:8787`. Verify with an MCP client:
+This runs `vite build --watch` (rebuilds the widget on edits and mirrors it into `src/assets/`) and `wrangler dev` (Worker on `http://localhost:8787`) in parallel under one process. Ctrl+C tears both down.
+
+Use `pnpm dev:widget` for the widget watcher only, or `pnpm serve:local` for the Worker only.
+
+Verify with an MCP client:
 
 ```bash
 # Reference MCP client
@@ -168,20 +168,21 @@ Copy each of the following into a file with the matching path. All paths are rel
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "cross-env INPUT=mcp-app.html vite build && cp dist/mcp-app.html src/assets/mcp-app.html",
-    "dev": "cross-env INPUT=mcp-app.html vite build --watch",
+    "build": "cross-env INPUT=mcp-app.html vite build && mkdir -p src/assets && cp dist/mcp-app.html src/assets/mcp-app.html",
+    "dev": "pnpm build && node scripts/dev.mjs",
+    "dev:widget": "cross-env INPUT=mcp-app.html vite build --watch",
     "predeploy": "pnpm build",
     "deploy": "node scripts/deploy.mjs",
     "serve:local": "wrangler dev"
   },
   "dependencies": {
-    "@modelcontextprotocol/ext-apps": "^1.5.0",
+    "@modelcontextprotocol/ext-apps": "^1.7.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@solvapay/mcp": "^1.0.0",
-    "@solvapay/react": "^1.0.0",
-    "@solvapay/server": "^1.0.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "@solvapay/mcp": "^0.2.5",
+    "@solvapay/react": "^1.2.0",
+    "@solvapay/server": "^1.1.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -380,7 +381,7 @@ function requireEnv(env: Env, name: keyof Env): string {
   const value = env[name]
   if (!value) {
     throw new Error(
-      `${name} is not set — check wrangler.jsonc \`vars\` block or run \`wrangler secret put ${name}\``,
+      `${name} is not set — check wrangler.jsonc \`vars\` block or run \`npx wrangler secret put ${name}\``,
     )
   }
   return value
@@ -436,6 +437,10 @@ function getHandler(env: Env): (req: Request) => Promise<Response> {
       apiBaseUrl,
     }),
     productRef: requireEnv(env, 'SOLVAPAY_PRODUCT_REF'),
+    // `serverName` brands the MCP handshake (`server.info.name`) so
+    // clients show your project name instead of the default
+    // `solvapay-mcp-server`. Match the value to your wrangler `name`.
+    serverName: 'your-worker-slug',
     resourceUri: 'ui://your-worker-slug/mcp-app.html',
     readHtml: async () => mcpAppHtml,
     publicBaseUrl: requireEnv(env, 'MCP_PUBLIC_BASE_URL'),
@@ -528,7 +533,7 @@ createRoot(rootEl).render(<McpApp app={app} applyContext={applyContext} />)
  * overridable keys as `--var` flags to `wrangler deploy`.
  *
  * `SOLVAPAY_SECRET_KEY` is managed separately as a Worker secret
- * (`wrangler secret put SOLVAPAY_SECRET_KEY` — run once, persists
+ * (`npx wrangler secret put SOLVAPAY_SECRET_KEY` — run once, persists
  * across deploys). It's listed in `.env` so `wrangler dev` can use
  * it for local testing; this script does NOT re-upload it on every
  * deploy.
@@ -606,6 +611,112 @@ process.exit(result.status ?? 1)
 
 If you use `npm` or `yarn` instead of `pnpm`, replace `spawnSync('pnpm', ...)` with your package manager's CLI name.
 
+### `scripts/dev.mjs`
+
+```js
+#!/usr/bin/env node
+/**
+ * `pnpm dev` — runs the widget watcher and `wrangler dev` together
+ * under one process, mirrors the built widget into `src/assets/` so
+ * worker rebuilds pick it up, and prints the local URLs you need
+ * (Worker endpoint, OAuth discovery, Inspector command).
+ *
+ * Run with `--no-banner` to suppress the URL banner (CI / scripted use).
+ */
+
+import { spawn } from 'node:child_process'
+import { copyFile, mkdir, stat } from 'node:fs/promises'
+import { watch } from 'node:fs'
+import { dirname } from 'node:path'
+import process from 'node:process'
+
+const NO_BANNER = process.argv.includes('--no-banner')
+const WORKER_URL = 'http://localhost:8787'
+const VITE_OUT = 'dist/mcp-app.html'
+const WORKER_INPUT = 'src/assets/mcp-app.html'
+
+function printBanner() {
+  if (NO_BANNER) return
+  process.stdout.write(
+    [
+      '',
+      '┌─ SolvaPay MCP — local dev ─────────────────────────────────',
+      `│  Worker MCP endpoint  ${WORKER_URL}/`,
+      `│  OAuth discovery       ${WORKER_URL}/.well-known/oauth-protected-resource`,
+      `│  OAuth metadata        ${WORKER_URL}/.well-known/oauth-authorization-server`,
+      '│',
+      '│  Inspect tools         npx @modelcontextprotocol/inspector',
+      `│                        (set the server URL to ${WORKER_URL}/)`,
+      '└────────────────────────────────────────────────────────────',
+      '',
+    ].join('\n'),
+  )
+}
+
+function tag(name, color) {
+  const reset = '\x1b[0m'
+  return (chunk) => {
+    const lines = chunk.toString('utf8').split(/\r?\n/)
+    if (lines[lines.length - 1] === '') lines.pop()
+    for (const line of lines) process.stdout.write(`${color}[${name}]${reset} ${line}\n`)
+  }
+}
+
+function start(name, command, args, color, extraEnv) {
+  const child = spawn(command, args, {
+    stdio: ['ignore', 'pipe', 'pipe'],
+    shell: process.platform === 'win32',
+    env: { ...process.env, ...(extraEnv ?? {}) },
+  })
+  child.stdout.on('data', tag(name, color))
+  child.stderr.on('data', tag(name, color))
+  child.once('exit', (code, signal) => {
+    process.stdout.write(`[${name}] exited ${signal ? 'via ' + signal : 'with code ' + (code ?? 0)}\n`)
+    shutdown(code ?? 0)
+  })
+  return child
+}
+
+let shuttingDown = false
+const children = []
+function shutdown(exitCode) {
+  if (shuttingDown) return
+  shuttingDown = true
+  for (const c of children) if (!c.killed) try { c.kill('SIGTERM') } catch {}
+  setTimeout(() => process.exit(exitCode), 250)
+}
+process.on('SIGINT', () => shutdown(0))
+process.on('SIGTERM', () => shutdown(0))
+
+printBanner()
+children.push(
+  start('vite', 'npx', ['vite', 'build', '--watch'], '\x1b[36m', { INPUT: 'mcp-app.html' }),
+  start('wrangler', 'npx', ['wrangler', 'dev'], '\x1b[35m'),
+)
+
+async function mirrorAsset() {
+  try {
+    await mkdir(dirname(WORKER_INPUT), { recursive: true })
+    await copyFile(VITE_OUT, WORKER_INPUT)
+  } catch (err) {
+    if (err && err.code !== 'ENOENT') process.stdout.write(`[dev] mirror failed: ${err.message}\n`)
+  }
+}
+
+;(async () => {
+  for (let i = 0; i < 40; i++) {
+    try { await stat(VITE_OUT); break } catch { await new Promise(r => setTimeout(r, 250)) }
+  }
+  await mirrorAsset()
+  const w = watch(VITE_OUT, async (eventType) => {
+    if (eventType === 'change' || eventType === 'rename') await mirrorAsset()
+  })
+  w.on('error', () => {})
+})().catch(() => {})
+
+if (!NO_BANNER) setTimeout(() => { process.stdout.write('\n'); printBanner() }, 4000)
+```
+
 ### `.env.example`
 
 ```
@@ -618,7 +729,7 @@ If you use `npm` or `yarn` instead of `pnpm`, replace `spawnSync('pnpm', ...)` w
 #      SOLVAPAY_API_BASE_URL as `--var` overrides at deploy time.
 #
 # SOLVAPAY_SECRET_KEY is NOT re-uploaded on each deploy — it lives on
-# the Worker as a proper secret via `wrangler secret put SOLVAPAY_SECRET_KEY`
+# the Worker as a proper secret via `npx wrangler secret put SOLVAPAY_SECRET_KEY`
 # (run once; persists across deploys). Kept here so `wrangler dev`
 # can read it for local testing.
 #
@@ -640,8 +751,11 @@ MCP_PUBLIC_BASE_URL=http://localhost:8787
 
 # SolvaPay API origin. Omit / leave blank to use production
 # (https://api.solvapay.com — this is what src/worker.ts falls back
-# to). Set explicitly if you need a different environment:
-# SOLVAPAY_API_BASE_URL=https://api-staging.solvapay.com
+# to). Set explicitly if you need a different environment. The
+# recommended way to populate this for internal testing is to pass
+# `--dev` to `npm create solvapay@latest` / `npx -y solvapay@latest init`, which
+# writes the dev URL here for you.
+# SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com
 ```
 
 ### `.gitignore`
@@ -658,7 +772,7 @@ node_modules/
 
 ## Troubleshooting
 
-- **`SOLVAPAY_SECRET_KEY is not set`** at runtime — you skipped `wrangler secret put SOLVAPAY_SECRET_KEY`. Run it once; it persists across deploys.
+- **`SOLVAPAY_SECRET_KEY is not set`** at runtime — `.env` was missing or the value wasn't picked up at deploy time. `npm run deploy` reads `.env` and uploads the secret on the first deploy; verify `.env` has a real `sk_test_…` / `sk_live_…` value and re-run.
 - **OAuth discovery returns the placeholder `MCP_PUBLIC_BASE_URL`** — your `.env` wasn't sourced. Check that `.env` exists in the project root and that `scripts/deploy.mjs` printed no "not found" warning.
 - **Worker bundle size over 1MB** on deploy — Cloudflare's free tier caps bundles at 1MB post-gzip. `@solvapay/mcp` + `@solvapay/server` + `@modelcontextprotocol/sdk` sit close to this ceiling. Upgrade to the paid tier (10MB cap) if you need more headroom.
 - **`Already connected to a transport` errors** under load — you removed `mode: 'json-stateless'`. Put it back; Workers isolates don't pin sessions across requests.
@@ -666,4 +780,3 @@ node_modules/
 - **Widget flashes empty on every silent tool success** — you set `_meta.ui.resourceUri` on a merchant payable tool. Remove it; `resourceUri` belongs only on the three SolvaPay intent tools, which `createSolvaPayMcpFetch` registers for you.
 - **Gate returns a structured UI payload instead of text** — you hand-rolled a paywall response or wrapped a virtual tool with `payable.mcp()`. Use `registerPayable` and let it emit the text-only narration.
 - **Widget doesn't mount when I call `upgrade`** — verify the MCP host supports iframe resources (Claude Desktop, ChatGPT Apps, MCP Inspector do; pure terminal clients don't). On unsupported hosts the intent tool returns the bootstrap payload in `structuredContent` for programmatic use.
-- **Rotating `SOLVAPAY_SECRET_KEY`** — run `wrangler secret put SOLVAPAY_SECRET_KEY` with the new value and update `.env` for local dev. No deploy needed for the secret itself.
