@@ -48,6 +48,21 @@ The CLI:
 - Create a product. If the account has none, init warns and points to Console at https://app.solvapay.com — direct the user there to create one first.
 - Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare.md](hosting/cloudflare.md) deploy section).
 
+## Default plan and auto-enrollment
+
+MCP products should ship with a **free recurring default plan** (`price: 0`, `freeUnits > 0`). The SolvaPay API rejects paid recurring, one-time, and hybrid defaults — only free recurring or usage-based plans can be marked default.
+
+On the **first paywalled tool call**, the backend's `checkLimits` path auto-enrolls the customer: it creates a Purchase with `origin: 'free_default'` and grants access without calling `activate_plan`. Paid defaults still return `activationRequired: true` (legacy rows only — new products cannot set a paid recurring default via the SDK).
+
+When creating a product in Console or via the SDK, set:
+
+- **Default plan** — free recurring, `price: 0`, `freeUnits` high enough for your free tier (e.g. 10–100).
+- **Paid plans** — separate non-default tiers for upgrades.
+
+Merchants who want explicit enrollment at signup can still call `solvapay.purchases.activate(...)` or expose the MCP `activate_plan` tool — but for free defaults the first `checkLimits` / tool call is the enrollment boundary.
+
+If the agent authored `selections.plans` during curate, `scaffold.mjs` pre-flights those entries against the same default-plan guardrail before any API call (see [from-openapi/references/selections-schema.md](from-openapi/references/selections-schema.md)).
+
 ## Sandbox vs live
 
 | Pass | `.env` value | Set on deployed worker via |

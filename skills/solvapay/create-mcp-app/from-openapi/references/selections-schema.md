@@ -16,6 +16,18 @@ type Selections = {
     operationId: string
     tier: 'free' | 'paid' | 'skip'
   }>
+  // Optional — plan shapes the agent will create on the product after scaffold.
+  // `scaffold.mjs` pre-flights these against the SolvaPay default-plan guardrail.
+  plans?: Array<{
+    name?: string
+    type: 'recurring' | 'one-time' | 'usage-based' | 'hybrid'
+    price?: number
+    currency?: string
+    billingCycle?: 'monthly' | 'yearly' | 'weekly' | 'quarterly'
+    freeUnits?: number
+    creditsPerUnit?: number
+    default?: boolean
+  }>
   // solvapaySecretKey is intentionally absent — populated by `npx -y solvapay@latest init`.
 }
 
@@ -57,7 +69,36 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | `upstreamAuth.clientId` / `clientSecret` | **User-supplied** | OAuth client credentials. Both treated as secrets. |
 | `upstreamAuth.scope` / `audience` | **Optional, user-supplied** | `scope` is a space-delimited list (defaults to empty); `audience` is only required by some providers (Auth0). |
 | `operations[].tier` | Agent default (from `describe.mjs.suggestedTier`) + user override | Per-operation override happens during curate. Only used in `one-to-one` mode. |
+| `plans[]` | **Optional**, agent proposes when curating pricing | Document-only during scaffold — `scaffold.mjs` validates but does not POST plans. Use for MCP products that need a free recurring default (`price: 0`, `freeUnits > 0`, `default: true`). See [Default plan and auto-enrollment](#default-plan-and-auto-enrollment). |
 | `solvapaySecretKey` | **Intentionally absent** | `solvapay-init` writes it directly to `.env`. Not part of this file ever. |
+
+## Default plan and auto-enrollment
+
+MCP paywalls call `checkLimits` on every tool invocation. When the product's **default plan** is free and non-usage-based (typically free recurring with `freeUnits > 0`), the first call **auto-enrolls** the customer — a Purchase row is created with `origin: 'free_default'` and the tool proceeds without `activate_plan`.
+
+| Default plan shape | First tool call behaviour |
+| --- | --- |
+| Free recurring (`price: 0`, `freeUnits > 0`) | Auto-enrolls; no gate |
+| Usage-based (any) | No auto-enroll Purchase; pull-only freeUnits or `activationRequired` when prepaid credits required |
+| Paid recurring | `activationRequired: true` — customer must activate or upgrade (legacy products only; SDK rejects new paid recurring defaults) |
+
+**Server guardrail** (enforced at plan-create time and pre-flighted by `scaffold.mjs`): only **free recurring** or **usage-based** plans may be marked `default: true`. Paid recurring, one-time, and hybrid defaults return `400`.
+
+When authoring `plans[]`, prefer:
+
+```jsonc
+{
+  "name": "Free",
+  "type": "recurring",
+  "price": 0,
+  "currency": "USD",
+  "billingCycle": "monthly",
+  "freeUnits": 50,
+  "default": true
+}
+```
+
+Add paid tiers as separate plans with `default: false` (or omit `default`).
 
 ## Examples
 
@@ -122,6 +163,8 @@ Scaffold writes the five `UPSTREAM_OAUTH_*` keys to `.env`; `scripts/deploy.mjs`
 - `mode` (when provided) must be `'one-to-one'` or `'intent-driven'`.
 - When `mode === 'one-to-one'` (or absent), `operations[]` is required. Each `operations[].tier` must be `free`, `paid`, or `skip`, and every `operationId` referenced must exist in the OpenAPI document.
 - When `mode === 'intent-driven'`, `operations[]` is ignored if present (no per-op codegen runs).
+- When `plans[]` is provided, each entry needs `type`. At most one plan may set `default: true`. Default plans must pass the free-recurring or usage-based guardrail above; violations fail scaffold with an actionable error instead of a bare API `400`.
+- Free recurring defaults with `freeUnits` missing or `0` produce a scaffold reminder (non-fatal) — set `freeUnits > 0` so auto-enrollment grants a usable quota.
 
 ## File lifecycle
 
