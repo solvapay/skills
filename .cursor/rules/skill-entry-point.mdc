@@ -6,72 +6,55 @@ alwaysApply: false
 
 # SKILL.md Entry Point Format
 
-## Required YAML Frontmatter
+Follow [agentskills-best-practices.md](../docs/agentskills-best-practices.md) §4 and §8. Validate with `npm run validate`.
 
-Every SKILL.md must start with:
+## Required frontmatter
 
 ```yaml
 ---
 name: skill-name-here
-description: What the skill does and when to use it. Use when...
+description: Use this skill when...
+metadata:
+  version: "1.0.0"
 ---
 ```
 
-### `name` field
-- Max 64 characters
-- Lowercase letters, numbers, and hyphens only
-- Use gerund form preferred: `processing-pdfs`, `creating-checkout`
-- No reserved words: "anthropic", "claude"
-- No XML tags
+### `name`
 
-### `description` field
+- Max 64 characters; lowercase letters, numbers, hyphens only
+- Must match parent directory name
+- No leading/trailing/consecutive hyphens
+
+### `description`
+
 - Max 1024 characters, non-empty
-- Write in third person ("Processes Excel files", not "I can help you process")
-- Include BOTH what the skill does AND when to trigger it
-- Include specific keywords users might say (e.g. "checkout", "payment", "billing")
-- Make descriptions "pushy" to combat undertriggering -- models tend to not use skills when they'd be useful. Widen the trigger surface with related keywords and add "even if they don't explicitly mention X"
+- **Imperative framing:** "Use this skill when…" — tell the agent when to act
+- Include **what** the skill does, **when** to trigger, and **keywords** users might say
+- Focus on user intent, not internal file layout
+- Surface skills may err pushy on scope (include related contexts even without explicit keywords)
+- Router skills own ambiguous triggers; surface skills own specific implementation keywords — avoid keyword competition in a skill family
 
-Bad: `description: Helps with documents`
-Okay: `description: Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction.`
-Better: `description: Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, document extraction, data extraction from scanned pages, or any file parsing task, even if they don't explicitly say 'PDF'.`
+### Optional fields
 
-## Body Structure
+- `compatibility` — only when environment requirements exist (≤ 500 chars)
+- `metadata.version` — include on all skills in this repo
 
-- Keep under 500 lines. Split into reference files if approaching this limit.
-- Start with a brief heading and one-line summary.
-- Include a **Quick start** section or core concepts near the top.
-- Link to detailed reference files for advanced features: `See [FORMS.md](FORMS.md) for complete guide`
-- Include an **Implementation Checklist** with trackable progress:
+## Body structure
 
-```
-Task Progress:
-- [ ] Step 1: ...
-- [ ] Step 2: ...
-```
+- **Under 500 lines.** Split detailed content into `references/`.
+- Brief heading + one-line summary near top
+- **Quick start** or core routing early
+- **Guardrails** (Never / Always) near top
+- **Mandatory read order** when references are load-bearing — tell the agent *when* to load each file
+- **Task progress** checklist for multi-step workflows
+- Link references one level deep: `references/guide.md`, not chains of nested files
 
-## Online Documentation References
+## Progressive disclosure
 
-When a skill references external docs (SolvaPay API docs, SDK docs), use the **online-first with local fallback** pattern:
+`SKILL.md` is a router, not an encyclopedia. Point to `references/` for depth. Example trigger:
 
-1. Link to live docs first so the agent fetches the latest version
-2. Bundle a **Fallback Reference** section or file with essential API details for when docs are unreachable
-3. Never rely solely on online docs -- the agent's runtime may lack network access
+> Read `references/tool-design.md` before authoring any paid tools.
 
-```markdown
-## Documentation
+## Online documentation
 
-Fetch the latest docs before implementing:
-- **API Reference**: https://docs.solvapay.com/api/checkout
-
-If unavailable, use the fallback reference below (or in [reference.md](reference.md)).
-```
-
-For well-known third-party tools (Supabase, Tailwind), linking to their docs without a fallback is acceptable -- the agent already has training knowledge as a baseline.
-
-## Progressive Disclosure
-
-SKILL.md is a table of contents. It should overview and route, not contain everything.
-
-- Point to sub-files for detailed guides, reference docs, and examples
-- Minimize reference depth. For single-domain skills, keep one level deep (SKILL.md -> reference.md). For consolidated multi-domain skills, SKILL.md routes to domain entry files which route to domain-specific files -- two hops is acceptable, but avoid deeper chains.
-- Name files descriptively: `form_validation_rules.md`, not `doc2.md`
+For SolvaPay APIs: online-first with local fallback in `references/`. For well-known third-party tools, linking to official docs without a fallback is acceptable.

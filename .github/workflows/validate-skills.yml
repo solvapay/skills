@@ -1,0 +1,23 @@
+name: Validate skills
+
+on:
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'package.json'
+      - '.github/workflows/validate-skills.yml'
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    name: skills-reference validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run skills-reference validate
+        run: npm run validate

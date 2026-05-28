@@ -1,0 +1,9 @@
+{
+  "name": "solvapay-skills",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SolvaPay agent skills for paid MCP apps, SDK integration, hosted checkout, and Lovable paste-in checkout.",
+  "scripts": {
+    "validate": "for d in skills/*/; do npx -y skills-reference validate \"$d\" || exit 1; done"
+  }
+}

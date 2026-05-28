@@ -1,0 +1,27 @@
+{
+  "skill_name": "lovable-checkout",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Wire SolvaPay hosted checkout into my Lovable app (Vite + shadcn + Supabase). Use the preview/dev backend.",
+      "expected_output": "Agent loads lovable-checkout, reads references/GUIDE.md, installs @preview packages, creates Supabase edge functions, keeps secret in edge secrets only.",
+      "files": [],
+      "expectations": [
+        "Agent reads references/GUIDE.md",
+        "SOLVAPAY_SECRET_KEY is placed in Supabase edge secrets — not VITE_* or .env in repo",
+        "Uses @solvapay/react@preview and @solvapay/react-supabase@preview",
+        "Browser calls go through Supabase edge functions, not direct api-dev fetch"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add SolvaPay checkout to my Next.js production website.",
+      "expected_output": "Agent routes to website-checkout, not lovable-checkout (preview-only skill).",
+      "files": [],
+      "expectations": [
+        "Handoff to website-checkout or explicit note that lovable-checkout is preview/dev only",
+        "Does not pin @preview for production Next.js path"
+      ]
+    }
+  ]
+}

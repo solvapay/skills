@@ -1,0 +1,26 @@
+{
+  "skill_name": "solvapay",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to add SolvaPay to my project but I'm not sure whether I need checkout, SDK integration, or an MCP server.",
+      "expected_output": "Agent loads the solvapay router skill, asks one disambiguation question or routes using the intent matrix, and points to the correct sibling surface skill without implementing code itself.",
+      "files": [],
+      "expectations": [
+        "Agent references the solvapay router SKILL.md or intent matrix",
+        "Agent routes toward create-mcp-app, sdk-integration, website-checkout, or lovable-checkout — not a generic web search only",
+        "Agent does not start scaffolding code before routing"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "paywall my api with solvapay",
+      "expected_output": "Agent routes to sdk-integration (REST/web paywall), not create-mcp-app, unless user clarifies MCP context.",
+      "files": [],
+      "expectations": [
+        "Handoff target is sdk-integration surface, not create-mcp-app",
+        "Agent does not assume greenfield MCP scaffold"
+      ]
+    }
+  ]
+}

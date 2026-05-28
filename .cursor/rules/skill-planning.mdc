@@ -5,85 +5,66 @@ alwaysApply: false
 
 # Planning New Skills
 
-Use this guidance when designing a new skill or restructuring an existing one.
+Use when designing a new skill or restructuring an existing one. Canonical reference: [agentskills-best-practices.md](../docs/agentskills-best-practices.md).
 
-## Skill Types
+## Skill types
 
-Choose the right approach based on what the skill needs to do:
+**Behavioral / guardrail** — steers preferences for topics the agent already knows. Mostly prose, strong prefer/never directives, online docs as primary reference.
 
-**Behavioral / Guardrail skill** -- Steers agent preferences for topics it already knows.
-- Mostly prose, few or no code examples
-- Strong "prefer X over Y" and "never use Z" directives
-- Links to online docs as primary reference
-- Best for: well-known third-party integrations the agent has training knowledge about
+**Implementation / guide** — teaches what the agent lacks. Bundled examples, step-by-step references, local fallbacks for proprietary APIs. Most SolvaPay skills are implementation skills.
 
-**Implementation / Guide skill** -- Teaches the agent something it doesn't know.
-- Bundled code examples, step-by-step guides, local reference files
-- Online docs with local fallback for SolvaPay-specific APIs
-- Progressive disclosure through sub-files
-- Best for: SolvaPay SDK/API integration, custom workflows, niche tools
+A skill can combine both: implementation for SolvaPay parts, behavioral direction for well-known tools.
 
-Most SolvaPay skills will be implementation skills since the agent lacks training data about our APIs. A skill can combine both types -- implementation code for SolvaPay parts, behavioral direction for well-known tools (Next.js, Supabase, Tailwind).
+## Scoping
 
-## Directory Structure
+Design coherent units — like functions:
 
-Each skill is a root-level directory containing a `SKILL.md` entry point:
+- Too narrow → multiple skills load for one task
+- Too broad → hard to activate; agent follows irrelevant instructions
+
+In this repo, the five-skill family uses a **router** (`solvapay`) plus **surface skills** (`create-mcp-app`, `sdk-integration`, `website-checkout`, `lovable-checkout`). Install together: `npx skills add solvapay/skills --all -y`.
+
+## Directory structure
 
 ```
 skill-name/
-├── SKILL.md              # Entry point (loaded when triggered)
-├── guide.md              # Overview and navigation (if multi-step)
-├── reference.md          # API/SDK reference (loaded as needed)
-├── examples.md           # Usage examples (loaded as needed)
-└── framework-or-domain/  # Subdirs for framework/domain variants
-    ├── guide.md
-    ├── 01-step.md
-    └── 02-step.md
+├── SKILL.md              # Router: guardrails, read order, checklists
+├── references/           # Domain guides and API detail
+├── scripts/              # Bundled, tested helpers
+└── assets/               # Templates and static resources
 ```
 
-## Naming Conventions
+Do not use ad-hoc root layouts (`guide.md`, `reference.md` at skill root). Put detail under `references/`.
 
-- Skill directory: `kebab-case`, gerund form preferred (`creating-checkout`, `processing-pdfs`)
-- Reference files: descriptive names (`form-validation-rules.md`, not `doc2.md`)
-- Sequential files: numbered prefixes (`01-setup.md`, `02-authentication.md`)
+## Progressive disclosure
 
-## Progressive Disclosure Architecture
+1. `SKILL.md` — routing, guardrails, mandatory read order, task checklist
+2. `references/*.md` — loaded on explicit trigger ("Read X before Y")
+3. One level deep from `SKILL.md` — avoid reference chains
 
-Token-efficient design: bundle comprehensive resources but load only what's needed.
+## Scripts
 
-1. **SKILL.md** acts as a router/table of contents
-2. **Sub-files** contain detailed implementation, loaded on demand
-3. **References stay one level deep** from SKILL.md -- never chain file->file->file
-4. **Domain-based splitting**: separate files per framework, domain, or feature area
+Bundle logic the agent would otherwise reinvent each run ([using scripts](https://agentskills.io/skill-creation/using-scripts)):
 
-## Executable Scripts (If Applicable)
+- Non-interactive; no TTY prompts
+- `--help` with flags and examples
+- Structured stdout (JSON/CSV); diagnostics on stderr
+- Pin versions for one-off `npx`/`uvx` commands in `SKILL.md`
+- List scripts in `SKILL.md`; distinguish Run vs See (read-only)
 
-If the skill includes utility scripts:
-
-- Scripts should handle errors explicitly, not punt to the agent
-- No magic numbers -- document all constants with rationale
-- List required packages in SKILL.md
-- Make execution intent clear: "Run `analyze.py`" (execute) vs "See `analyze.py`" (read)
-- Include validation scripts for destructive or batch operations
-
-## Prefer Consolidated Skills
-
-When multiple related workflows exist (e.g. SDK integration, checkout, onboarding), consolidate into a single skill with domain directories rather than separate installable skills. A single skill with bundled resources ensures the agent always has full context and users cannot install a specialist without the shared routing and documentation chain.
-
-Pattern:
-```
-my-skill/
-├── SKILL.md              # Router/TOC with pushy description
-├── domain-a/guide.md     # Entry point for domain A
-├── domain-b/guide.md     # Entry point for domain B
-└── domain-c/guide.md     # Entry point for domain C
-```
-
-Only split into separate skills when domains are truly independent and have no shared context.
-
-## Evaluation-Driven Development
+## Eval-driven development
 
 1. Identify where the agent fails without the skill
 2. Write minimal content to address those gaps
-3. Test with real usage scenarios
-4. Iterate: observe agent behavior, refine content, re-test
+3. Add 2–3 eval prompts in `evals/evals.json`; expand with assertions after first run
+4. Compare with-skill vs without-skill; grade with evidence
+5. Iterate: generalize fixes, keep the skill lean, bundle repeated work into scripts
+
+For description triggering, maintain ~20 labeled trigger queries with train/validation split ([optimizing descriptions](https://agentskills.io/skill-creation/optimizing-descriptions)).
+
+Store heavy eval workspaces (`iteration-N/`) outside the skill payload when they bloat the install.
+
+## Naming
+
+- Skill directory: `kebab-case`, gerund form preferred
+- Reference files: descriptive names (`form-validation-rules.md`, not `doc2.md`)

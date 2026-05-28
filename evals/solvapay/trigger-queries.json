@@ -1,0 +1,22 @@
+[
+  { "query": "I want to add SolvaPay to my project but I'm not sure where to start", "should_trigger": true, "split": "train" },
+  { "query": "what can solvapay do for me?", "should_trigger": true, "split": "train" },
+  { "query": "help me figure out which solvapay integration I need", "should_trigger": true, "split": "train" },
+  { "query": "add solvapay to my app — checkout or mcp or sdk?", "should_trigger": true, "split": "train" },
+  { "query": "I need billing but don't know if I want hosted checkout or sdk", "should_trigger": true, "split": "validation" },
+  { "query": "where do I start with solvapay for my saas", "should_trigger": true, "split": "validation" },
+  { "query": "scaffold a paid mcp server from this openapi spec", "should_trigger": false, "split": "train" },
+  { "query": "add hosted checkout to my nextjs site", "should_trigger": false, "split": "train" },
+  { "query": "integrate the solvapay typescript sdk into express", "should_trigger": false, "split": "train" },
+  { "query": "paste solvapay checkout into my lovable app", "should_trigger": false, "split": "validation" },
+  { "query": "paywall my rest api with solvapay sdk", "should_trigger": false, "split": "validation" },
+  { "query": "write a fibonacci function in python", "should_trigger": false, "split": "train" },
+  { "query": "set up stripe connect for my marketplace", "should_trigger": false, "split": "validation" },
+  { "query": "migrate my postgres database to supabase", "should_trigger": false, "split": "train" },
+  { "query": "npm create solvapay my-mcp -- --type mcp", "should_trigger": false, "split": "validation" },
+  { "query": "add usage metering webhooks to my next app", "should_trigger": false, "split": "train" },
+  { "query": "monetize my mcp tools on cloudflare workers greenfield", "should_trigger": false, "split": "validation" },
+  { "query": "fix my solvapay webhook signature verification", "should_trigger": false, "split": "train" },
+  { "query": "customer portal button in react with solvapay", "should_trigger": false, "split": "validation" },
+  { "query": "general question about payment processing best practices", "should_trigger": false, "split": "train" }
+]

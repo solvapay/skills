@@ -1,0 +1,38 @@
+{
+  "skill_name": "sdk-integration",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add SolvaPay paywall to my Next.js App Router API. I have next in package.json and need checkout + limits checks on /api/premium/*.",
+      "expected_output": "Agent loads sdk-integration, detects Next.js stack, follows references/nextjs.md, runs npx solvapay init guidance, implements server-side paywall with hosted checkout path.",
+      "files": [],
+      "expectations": [
+        "Agent reads sdk-integration SKILL.md and references/nextjs.md",
+        "Checkout session creation stays server-side",
+        "SOLVAPAY_SECRET_KEY is not placed in NEXT_PUBLIC_* or client bundle",
+        "Agent includes sandbox verification step (happy + failure path)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Wire SolvaPay webhooks in Express — verify signature and sync purchase state.",
+      "expected_output": "Agent follows references/express.md and references/WEBHOOKS.md with raw body parsing and signature verification.",
+      "files": [],
+      "expectations": [
+        "Agent references WEBHOOKS.md or equivalent signature verification pattern",
+        "Webhook handler uses server-side secret, not client exposure",
+        "Agent mentions idempotent event handling"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Scaffold a brand-new paid MCP server from OpenAPI on Cloudflare Workers.",
+      "expected_output": "Agent routes to create-mcp-app skill instead of implementing via sdk-integration alone.",
+      "files": [],
+      "expectations": [
+        "Agent does NOT treat this as sdk-integration primary work",
+        "Handoff or explicit route to create-mcp-app for greenfield MCP scaffold"
+      ]
+    }
+  ]
+}

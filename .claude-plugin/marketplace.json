@@ -1,13 +1,25 @@
 {
+  "name": "solvapay-skills",
+  "owner": {
+    "name": "SolvaPay",
+    "email": "support@solvapay.com"
+  },
   "metadata": {
-    "pluginRoot": "."
+    "description": "SolvaPay payment integration skills for Claude Code — use create-mcp-app to scaffold a production-ready MCP server with SolvaPay in seconds. Also supports Next.js, React, Express, Lovable, and more.",
+    "version": "1.0.0"
   },
   "plugins": [
     {
       "name": "solvapay-skills",
-      "source": ".",
+      "description": "Skills for SolvaPay: paid MCP apps, SDK integration, hosted checkout.",
+      "source": "./",
+      "strict": false,
       "skills": [
-        "./skills/solvapay"
+        "./skills/solvapay",
+        "./skills/create-mcp-app",
+        "./skills/sdk-integration",
+        "./skills/lovable-checkout",
+        "./skills/website-checkout"
       ]
     }
   ]
