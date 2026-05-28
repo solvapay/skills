@@ -1,0 +1,21 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Paid MCP",
+      "description": "Build and monetize MCP servers with SolvaPay.",
+      "skills": ["solvapay", "create-mcp-app"]
+    },
+    {
+      "title": "SDK integration",
+      "description": "Add SolvaPay to existing apps via the TypeScript SDK.",
+      "skills": ["sdk-integration"]
+    },
+    {
+      "title": "Checkout",
+      "description": "Hosted checkout, customer portal, and paste-in flows.",
+      "skills": ["website-checkout", "lovable-checkout"]
+    }
+  ]
+}

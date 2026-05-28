@@ -1,14 +1,15 @@
 {
-  "metadata": {
-    "pluginRoot": "."
-  },
+  "name": "solvapay-skills",
+  "owner": { "name": "SolvaPay", "email": "support@solvapay.com" },
+  "metadata": { "pluginRoot": "." },
   "plugins": [
     {
       "name": "solvapay-skills",
       "source": ".",
-      "skills": [
-        "./skills/solvapay"
-      ]
+      "description": "Skills for SolvaPay: paid MCP apps, SDK integration, hosted checkout.",
+      "homepage": "https://docs.solvapay.com",
+      "category": "payments",
+      "tags": ["payments", "mcp", "monetization"]
     }
   ]
 }
