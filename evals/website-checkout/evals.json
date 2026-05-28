@@ -3,24 +3,49 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Add SolvaPay hosted checkout to my Next.js 14 App Router site. I need a server route that creates a checkout session and a return URL page that refreshes access.",
+      "slug": "nextjs-checkout-return-url",
+      "prompt": "Add SolvaPay hosted checkout to my Next.js 14 App Router site. I need a server route that creates a checkout session and a return URL page at /billing/return that refreshes access from server-side purchase state.",
       "expected_output": "Agent loads website-checkout, runs npx solvapay init guidance, implements server-side checkout session route per references/nextjs.md, return URL handler reads server truth.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "Agent reads references/nextjs.md",
-        "Checkout session created on server, not client-only fetch to SolvaPay API with secret",
-        "Return URL flow refreshes access from server-side check",
+        "Checkout session is created on the server, not via client-side calls with the secret key",
+        "Return URL flow refreshes access from server-side check (not query params alone)",
         "Verification loop includes sandbox happy path"
       ]
     },
     {
       "id": 2,
-      "prompt": "I have a Vite + Supabase Lovable app — paste solvapay checkout in.",
-      "expected_output": "Agent routes to lovable-checkout skill, not website-checkout.",
+      "slug": "negative-lovable-handoff",
+      "prompt": "I have a Vite + Supabase Lovable app — paste SolvaPay checkout in with @preview packages.",
+      "expected_output": "Agent routes to solvapay/lovable-checkout skill, not website-checkout.",
       "files": [],
-      "expectations": [
-        "Handoff to lovable-checkout or explicit note that Lovable path differs",
-        "Does not apply Next.js-only patterns to Lovable stack"
+      "assertions": [
+        "Handoff to solvapay/lovable-checkout or explicit note that Lovable path differs",
+        "Does not apply Next.js-only website-checkout patterns to the Lovable stack"
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "react-spa-hosted-checkout",
+      "prompt": "React 18 SPA with Vite frontend and a small Express API — add SolvaPay hosted checkout redirect and a return page. No Next.js in package.json.",
+      "expected_output": "Agent follows references/react.md for SPA + backend checkout session contract.",
+      "files": [],
+      "assertions": [
+        "Agent reads references/react.md",
+        "Agent does not assume App Router or references/nextjs.md as the only path",
+        "Checkout session creation is server-side on Express (or documented backend)"
+      ]
+    },
+    {
+      "id": 4,
+      "slug": "negative-sdk-full-paywall",
+      "prompt": "Add SolvaPay usage metering, webhooks, and paywall middleware on all /api/premium routes in Express — full SDK integration.",
+      "expected_output": "Agent routes to solvapay/sdk-integration, not website-checkout.",
+      "files": [],
+      "assertions": [
+        "Handoff to solvapay/sdk-integration or explicit note that full SDK path is outside website-checkout",
+        "Agent does not treat hosted-checkout-only skill as the primary owner of usage events + webhooks"
       ]
     }
   ]

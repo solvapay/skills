@@ -37,4 +37,4 @@ React-only projects need a backend that owns SolvaPay secret operations.
 - React-only client cannot securely call SolvaPay secret endpoints directly.
 - Webhook handling remains backend responsibility.
 
-For full stack-specific implementation details, see the [`sdk-integration`](../../sdk-integration/SKILL.md) skill (React reference).
+For full React SDK patterns (hooks, account UI, MCP transport), install the `solvapay/sdk-integration` skill by name. This skill covers the hosted-checkout slice only.

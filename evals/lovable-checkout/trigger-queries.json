@@ -1,22 +1,82 @@
 [
-  { "query": "paste solvapay checkout into my lovable vite app", "should_trigger": true, "split": "train" },
-  { "query": "solvapay in lovable supabase edge @preview", "should_trigger": true, "split": "train" },
-  { "query": "vite shadcn checkout solvapay api-dev", "should_trigger": true, "split": "validation" },
-  { "query": "supabase edge checkout solvapay preview tag", "should_trigger": true, "split": "validation" },
-  { "query": "add hosted checkout to nextjs production site", "should_trigger": false, "split": "train" },
-  { "query": "website checkout nextjs app router", "should_trigger": false, "split": "train" },
-  { "query": "integrate solvapay sdk express webhooks", "should_trigger": false, "split": "train" },
-  { "query": "scaffold mcp from openapi cloudflare", "should_trigger": false, "split": "validation" },
-  { "query": "where do I start with solvapay", "should_trigger": false, "split": "validation" },
-  { "query": "lovable paste this into chat checkout guide", "should_trigger": true, "split": "train" },
-  { "query": "react native mobile checkout", "should_trigger": false, "split": "validation" },
-  { "query": "put SOLVAPAY_SECRET_KEY in VITE env lovable", "should_trigger": false, "split": "train" },
-  { "query": "shadcn ui purchase gate lovable preview", "should_trigger": true, "split": "validation" },
-  { "query": "full sdk integration nextjs metering", "should_trigger": false, "split": "train" },
-  { "query": "supabase edge function solvapay secret only server", "should_trigger": true, "split": "train" },
-  { "query": "wordpress checkout plugin", "should_trigger": false, "split": "validation" },
-  { "query": "production solvapay.com checkout lovable", "should_trigger": false, "split": "validation" },
-  { "query": "@preview solvapay react-supabase install", "should_trigger": true, "split": "train" },
-  { "query": "customer portal nextjs hosted", "should_trigger": false, "split": "validation" },
-  { "query": "monetize mcp server openapi", "should_trigger": false, "split": "train" }
+  {
+    "query": "paste solvapay hosted checkout into my lovable app — vite + react + shadcn, backend is supabase edge only.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "solvapay in lovable: install @solvapay/react@preview and wire supabase edge functions so the browser never hits api-dev with the secret.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "vite shadcn checkout against solvapay api-dev — lovable preview stack, paste the guide into chat.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "supabase edge function creates checkout session — SOLVAPAY_SECRET_KEY in edge secrets, not vite env.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "lovable paste this into chat: full checkout + purchase gate with @preview react-supabase adapter.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "shadcn ui purchase gate for lovable preview — edge proxies all solvapay api calls.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "@preview solvapay/react-supabase install steps for lovable-generated repo.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "api-dev.solvapay.com checkout from lovable frontend via supabase functions only.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "add hosted checkout to my next.js 15 production website — app router, live on vercel.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "website checkout nextjs — customer portal + checkout session route (not lovable).",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "integrate solvapay sdk into express with webhooks and usage metering.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "scaffold mcp from openapi on cloudflare with npm create solvapay.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "where do i start with solvapay for my app?",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "put SOLVAPAY_SECRET_KEY in VITE_SOLVAPAY_SECRET for lovable — is that ok?",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "react native mobile app checkout with solvapay.",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "production solvapay.com hosted checkout for our nextjs marketing site (not preview).",
+    "should_trigger": false,
+    "split": "validation"
+  }
 ]

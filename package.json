@@ -4,6 +4,6 @@
   "private": true,
   "description": "SolvaPay agent skills for paid MCP apps, SDK integration, hosted checkout, and Lovable paste-in checkout.",
   "scripts": {
-    "validate": "node scripts/validate-frontmatter.mjs && for d in skills/*/; do npx -y skills-reference validate \"$d\" || exit 1; done"
+    "validate": "find skills -name SKILL.md | while read -r f; do npx -y skills-reference validate \"$(dirname \"$f\")\" || exit 1; done"
   }
 }

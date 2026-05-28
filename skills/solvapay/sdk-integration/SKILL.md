@@ -8,7 +8,7 @@ description: >
   account-management UI (CurrentPlanCard, LaunchCustomerPortalButton, usePaymentMethod).
   Covers paywall enforcement, usage tracking, hosted checkout, customer portal, plan
   activation / cancellation / reactivation, and webhook signature verification. Use the
-  `create-mcp-app` skill instead when scaffolding a brand-new paid MCP server.
+  `solvapay/create-mcp-app` skill instead when scaffolding a brand-new paid MCP server.
 metadata:
   version: "1.0.0"
 ---
@@ -119,9 +119,9 @@ Topics: `test in sandbox`, `go live`, `testing`, `error handling`.
 
 ## When NOT to use this skill
 
-- Scaffolding a brand-new paid MCP server from OpenAPI or from scratch — use `create-mcp-app` instead.
-- Pasting hosted checkout into a Lovable app — use `lovable-checkout` instead.
-- Adding hosted checkout to a brand-new Next.js / React web app with no other SDK needs — `website-checkout` covers the minimal slice.
+- Scaffolding a brand-new paid MCP server from OpenAPI or from scratch — use `solvapay/create-mcp-app` instead.
+- Pasting hosted checkout into a Lovable app — use `solvapay/lovable-checkout` instead.
+- Adding hosted checkout to a brand-new Next.js / React web app with no other SDK needs — `solvapay/website-checkout` covers the minimal slice.
 
 ## Verification Loop
 

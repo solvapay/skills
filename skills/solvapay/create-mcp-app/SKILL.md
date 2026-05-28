@@ -26,7 +26,7 @@ A SolvaPay-monetized MCP server on Cloudflare Workers. Two input modes share the
 
 This skill covers **any MCP server whose tools return text or `structuredContent`** — data, intelligence and analytics, search and retrieval, integrations with external APIs, actions and workflows, computations, content generation. Domain-agnostic.
 
-The only UI this skill ships is SolvaPay's built-in checkout / account / topup widget, which mounts only when the user deliberately invokes an intent tool (`upgrade` / `topup` / `manage_account`). If you also want custom graphical widgets for your own tools, use this skill for the server + paywall wiring and add the MCP Apps UI guidance from the [`sdk-integration`](../sdk-integration/SKILL.md) skill (MCP Server + React references) — the two compose.
+The only UI this skill ships is SolvaPay's built-in checkout / account / topup widget, which mounts only when the user deliberately invokes an intent tool (`upgrade` / `topup` / `manage_account`). If you also want custom graphical widgets for your own tools, use this skill for the server + paywall wiring and add [references/mcp-apps-ui.md](references/mcp-apps-ui.md) — the two compose.
 
 ## Mandatory read order
 
@@ -148,6 +148,8 @@ Inherited by both input modes; `from-openapi/` and `from-scratch/` no longer rep
 
 ## Gotchas
 
+- **Deploy tasks don't touch source files.** When deploying an existing project, your job is to configure `wrangler.jsonc`, populate `.env`, create `scripts/deploy.mjs` if missing, and run `npm run deploy`. Do NOT rewrite `src/worker.ts` or any `src/tools/*.ts` file. A `worker.ts` that already calls `createSolvaPayMcpFetch(...)` or `createSolvaPayMcpServer(...)` is valid and working — even a minimal call like `createSolvaPayMcpFetch({ registerTools })` without every option is fine. Adding options (`mode`, `hideToolsByAudience`, etc.) is an improvement, not a requirement; on a deploy task, leave source code alone.
+- `@solvapay` is **not** a valid npm package — there is no bare `@solvapay` you can import from. Every SDK import uses a subpath: `@solvapay/mcp`, `@solvapay/mcp/fetch`, `@solvapay/mcp/express`, or `@solvapay/server`. If you find yourself writing `from '@solvapay'`, stop — check the alternatives matrix for the correct subpath.
 - `ctx.registerPayable(name, config)` takes **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
 - Paid handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from paid handlers.
 - Run `node scripts/describe.mjs` against a **local spec file** — fetch URLs to `/tmp/spec-*.json` first; don't pass URLs directly.

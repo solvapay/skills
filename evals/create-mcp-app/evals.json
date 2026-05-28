@@ -4,10 +4,11 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs` (set SCAFFOLDER_SCRIPTS_DIR or npm install create-solvapay if resolution fails). Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp`. Use intent-driven mode.",
+      "slug": "intent-driven-petstore-v2",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs` (set SCAFFOLDER_SCRIPTS_DIR or npm install create-solvapay if resolution fails). Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp`. Use intent-driven mode.",
       "expected_output": "A scaffolded Cloudflare Workers MCP project at ./petstore-mcp/ with src/tools/ containing true intent-driven clusters (action-verb names like manage_pet, find_pet — NOT tag-named files like pets.ts/users.ts). selections.json written outside the project. Tools follow references/tool-design.md response-mode contract (c.respond with text narration). Tier assignments respect describe.mjs's suggestedTier output.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "src/tools/ contains action-verb intent files (manage_pet.ts, find_pet.ts, manage_order.ts, manage_user.ts or similar) — NOT tag-grouped files like pets.ts/users.ts/store.ts, and NOT one-file-per-operation (no addPet.ts, getPetById.ts, deletePet.ts, etc.)",
         "Paid tools (ctx.registerPayable) use c.respond(data, { text: narration }) — NOT raw return { content: [...] } from paid handlers",
         "Free tools (ctx.server.registerTool) return { content: [{ type: 'text', text: <render-instruction narration> }], structuredContent: {...} } — they include a text narration alongside structuredContent, not raw content with no narration",
@@ -20,10 +21,11 @@
     },
     {
       "id": 2,
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Wrap `https://petstore3.swagger.io/api/v3/openapi.json` as MCP tools. Greenfield, one-to-one mode is fine.",
+      "slug": "one-to-one-petstore-v3",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Wrap `https://petstore3.swagger.io/api/v3/openapi.json` as MCP tools. Greenfield, one-to-one mode is fine.",
       "expected_output": "One-to-one scaffold with per-operation files. Agent fetches spec to a temp file before describe.mjs. Agent flags the serverProbeError advisory (Petstore v3 has relative servers[0] = /api/v3). Agent skips uploadFile (binary, unfit for MCP text tools). scaffold.mjs succeeds on first attempt (no 'target dir exists' error).",
       "files": [],
-      "expectations": [
+      "assertions": [
         "The agent fetched the spec URL to a local temp file (e.g. /tmp/spec-*.json) BEFORE running describe.mjs — the URL was NOT passed directly to describe.mjs",
         "The agent flagged the serverProbeError advisory (Petstore v3's servers[0] is relative '/api/v3', not an absolute URL) and either fixed it in selections.json or surfaced it to the user as a known issue",
         "The agent set tier='skip' for uploadFile (or equivalent binary/multipart operation) in selections.json — these are unfit for MCP text tools",
@@ -35,6 +37,7 @@
     },
     {
       "id": 3,
+      "slug": "extend-paid-manage-pet",
       "prompt": "Setup: copy the directory at `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/` before starting — this represents an already-scaffolded MCP project. Task: Add a paid `manage_pet` tool to my MCP server at `./petstore-mcp`.",
       "expected_output": "A new paid tool file added under ./petstore-mcp/src/tools/. The tool calls ctx.registerPayable with exactly 2 arguments: a string name and a config object with title/description/schema/handler keys. Handler returns c.respond(data, { text }). src/tools/index.ts updated. No re-scaffolding.",
       "files": [
@@ -44,7 +47,7 @@
         "fixtures/petstore-mcp/src/worker.ts",
         "fixtures/petstore-mcp/src/tools/index.ts"
       ],
-      "expectations": [
+      "assertions": [
         "The agent did NOT run npm create solvapay or scaffold.mjs (would re-scaffold the project)",
         "A new tool file was created under ./petstore-mcp/src/tools/ (manage_pet.ts, managePet.ts, or similar)",
         "The new tool calls ctx.registerPayable with EXACTLY 2 arguments: ctx.registerPayable('<name>', { title, description, schema, handler, annotations? }) — NOT a 3-argument form like ctx.registerPayable(toolDef, paymentConfig, handler). The second arg is a single config object containing title/description/schema/handler keys.",
@@ -56,6 +59,7 @@
     },
     {
       "id": 4,
+      "slug": "deploy-petstore-cloudflare",
       "prompt": "Setup: copy the directory at `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/`, and create `./petstore-mcp/.env` with these contents:\nSOLVAPAY_SECRET_KEY=sk_test_placeholder\nSOLVAPAY_PRODUCT_REF=prd_placeholder\nMCP_PUBLIC_BASE_URL=http://localhost:8787\nTask: Deploy my MCP server at `./petstore-mcp` to Cloudflare.",
       "expected_output": "The agent walked through the deploy flow per the Cloudflare hosting reference, narrated pre-flight checks (wrangler whoami, workers.dev subdomain), identified that SOLVAPAY_SECRET_KEY must be uploaded as a wrangler secret while SOLVAPAY_PRODUCT_REF and MCP_PUBLIC_BASE_URL are --var overrides. No re-scaffolding.",
       "files": [
@@ -65,7 +69,7 @@
         "fixtures/petstore-mcp/src/worker.ts",
         "fixtures/petstore-mcp/src/tools/index.ts"
       ],
-      "expectations": [
+      "assertions": [
         "The agent did NOT run npm create solvapay or scaffold.mjs",
         "The agent read references/hosting/cloudflare/ or references/from-openapi/deploy.md (visible in transcript)",
         "The agent mentioned wrangler whoami or a workers.dev subdomain pre-flight check",
@@ -78,10 +82,11 @@
     },
     {
       "id": 5,
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp-gated`. Use intent-driven mode at the default (standard) confirmation level, then author the intent-tool files matching the cluster proposal you surfaced at G2.",
+      "slug": "hitl-gates-g2-g6",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp-gated`. Use intent-driven mode at the default (standard) confirmation level, then author the intent-tool files matching the cluster proposal you surfaced at G2.",
       "expected_output": "The agent surfaces gate G2 — a structured cluster proposal listing the proposed intent_name / ops covered / tier / one-line description rows — BEFORE writing selections.json or invoking scaffold.mjs. After G2 approval, the agent surfaces gate G6 (selections.json preview with upstreamAuth.key redacted, showing the resolved mode / workerName / upstreamAuth payload) before running scaffold.mjs. After scaffold, the agent authors one `src/tools/<intent>.ts` per row of the G2 proposal and wires the aggregator. Gates use stable id strings (G2:approve, G6:run).",
       "files": [],
-      "expectations": [
+      "assertions": [
         "The agent presented a cluster proposal (gate G2) BEFORE authoring any src/tools/*.ts file or invoking scaffold.mjs — the proposal lists at least intent_name + ops covered + tier per row",
         "The G2 proposal labels the gate explicitly (e.g. 'G2', 'Gate G2', or includes the canonical option ids approve / edit / oneToOne) so eval transcripts can grep for it",
         "The agent waited for user approval on G2 before writing selections.json — did NOT skip straight from describe.mjs output to scaffold.mjs in one turn",
@@ -93,10 +98,11 @@
     },
     {
       "id": 6,
+      "slug": "from-scratch-haiku",
       "prompt": "Task: Scaffold a brand-new paid MCP server (no OpenAPI input) into `./haiku-mcp`. I want a single paid tool called `generate_haiku` that takes a `topic` string and an optional `mood` enum ('serene' | 'melancholy' | 'playful'), and returns a 3-line haiku as `{ lines: string[3] }`. Replace the scaffolder's placeholder tool — don't leave it dangling.",
       "expected_output": "A fresh Cloudflare Workers project at `./haiku-mcp/` produced from the from-scratch (no-OpenAPI) scaffold flow. Exactly one paid tool, `generate_haiku`, lives in its own `src/tools/generate_haiku.ts` exporting `registerGenerateHaiku(ctx)`. The placeholder tool from the scaffold is gone — neither its file nor its register-call survives. `src/tools/index.ts` imports + calls `registerGenerateHaiku`. Handler uses `c.respond(data, { text })` narration. Schema validates `topic: z.string()` and `mood: z.enum(['serene','melancholy','playful']).optional()`. No OpenAPI scripts (describe.mjs / scaffold.mjs from `scripts/mcp/`) were invoked — those are the spec-first agent path.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "The agent ran `npm create solvapay` with `--type mcp --no-openapi` (or `pnpm/yarn create solvapay --no-openapi`) — not describe.mjs/scaffold.mjs from the OpenAPI agent path",
         "The project is rooted at `./haiku-mcp/` with `package.json`, `wrangler.jsonc`, and `src/worker.ts` calling `createSolvaPayMcpFetch` (or equivalent fetch-first factory)",
         "`src/tools/generate_haiku.ts` exists and exports `registerGenerateHaiku(ctx, env?)` (per the file-layout convention)",
@@ -109,10 +115,11 @@
     },
     {
       "id": 7,
+      "slug": "express-alternative-host",
       "prompt": "Task: I want to set up a paid MCP server, but I'm running on Node + Express (NOT Cloudflare Workers) — my company doesn't use Cloudflare. Walk me through how to wire SolvaPay into an Express app from scratch: which package subpath, which factory, how to mount the OAuth bridge, how to wrap a paid tool. I'll write the actual `app.listen` glue myself; you produce a minimal `server.ts` (Express handler + SolvaPay factory + one example paid tool) that compiles and a `package.json` listing the right deps. Save everything under `./express-mcp/`.",
       "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` wired to `StreamableHTTPServerTransport`, with `createMcpOAuthBridge` from `@solvapay/mcp/express` mounted as middleware. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "`./express-mcp/server.ts` imports `createSolvaPayMcpServer` from `@solvapay/mcp` AND `createMcpOAuthBridge` from `@solvapay/mcp/express` — NOT `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch` and NOT a nonexistent `createSolvaPayMcpExpress`",
         "`./express-mcp/server.ts` uses `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` to bridge the MCP server to Express (req, res)",
         "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`, and `express` as dependencies",
@@ -121,6 +128,26 @@
         "At least one paid tool is registered via `ctx.registerPayable(name, { title, description, schema, handler })` with the 2-arg shape, and its handler returns `c.respond(data, { text })`",
         "The agent did NOT run the OpenAPI agent path (`describe.mjs` / `scaffold.mjs` from `scripts/mcp/`) — there is no OpenAPI spec in this task",
         "The agent read references/hosting/alternatives.md (visible in transcript) — it is the routing doc that documents the Node + Express wiring pattern"
+      ]
+    },
+    {
+      "id": 8,
+      "slug": "existing-server-paywall",
+      "prompt": "Setup: copy `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` to `./petstore-mcp/`. Task: I already have this MCP worker — add SolvaPay paywall per existing-server guide. Audit wiring and add one paid tool; do not rescaffold.",
+      "expected_output": "Agent follows references/existing-server.md, adds payable tool with 2-arg registerPayable and c.respond handler, does not run scaffold.mjs or npm create solvapay.",
+      "files": [
+        "fixtures/petstore-mcp/package.json",
+        "fixtures/petstore-mcp/wrangler.jsonc",
+        "fixtures/petstore-mcp/tsconfig.json",
+        "fixtures/petstore-mcp/src/worker.ts",
+        "fixtures/petstore-mcp/src/tools/index.ts"
+      ],
+      "assertions": [
+        "The agent read references/existing-server.md (visible in transcript)",
+        "The agent did NOT run scaffold.mjs or npm create solvapay as the primary path",
+        "At least one tool uses ctx.registerPayable with the 2-arg config-object shape",
+        "Paid handler returns c.respond(data, { text }) — not raw MCP content arrays",
+        "./petstore-mcp/src/worker.ts was not replaced with a greenfield scaffold default"
       ]
     }
   ]

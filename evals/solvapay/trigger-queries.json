@@ -1,22 +1,82 @@
 [
-  { "query": "I want to add SolvaPay to my project but I'm not sure where to start", "should_trigger": true, "split": "train" },
-  { "query": "what can solvapay do for me?", "should_trigger": true, "split": "train" },
-  { "query": "help me figure out which solvapay integration I need", "should_trigger": true, "split": "train" },
-  { "query": "add solvapay to my app — checkout or mcp or sdk?", "should_trigger": true, "split": "train" },
-  { "query": "I need billing but don't know if I want hosted checkout or sdk", "should_trigger": true, "split": "validation" },
-  { "query": "where do I start with solvapay for my saas", "should_trigger": true, "split": "validation" },
-  { "query": "scaffold a paid mcp server from this openapi spec", "should_trigger": false, "split": "train" },
-  { "query": "add hosted checkout to my nextjs site", "should_trigger": false, "split": "train" },
-  { "query": "integrate the solvapay typescript sdk into express", "should_trigger": false, "split": "train" },
-  { "query": "paste solvapay checkout into my lovable app", "should_trigger": false, "split": "validation" },
-  { "query": "paywall my rest api with solvapay sdk", "should_trigger": false, "split": "validation" },
-  { "query": "write a fibonacci function in python", "should_trigger": false, "split": "train" },
-  { "query": "set up stripe connect for my marketplace", "should_trigger": false, "split": "validation" },
-  { "query": "migrate my postgres database to supabase", "should_trigger": false, "split": "train" },
-  { "query": "npm create solvapay my-mcp -- --type mcp", "should_trigger": false, "split": "validation" },
-  { "query": "add usage metering webhooks to my next app", "should_trigger": false, "split": "train" },
-  { "query": "monetize my mcp tools on cloudflare workers greenfield", "should_trigger": false, "split": "validation" },
-  { "query": "fix my solvapay webhook signature verification", "should_trigger": false, "split": "train" },
-  { "query": "customer portal button in react with solvapay", "should_trigger": false, "split": "validation" },
-  { "query": "general question about payment processing best practices", "should_trigger": false, "split": "train" }
+  {
+    "query": "my cofounder wants agent payments on our saas but i genuinely dont know if thats an mcp thing, hosted checkout, or the typescript sdk — where do i even start with solvapay?",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "add solvapay to my project. we have next in package.json and also flirted with an mcp server last quarter. no idea which path.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "what can solvapay do for us? we're a b2b api company exploring billing for ai agents.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "help me pick the right solvapay integration — checkout page vs paywall vs monetized mcp. one disambiguation pass is fine.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "we already call solvapay somewhere in staging but the new eng needs to add usage billing — which surface skill should they open?",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "i need billing on our product but cant tell if i want hosted checkout or sdk metering — solvapay has multiple skills right?",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "where do i start with solvapay for my saas? vite frontend, unclear backend.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "agentic economy payments — solvapay docs mention skills, mcp, and checkout. route me before we write code.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "scaffold a paid mcp server from https://api.example.com/openapi.json on cloudflare workers — intent driven clustering please.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "add a next.js app router route that creates a solvapay checkout session and a /billing/return page that refreshes access from server state.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "npx solvapay init then wire express webhooks with raw body + signature verification for purchase.updated.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "paste the solvapay lovable checkout guide into my vite+shadcn app — supabase edge holds the secret.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "my worker already has createSolvaPayMcpFetch — just need registerPayable on two tools, no rescaffold.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "paywall my rest api routes in express with limits checks — not building an mcp server.",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "add LaunchCustomerPortalButton and CurrentPlanCard to our react dashboard using @solvapay/react.",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "npm create solvapay@latest data-mcp -- --type mcp from this swagger file.",
+    "should_trigger": false,
+    "split": "validation"
+  }
 ]

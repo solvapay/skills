@@ -3,10 +3,11 @@
   "evals": [
     {
       "id": 1,
+      "slug": "nextjs-paywall-api",
       "prompt": "Add SolvaPay paywall to my Next.js App Router API. I have next in package.json and need checkout + limits checks on /api/premium/*.",
       "expected_output": "Agent loads sdk-integration, detects Next.js stack, follows references/nextjs.md, runs npx solvapay init guidance, implements server-side paywall with hosted checkout path.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "Agent reads sdk-integration SKILL.md and references/nextjs.md",
         "Checkout session creation stays server-side",
         "SOLVAPAY_SECRET_KEY is not placed in NEXT_PUBLIC_* or client bundle",
@@ -15,10 +16,11 @@
     },
     {
       "id": 2,
-      "prompt": "Wire SolvaPay webhooks in Express — verify signature and sync purchase state.",
+      "slug": "express-webhooks",
+      "prompt": "Wire SolvaPay webhooks in Express — verify signature and sync purchase state on purchase.updated.",
       "expected_output": "Agent follows references/express.md and references/WEBHOOKS.md with raw body parsing and signature verification.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "Agent references WEBHOOKS.md or equivalent signature verification pattern",
         "Webhook handler uses server-side secret, not client exposure",
         "Agent mentions idempotent event handling"
@@ -26,12 +28,49 @@
     },
     {
       "id": 3,
-      "prompt": "Scaffold a brand-new paid MCP server from OpenAPI on Cloudflare Workers.",
-      "expected_output": "Agent routes to create-mcp-app skill instead of implementing via sdk-integration alone.",
+      "slug": "negative-greenfield-mcp-handoff",
+      "prompt": "Scaffold a brand-new paid MCP server from OpenAPI on Cloudflare Workers into ./data-mcp.",
+      "expected_output": "Agent routes to solvapay/create-mcp-app instead of implementing via sdk-integration alone.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "Agent does NOT treat this as sdk-integration primary work",
-        "Handoff or explicit route to create-mcp-app for greenfield MCP scaffold"
+        "Handoff or explicit route to solvapay/create-mcp-app for greenfield MCP scaffold"
+      ]
+    },
+    {
+      "id": 4,
+      "slug": "supabase-edge-limits",
+      "prompt": "Protect my Supabase Edge Function at supabase/functions/premium-report/index.ts with SolvaPay limits check before running the report. No Next.js server.",
+      "expected_output": "Agent follows references/supabase-edge.md using @solvapay/server/fetch; secret in edge env only.",
+      "files": [],
+      "assertions": [
+        "Agent references supabase-edge.md or @solvapay/server/fetch subpath",
+        "SOLVAPAY_SECRET_KEY is configured for edge runtime secrets — not VITE_* or NEXT_PUBLIC_*",
+        "Agent does not scaffold a greenfield MCP worker"
+      ]
+    },
+    {
+      "id": 5,
+      "slug": "react-customer-portal",
+      "prompt": "Add CurrentPlanCard and LaunchCustomerPortalButton to our React SPA billing page using SolvaPay SDK.",
+      "expected_output": "Agent follows references/react.md for account management UI; server-side secret stays off the client.",
+      "files": [],
+      "assertions": [
+        "Agent reads references/react.md",
+        "Handoff does NOT route primary work to solvapay/website-checkout",
+        "SOLVAPAY_SECRET_KEY is not exposed in client env vars"
+      ]
+    },
+    {
+      "id": 6,
+      "slug": "mcp-fetch-existing-server",
+      "prompt": "I already have a Cloudflare Worker MCP server. Wire createSolvaPayMcpFetch and registerPayable on my existing search_docs tool — do not rescaffold the project.",
+      "expected_output": "Agent follows references/mcp-server.md for fetch-first wiring on an existing server.",
+      "files": [],
+      "assertions": [
+        "Agent reads references/mcp-server.md",
+        "Agent does NOT run npm create solvapay or OpenAPI describe/scaffold as the primary path",
+        "Agent uses createSolvaPayMcpFetch or @solvapay/mcp/fetch pattern"
       ]
     }
   ]

@@ -423,6 +423,16 @@ The trailing-slash `"@solvapay/server/"` entry is what unlocks subpath imports (
 - Always verify webhook signatures before parsing business data.
 - Always keep pricing/product configuration in SolvaPay backend, not hardcoded in UI.
 
+## Documentation Sources
+
+When docs URLs change, resolve by topic using this preference order:
+
+1. SolvaPay Docs MCP server (preferred): https://docs.solvapay.com/mcp
+2. Docs index fallback: https://docs.solvapay.com/llms.txt
+3. Direct docs page fetch on docs.solvapay.com
+
+If the MCP server is unavailable, suggest it as a friendly optional improvement. Continue without blocking.
+
 ## Retrieval Hints
 
-When docs URLs change, resolve by topic using the documentation sources defined in the router [SKILL.md](../../solvapay/SKILL.md#documentation-sources).
+Use the documentation sources above for topic-based lookup — not hard-coded doc paths.

@@ -5,8 +5,8 @@ description: >
   Use when the user says "add checkout to website", "hosted checkout", "customer portal",
   "nextjs checkout", "checkout session", or wants a server-side checkout-session route plus
   a return-URL handler. Next.js is fully supported; React (no Next.js) gets partial guidance.
-  Use the `sdk-integration` skill instead for usage metering, Express, MCP server wiring,
-  or webhook-heavy flows; use `lovable-checkout` for Lovable / Vite / Supabase Edge apps.
+  Use the `solvapay/sdk-integration` skill instead for usage metering, Express, MCP server wiring,
+  or webhook-heavy flows; use `solvapay/lovable-checkout` for Lovable / Vite / Supabase Edge apps.
 metadata:
   version: "1.0.0"
 compatibility: >
@@ -27,7 +27,7 @@ Hosted checkout + customer portal for web apps. Server creates the checkout sess
 
 Before stack-specific implementation, run `npx -y solvapay@latest init` to configure `SOLVAPAY_SECRET_KEY` and install base SDK packages.
 
-For advanced use cases (usage metering, Express/MCP paths, webhook-heavy flows), use the [`sdk-integration`](../sdk-integration/SKILL.md) skill.
+For usage metering, Express/MCP paths, or webhook-heavy flows, the work is out of scope — see [references/out-of-scope.md](references/out-of-scope.md) (`solvapay/sdk-integration` skill by name).
 
 ## Quick Start
 
@@ -45,8 +45,8 @@ For advanced use cases (usage metering, Express/MCP paths, webhook-heavy flows),
 ## Gotchas
 
 - Checkout succeeds in the browser but access unchanged usually means missing webhooks or stale client-side cache — refresh from server truth on the return URL.
-- React-only apps need a backend for checkout session creation — this skill covers partial guidance; full SDK wiring may need `sdk-integration`.
-- Lovable / Vite + Supabase Edge apps should use `lovable-checkout`, not this skill.
+- React-only apps need a backend for checkout session creation — this skill covers partial guidance; full SDK wiring is in the `solvapay/sdk-integration` skill (install separately).
+- Lovable / Vite + Supabase Edge apps should use the `solvapay/lovable-checkout` skill, not this skill.
 
 ## Verification loop
 

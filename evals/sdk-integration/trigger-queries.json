@@ -1,22 +1,102 @@
 [
-  { "query": "integrate the solvapay typescript sdk into my nextjs app", "should_trigger": true, "split": "train" },
-  { "query": "add paywall to my express api with usage events", "should_trigger": true, "split": "train" },
-  { "query": "npx solvapay init and wire webhooks", "should_trigger": true, "split": "train" },
-  { "query": "protect my supabase edge function with solvapay limits check", "should_trigger": true, "split": "validation" },
-  { "query": "add solvapay to my existing mcp server createSolvaPayMcpFetch", "should_trigger": true, "split": "validation" },
-  { "query": "scaffold brand new paid mcp from openapi", "should_trigger": false, "split": "train" },
-  { "query": "npm create solvapay --type mcp greenfield worker", "should_trigger": false, "split": "train" },
-  { "query": "add hosted checkout to my nextjs marketing site", "should_trigger": false, "split": "train" },
-  { "query": "paste solvapay into lovable vite app", "should_trigger": false, "split": "validation" },
-  { "query": "where do I start with solvapay", "should_trigger": false, "split": "validation" },
-  { "query": "openapi to mcp cloudflare workers", "should_trigger": false, "split": "train" },
-  { "query": "cancel renewal and reactivate plan with solvapay sdk", "should_trigger": true, "split": "validation" },
-  { "query": "LaunchCustomerPortalButton in react", "should_trigger": true, "split": "train" },
-  { "query": "set up stripe billing for my saas", "should_trigger": false, "split": "validation" },
-  { "query": "verify solvapay webhook signature in express", "should_trigger": true, "split": "train" },
-  { "query": "minimal website checkout session only", "should_trigger": false, "split": "validation" },
-  { "query": "deno edge runtime solvapay fetch handler", "should_trigger": true, "split": "validation" },
-  { "query": "build mcp app ui with createMcpAppAdapter", "should_trigger": true, "split": "train" },
-  { "query": "migrate mongodb to postgres", "should_trigger": false, "split": "train" },
-  { "query": "paywall my web app api routes not mcp", "should_trigger": true, "split": "validation" }
+  {
+    "query": "integrate solvapay typescript sdk into next.js app router — paywall /api/premium/* with limits check + hosted checkout for upgrades.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "add paywall to express api with usage events after each report generation — npx solvapay init first.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "npx solvapay init then wire express webhooks — raw body, verify signature, idempotent purchase.updated handler.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "protect supabase edge function with @solvapay/server/fetch checkPurchase — secret in edge env only.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "existing cloudflare mcp worker — add createSolvaPayMcpFetch wiring and registerPayable on search_tool (no greenfield scaffold).",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "paywall my web app api routes in next — not building mcp, just REST premium endpoints.",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "verify solvapay webhook signature in express — WEBHOOKS.md pattern.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "cancel renewal and reactivate plan with solvapay sdk server helpers.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "LaunchCustomerPortalButton in react spa — @solvapay/react account management.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "deno deploy edge handler: createMcpAppAdapter + embedded checkout in mcp host ui.",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "scaffold brand new paid mcp from openapi on cloudflare — npm create solvapay --type mcp.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "openapi to mcp intent-driven petstore — describe.mjs + scaffold.mjs agent path.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "add hosted checkout session route to nextjs marketing site only — no usage metering.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "paste solvapay into lovable vite app with @preview react-supabase.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "where do i start with solvapay for our product?",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "deploy greenfield mcp worker to cloudflare after npm create solvapay.",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "minimal website checkout redirect solvapay hosted — next app router return url.",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "set up stripe billing connect for marketplace — not solvapay sdk integration.",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "generate haiku paid mcp tool from scratch with npm create solvapay --no-openapi.",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "wrap rest api as new mcp server greenfield worker swagger.",
+    "should_trigger": false,
+    "split": "validation"
+  }
 ]

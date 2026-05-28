@@ -153,4 +153,4 @@ window.location.href = checkoutUrl
 
 ## Note
 
-For advanced SDK patterns (usage metering, Express/MCP paths, webhook-heavy flows), see the [`sdk-integration`](../../sdk-integration/SKILL.md) skill.
+For usage metering, Express/MCP paths, or webhook-heavy flows, see [out-of-scope.md](out-of-scope.md) — install the `solvapay/sdk-integration` skill by name.

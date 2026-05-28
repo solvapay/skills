@@ -6,8 +6,8 @@ description: >
   when the user says "lovable", "vite checkout", "shadcn checkout", "supabase edge checkout",
   "solvapay in lovable", "paste this into lovable", or "@preview". Pinned to the floating
   `@preview` tag and the SolvaPay dev backend (`https://api-dev.solvapay.com`). Not for
-  production. Use `website-checkout` for Next.js / production web apps, or `sdk-integration`
-  for general SDK wiring.
+  production. Use `solvapay/website-checkout` for Next.js / production web apps, or
+  `solvapay/sdk-integration` for general SDK wiring.
 metadata:
   version: "1.0.0"
 compatibility: >

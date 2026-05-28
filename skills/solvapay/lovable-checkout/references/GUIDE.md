@@ -19,11 +19,9 @@ Use when all three are true:
 - OK running against SolvaPay sandbox and `api-dev.solvapay.com` during the
   preview window.
 
-For a Next.js App Router checkout, see the
-[`sdk-integration`](../../sdk-integration/SKILL.md) skill (React reference).
-For an MCP App UI (iframe inside Claude Desktop or ChatGPT), use the
-[`sdk-integration`](../../sdk-integration/SKILL.md) skill (MCP Server
-reference) — the auth/iframe wiring is different.
+For a Next.js App Router checkout, install the `solvapay/website-checkout` skill by name.
+MCP App UI (iframe inside Claude Desktop or ChatGPT) is not covered here — install
+`solvapay/sdk-integration` or `solvapay/create-mcp-app` if needed.
 
 ## Guardrails
 
@@ -389,6 +387,5 @@ When `1.0.8` (or the next stable minor) promotes to `@latest`:
 3. Rotate the Supabase secret `SOLVAPAY_API_BASE_URL` to
    `https://api.solvapay.com`.
 4. Rotate `SOLVAPAY_SECRET_KEY` to a `sk_live_...` prod key.
-5. Retire this guide in favour of the
-   [`sdk-integration`](../../sdk-integration/SKILL.md) skill (React reference)
-   once the Supabase Edge content lands on the stable guide.
+5. For production Next.js or full SDK flows, install `solvapay/website-checkout` or
+   `solvapay/sdk-integration` by name once packages promote off `@preview`.

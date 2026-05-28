@@ -18,7 +18,7 @@ Intent-driven composition for paywalled MCP tools. Read this before writing any 
 
 ## Core principle
 
-**Data-in, host-rendered-out.** Tools return data (text or `structuredContent`) regardless of domain — data, search, integrations, actions, computations, content — and the host LLM (Claude, ChatGPT, Cursor, MCP Inspector, …) decides how to present it. For the common case this is the whole surface — stay here. If a specific tool genuinely needs a custom graphical widget, keep the server + paywall wiring from this skill and add the UI surface via [`sdk-integration/references/mcp-server.md`](../../sdk-integration/references/mcp-server.md) + [`sdk-integration/references/react.md`](../../sdk-integration/references/react.md).
+**Data-in, host-rendered-out.** Tools return data (text or `structuredContent`) regardless of domain — data, search, integrations, actions, computations, content — and the host LLM (Claude, ChatGPT, Cursor, MCP Inspector, …) decides how to present it. For the common case this is the whole surface — stay here. If a specific tool genuinely needs a custom graphical widget, keep the server + paywall wiring from this skill and add the UI surface via [mcp-apps-ui.md](mcp-apps-ui.md) (server wiring in [mcp-server-wiring.md](mcp-server-wiring.md)).
 
 ## Three response modes
 

@@ -1,6 +1,6 @@
 # Add SolvaPay to an existing MCP server
 
-Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already exists. The low-level wiring lives in [`sdk-integration/references/mcp-server.md`](../../sdk-integration/references/mcp-server.md); this guide audits your server and routes you there.
+Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already exists. Low-level wiring is in [mcp-server-wiring.md](mcp-server-wiring.md); this guide audits your server first.
 
 ## When to read this
 
@@ -77,7 +77,7 @@ See [hosting/alternatives.md](hosting/alternatives.md) for the full matrix with 
 
 ## Wire the paywall
 
-Follow [`sdk-integration/references/mcp-server.md`](../../sdk-integration/references/mcp-server.md) for:
+Follow [mcp-server-wiring.md](mcp-server-wiring.md) for:
 
 - Installing `@solvapay/mcp` + `@solvapay/server`
 - Initializing `createSolvaPay` with your secret key
@@ -86,7 +86,7 @@ Follow [`sdk-integration/references/mcp-server.md`](../../sdk-integration/refere
 - Wrapping handlers with `payable.mcp()` / `registerPayable(...)`
 - Resolving customer identity from the bearer token
 
-That guide is the source of truth for the low-level API; this guide adds the scenario-specific concerns below.
+That reference is the source of truth for the low-level API; this guide adds the scenario-specific concerns below.
 
 ## Apply the intent-driven audit to existing tools
 
@@ -117,7 +117,7 @@ If you don't want an embedded widget, skip this section entirely — the text-on
 
 ## Verification
 
-Use the checklist from [`sdk-integration/references/mcp-server.md`](../../sdk-integration/references/mcp-server.md), plus:
+Use the checklist from [mcp-server-wiring.md](mcp-server-wiring.md), plus:
 
 - Existing paid tools return data on success via `ctx.respond(payload, { text: narration })`.
 - Existing paid tools return a text-only gate narration (no iframe) when the customer is out of balance.
@@ -130,7 +130,7 @@ Use the checklist from [`sdk-integration/references/mcp-server.md`](../../sdk-in
 - [ ] Complete audit (runtime, transport, auth, tool count, paywall-today, widget needs)
 - [ ] Read [tool-design.md](tool-design.md)
 - [ ] Pick the right `@solvapay/mcp` subpath
-- [ ] Install deps and follow [`sdk-integration/references/mcp-server.md`](../../sdk-integration/references/mcp-server.md)
+- [ ] Install deps and follow [mcp-server-wiring.md](mcp-server-wiring.md)
 - [ ] Re-register paid tools via `registerPayable` / `payable.mcp`; remove custom gating
 - [ ] Wire `hideToolsByAudience: ['ui']`
 - [ ] Optional: embed the widget for intent tools

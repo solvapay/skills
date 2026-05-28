@@ -10,6 +10,8 @@ Prerequisites through local dev. Templates: [widget-templates-config.md](widget-
 - SolvaPay secret key (`sk_...`) and product ref (`prd_...`) available.
 - If using a custom domain, a Cloudflare zone you control.
 
+**Pre-flight check:** run `wrangler whoami` before anything else. It confirms you are logged in and prints your account name and the `*.workers.dev` subdomain your Workers will be published under. That subdomain becomes your `MCP_PUBLIC_BASE_URL` when you don't have a custom domain (e.g. `https://petstore-mcp.<subdomain>.workers.dev`).
+
 ## Step 2 — Scaffold
 
 Create the project directory and write each file from [widget-templates-config.md](widget-templates-config.md) and [widget-templates-widget-and-scripts.md](widget-templates-widget-and-scripts.md):

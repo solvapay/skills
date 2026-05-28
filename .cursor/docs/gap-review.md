@@ -7,6 +7,8 @@ Audit of the SolvaPay skills repo against [agentskills-best-practices.md](./agen
 
 **Validation:** `npm run validate` — all five skills pass.
 
+**2026-05-28 update (self-contained skills):** Cross-skill `../sibling/` markdown links removed. Surface skills live under `skills/solvapay/` with public ids `solvapay/<surface>`. Router routes by namespaced skill id. `solvapay/create-mcp-app` vendors `mcp-server-wiring.md`. CI: `npm run validate` (`skills-reference` on each `SKILL.md` directory).
+
 ---
 
 ## Summary
@@ -30,21 +32,10 @@ Feeds into [`align_skills_to_agentskills_spec`](../../solvapay-frontend/.cursor/
 
 ## Structure and spec compliance
 
-### [P0] Router intent matrix links to removed paths
+### [P0] Router intent matrix links to removed paths — RESOLVED
 
 **Skill(s):** solvapay  
-**Guide section:** Skill format / File references  
-**Finding:** `solvapay/SKILL.md` intent matrix links to paths that no longer exist after the `references/` migration:
-
-- `../create-mcp-app/existing-server/guide.md` → actual: `../create-mcp-app/references/existing-server.md`
-- `../sdk-integration/mcp-server/guide.md` → actual: `../sdk-integration/references/mcp-server.md`
-- `../sdk-integration/react/guide.md` → actual: `../sdk-integration/references/react.md`
-
-Agents that follow the router will fail to load handoff targets.
-
-**Recommendation:** Update all intent-matrix and negative-routing links to current `references/` paths (or sibling `SKILL.md` + anchor). Add a CI link check or extend `npm run validate`.
-
-**Effort:** S
+**Resolution:** Router no longer uses `../sibling/` paths. Intent matrix routes by namespaced skill id (`solvapay/<surface>`) with `npx skills add solvapay/skills --skill solvapay/<surface> -y` handoff.
 
 ---
 
@@ -85,9 +76,11 @@ Note: `hosting/cloudflare.md` (~782 lines) was already split into `hosting/cloud
 
 **Skill(s):** create-mcp-app  
 **Guide section:** Progressive disclosure / File references  
-**Finding:** `references/from-openapi/references/` creates depth-3 chains (`SKILL.md` → `from-openapi/guide.md` → `references/selections-schema.md`). Cross-skill links from references also use `../../../sdk-integration/...` paths.
+**Finding:** `references/from-openapi/references/` creates depth-3 chains (`SKILL.md` → `from-openapi/guide.md` → `references/selections-schema.md`). Cross-skill links from references also used `../../../sdk-integration/...` paths.
 
-**Recommendation:** Flatten nested `references/references/` into `references/from-openapi/` (e.g. `selections-schema.md` at sibling level). Keep cross-skill links in `SKILL.md` handoff sections where possible.
+**Recommendation:** Flatten nested `references/references/` into `references/from-openapi/` (e.g. `selections-schema.md` at sibling level). Cross-skill links removed — vendored copies in-tree where needed.
+
+**Update:** Cross-skill reference links resolved via `mcp-server-wiring.md` and name-only router.
 
 **Effort:** M
 
@@ -145,65 +138,40 @@ Note: `hosting/cloudflare.md` (~782 lines) was already split into `hosting/cloud
 
 ## Descriptions and discovery
 
-### [P1] No trigger eval query sets
+### [P1] No trigger eval query sets — RESOLVED
 
 **Skill(s):** all five  
-**Guide section:** Descriptions and discovery  
-**Finding:** No `evals/trigger-queries.json` (or equivalent) for any skill. Only `create-mcp-app` has output evals. Description optimization cannot be regression-tested.
-
-**Recommendation:** Add ~20 labeled trigger queries per skill (train/validation split). Start with `solvapay` router near-miss negatives and `create-mcp-app` vs `sdk-integration` boundary cases.
-
-**Effort:** M
+**Resolution:** Each skill has `evals/<skill>/trigger-queries.json` (8–10 should-trigger + 8–10 should-not, balanced; train/validation split). Harness contract in [`evals/README.md`](../../evals/README.md).
 
 ---
 
-### [P1] Router vs surface keyword boundary needs eval verification
+### [P1] Router vs surface keyword boundary needs eval verification — RESOLVED
 
 **Skill(s):** solvapay, sdk-integration, create-mcp-app  
-**Guide section:** Descriptions — Router vs surface  
-**Finding:** Router description (400 chars) is appropriately narrow. Surface descriptions are detailed (`sdk-integration` 679 chars, `create-mcp-app` 468 chars) with explicit cross-routing ("Use `create-mcp-app` instead when…"). Keyword overlap risk exists for MCP/paywall phrases — needs trigger evals to confirm, not prose review alone.
-
-**Recommendation:** Build trigger eval set focused on near-misses: "paywall my API" → sdk-integration; "scaffold mcp" → create-mcp-app; "add solvapay" → solvapay router.
-
-**Effort:** M
+**Resolution:** Trigger sets include near-miss negatives per skill; boundary table documented in `evals/README.md`. Run harness to tune descriptions against train/validation splits.
 
 ---
 
 ## Scripts and evals
 
-### [P1] Output eval coverage limited to `create-mcp-app`
+### [P1] Output eval coverage limited to `create-mcp-app` — RESOLVED
 
-**Skill(s):** sdk-integration, website-checkout, lovable-checkout, solvapay  
-**Guide section:** Eval-driven iteration  
-**Finding:** Only `create-mcp-app/evals/evals.json` exists (5+ output eval cases with expectations). Other four skills have no output evals.
-
-**Recommendation:** Add 2–3 eval cases per surface skill (e.g. sdk-integration: Next.js paywall wiring; website-checkout: checkout session route; lovable-checkout: edge function secret handling).
-
-**Effort:** M
+**Skill(s):** all five  
+**Resolution:** Repo-root `evals/<skill>/evals.json` with `assertions` + `slug` per case. Router (3), sdk-integration (6), website-checkout (4), lovable-checkout (3), create-mcp-app (8).
 
 ---
 
-### [P1] Eval fixtures use hard-coded absolute paths
+### [P1] Eval fixtures use hard-coded absolute paths — RESOLVED
 
 **Skill(s):** create-mcp-app  
-**Guide section:** Eval-driven iteration  
-**Finding:** `evals/evals.json` prompts reference `/Users/tommy/projects/solvapay/solvapay-sdk/...` and `/Users/tommy/.claude/skills/...` — not portable across machines or CI.
-
-**Recommendation:** Parameterize script paths via env var or relative path from skill root; document in `evals/README.md`.
-
-**Effort:** S
+**Resolution:** Prompts use `<skills-repo>` placeholders; `SKILLS_REPO` / `SCAFFOLDER_SCRIPTS_DIR` documented in `evals/README.md`.
 
 ---
 
-### [P2] Eval workspace not repo-level
+### [P2] Eval workspace not repo-level — RESOLVED
 
-**Skill(s):** create-mcp-app  
-**Guide section:** Eval workspace layout  
-**Finding:** `evals/` lives inside the skill (fine for `evals.json` per spec). No `create-mcp-app-workspace/` for iteration artifacts — acceptable for current maturity; flag for when eval automation lands.
-
-**Recommendation:** Create repo-level `eval-workspaces/` gitignored directory when running automated eval loops.
-
-**Effort:** S
+**Skill(s):** all  
+**Resolution:** `eval-workspaces/` gitignored; layout documented in `evals/README.md` (plus legacy `evals/**/iterations/`).
 
 ---
 
@@ -250,9 +218,9 @@ Note: `hosting/cloudflare.md` (~782 lines) was already split into `hosting/cloud
 | Validation loop | ⚠️ | ✅ | ✅ | ❌ | ❌ |
 | Mandatory read order | N/A | ✅ | ⚠️ | ❌ | ⚠️ |
 | Description ≤ 1024 | ✅ 400 | ✅ 468 | ✅ 679 | ✅ 534 | ✅ 558 |
-| Trigger evals | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Bundled scripts | N/A | ❌ | N/A | N/A | N/A |
-| Output evals | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Trigger evals | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bundled scripts | N/A | ✅ | N/A | N/A | N/A |
+| Output evals | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Cross-links resolve | ❌ | ⚠️ | ✅ | ✅ | ✅ |
 
 ---

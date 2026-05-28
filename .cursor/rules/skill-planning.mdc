@@ -22,7 +22,7 @@ Design coherent units — like functions:
 - Too narrow → multiple skills load for one task
 - Too broad → hard to activate; agent follows irrelevant instructions
 
-In this repo, the five-skill family uses a **router** (`solvapay`) plus **surface skills** (`create-mcp-app`, `sdk-integration`, `website-checkout`, `lovable-checkout`). Install together: `npx skills add solvapay/skills --all -y`.
+In this repo, the five-skill family uses a **router** (`solvapay`) plus four **self-contained surface skills** under `skills/solvapay/`: `solvapay/create-mcp-app`, `solvapay/sdk-integration`, `solvapay/website-checkout`, `solvapay/lovable-checkout`. Each skill links only to files inside its own folder. The router routes by **namespaced skill id** (e.g. `solvapay/create-mcp-app` via `npx skills add ... --skill solvapay/create-mcp-app`), never `../sibling/...` paths. Install any skill alone or all: `npx skills add solvapay/skills --all -y`.
 
 ## Directory structure
 
