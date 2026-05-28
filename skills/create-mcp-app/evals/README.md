@@ -2,6 +2,18 @@
 
 This directory defines the eval suite for the `create-mcp-app` skill. The harness that executes these evals lives outside this repo; this README is the contract it implements.
 
+## Source control
+
+Commit the **eval spec**, not **run results**. The repo is the versioned contract; each harness run is regenerable.
+
+| Commit | Do not commit |
+| --- | --- |
+| `evals.json` — prompts, expectations, file lists | `iterations/` — generated outputs, transcripts, `timing.json`, `grading.json` |
+| `fixtures/` — stable inputs for setup evals | Anything under a per-run workspace the harness creates locally |
+| This README — harness contract | Benchmark aggregates or CI artifacts (store those outside git) |
+
+Run outputs go under `iterations/<iteration>/<eval-id>/{with_skill,without_skill}/`. That tree is gitignored at the repo root. Re-run the harness to reproduce them; upload iteration folders as CI artifacts if you need to share a failed run.
+
 ## `evals.json` schema
 
 | Field | Type | Required | Purpose |
