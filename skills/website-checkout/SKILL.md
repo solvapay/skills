@@ -7,7 +7,6 @@ description: >
   a return-URL handler. Next.js is fully supported; React (no Next.js) gets partial guidance.
   Use the `sdk-integration` skill instead for usage metering, Express, MCP server wiring,
   or webhook-heavy flows; use `lovable-checkout` for Lovable / Vite / Supabase Edge apps.
-license: MIT
 metadata:
   version: "1.0.0"
 compatibility: >

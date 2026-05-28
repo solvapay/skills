@@ -7,7 +7,6 @@ description: >
   "npm create solvapay", or wants a greenfield paid MCP worker. For humans at
   a terminal, point to `npm create solvapay@latest <name> -- --type mcp`. For agents,
   use describe.mjs + scaffold.mjs (intent-driven clustering requires an LLM).
-license: MIT
 metadata:
   version: "1.0.0"
 compatibility: >

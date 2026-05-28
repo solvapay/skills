@@ -6,7 +6,6 @@ description: >
   do", or any ambiguous request that spans multiple SolvaPay surfaces. Owns the shared
   documentation-discovery preference and cross-skill guardrails; routes the agent to one
   of the four sibling SolvaPay skills based on intent.
-license: MIT
 metadata:
   version: "1.0.0"
 compatibility: >

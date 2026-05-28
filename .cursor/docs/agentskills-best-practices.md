@@ -99,7 +99,6 @@ skill-name/
 | --- | --- | --- |
 | `name` | Yes | ≤ 64 chars; lowercase, numbers, hyphens; no leading/trailing/consecutive hyphens |
 | `description` | Yes | ≤ 1024 chars; what + when + trigger keywords |
-| `license` | No | Short name or bundled file reference |
 | `compatibility` | No | ≤ 500 chars; environment requirements only when needed |
 | `metadata` | No | e.g. `version: "1.0.0"` |
 | `allowed-tools` | No | Experimental |
@@ -299,7 +298,7 @@ Copy before shipping or reviewing a skill:
 **Structure**
 
 - [ ] `SKILL.md` exists; `name` matches directory
-- [ ] Frontmatter complete (`description`, `license`, `metadata.version`; `compatibility` if needed)
+- [ ] Frontmatter complete (`description`, `metadata.version`; `compatibility` if needed)
 - [ ] `SKILL.md` < 500 lines
 - [ ] Standard folders: `references/`, `scripts/`, `assets/` (not ad-hoc root layouts)
 - [ ] References focused (< ~300 lines ideal; flag > 500)

@@ -14,7 +14,6 @@ Follow [agentskills-best-practices.md](../docs/agentskills-best-practices.md) §
 ---
 name: skill-name-here
 description: Use this skill when...
-license: MIT
 metadata:
   version: "1.0.0"
 ---
@@ -38,7 +37,7 @@ metadata:
 ### Optional fields
 
 - `compatibility` — only when environment requirements exist (≤ 500 chars)
-- `license`, `metadata.version` — include on all skills in this repo
+- `metadata.version` — include on all skills in this repo
 
 ## Body structure
 

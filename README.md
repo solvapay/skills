@@ -85,7 +85,6 @@ A skill is considered complete when:
 
 ```
 skills/
-├── LICENSE                       # MIT
 ├── package.json                  # validate script (npx skills-reference)
 ├── .claude-plugin/
 │   └── marketplace.json          # Claude Code marketplace manifest (scans the 5 skill roots)

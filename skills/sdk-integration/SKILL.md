@@ -9,7 +9,6 @@ description: >
   Covers paywall enforcement, usage tracking, hosted checkout, customer portal, plan
   activation / cancellation / reactivation, and webhook signature verification. Use the
   `create-mcp-app` skill instead when scaffolding a brand-new paid MCP server.
-license: MIT
 metadata:
   version: "1.0.0"
 ---
