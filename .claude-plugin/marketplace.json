@@ -1,4 +1,11 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "solvapay-skills",
+  "description": "SolvaPay payment integration skills for Claude Code — use create-mcp-app to scaffold a production-ready MCP server with SolvaPay in seconds. Also supports Next.js, React, Express, Lovable, and more.",
+  "owner": {
+    "name": "SolvaPay",
+    "email": "contact@solvapay.com"
+  },
   "metadata": {
     "pluginRoot": "."
   },
