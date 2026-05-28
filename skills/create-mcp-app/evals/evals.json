@@ -35,7 +35,7 @@
     },
     {
       "id": 3,
-      "prompt": "Setup: copy the directory at `/Users/tommy/.claude/skills/solvapay/create-mcp-app/evals/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/` before starting — this represents an already-scaffolded MCP project. Task: Add a paid `manage_pet` tool to my MCP server at `./petstore-mcp`.",
+      "prompt": "Setup: copy the directory at `/Users/tommy/.claude/skills/create-mcp-app/evals/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/` before starting — this represents an already-scaffolded MCP project. Task: Add a paid `manage_pet` tool to my MCP server at `./petstore-mcp`.",
       "expected_output": "A new paid tool file added under ./petstore-mcp/src/tools/. The tool calls ctx.registerPayable with exactly 2 arguments: a string name and a config object with title/description/schema/handler keys. Handler returns c.respond(data, { text }). src/tools/index.ts updated. No re-scaffolding.",
       "files": [
         "evals/fixtures/petstore-mcp/package.json",
@@ -56,7 +56,7 @@
     },
     {
       "id": 4,
-      "prompt": "Setup: copy the directory at `/Users/tommy/.claude/skills/solvapay/create-mcp-app/evals/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/`, and create `./petstore-mcp/.env` with these contents:\nSOLVAPAY_SECRET_KEY=sk_test_placeholder\nSOLVAPAY_PRODUCT_REF=prd_placeholder\nMCP_PUBLIC_BASE_URL=http://localhost:8787\nTask: Deploy my MCP server at `./petstore-mcp` to Cloudflare.",
+      "prompt": "Setup: copy the directory at `/Users/tommy/.claude/skills/create-mcp-app/evals/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/`, and create `./petstore-mcp/.env` with these contents:\nSOLVAPAY_SECRET_KEY=sk_test_placeholder\nSOLVAPAY_PRODUCT_REF=prd_placeholder\nMCP_PUBLIC_BASE_URL=http://localhost:8787\nTask: Deploy my MCP server at `./petstore-mcp` to Cloudflare.",
       "expected_output": "The agent walked through the deploy flow per hosting/cloudflare.md, narrated pre-flight checks (wrangler whoami, workers.dev subdomain), identified that SOLVAPAY_SECRET_KEY must be uploaded as a wrangler secret while SOLVAPAY_PRODUCT_REF and MCP_PUBLIC_BASE_URL are --var overrides. No re-scaffolding.",
       "files": [
         "evals/fixtures/petstore-mcp/package.json",
