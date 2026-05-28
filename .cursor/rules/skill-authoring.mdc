@@ -5,47 +5,43 @@ alwaysApply: true
 
 # Skill Authoring Principles
 
-This is a skills repository. Every directory at the root (except `.cursor/`) is a skill. Follow these principles when creating or editing skills.
+This is a skills repository. Every directory under `skills/` is a skill. Follow [agentskills-best-practices.md](../docs/agentskills-best-practices.md) as the canonical standard.
 
-## Conciseness is Critical
+## Context budget
 
-The context window is shared with conversation history, other skills, and the system prompt. Every token must earn its place.
+Skills use progressive disclosure ([spec](https://agentskills.io/specification#progressive-disclosure)):
 
-- Assume the agent is already smart. Only include context it cannot infer.
-- Challenge each paragraph: "Does the agent really need this explanation?"
-- Remove boilerplate explanations of well-known concepts (e.g. don't explain what a PDF is).
+1. **`name` + `description`** — loaded for all skills at startup (~100 tokens each)
+2. **`SKILL.md` body** — loaded on activation (< 500 lines / ~5,000 tokens)
+3. **`references/`, `scripts/`, `assets/`** — loaded on demand
 
-## Calibrate to Agent Knowledge
+Every token must earn its place. Ask: *"Would the agent get this wrong without this instruction?"* Cut boilerplate the agent already knows.
 
-The agent has deep training knowledge about popular tools (Stripe, React, Supabase) but knows little or nothing about SolvaPay.
+## Ground in real expertise
 
-- **SolvaPay APIs/SDKs**: Must be taught with implementation code and bundled references. The agent cannot infer our SDK patterns.
-- **Well-known tools** (e.g. Next.js, Tailwind): Give behavioral direction, not tutorials. Steer preferences rather than explain basics.
-- Before adding content, ask: "Does the agent already know this from training data?" If yes, provide only corrections and preferences, not explanations.
+- Extract from hands-on tasks: steps that worked, corrections you made, I/O formats, non-inferable facts.
+- Synthesize from project artifacts: specs, runbooks, review patterns, fix PRs.
+- Refine with real execution: read traces; add corrections to gotchas.
 
-## Consistent Terminology
+## Calibrate to agent knowledge
 
-Pick one term per concept and use it everywhere within a skill.
+- **SolvaPay APIs/SDKs:** teach with implementation code and bundled references — the agent cannot infer our patterns.
+- **Well-known tools** (Next.js, Tailwind, Supabase): behavioral direction only, not tutorials.
 
-- Bad: mixing "API endpoint", "URL", "route", "path" for the same thing
-- Good: always "API route" throughout the skill
-
-## No Time-Sensitive Information
-
-Never write "If you're doing this before August 2025..." or similar date-gated instructions. Use an "Old patterns" section with `<details>` tags for deprecated approaches.
-
-## Set Appropriate Degrees of Freedom
+## Calibrating control
 
 Match specificity to fragility:
 
-- **High freedom** (text instructions): multiple valid approaches, context-dependent
-- **Medium freedom** (pseudocode/templates): preferred pattern with acceptable variation
-- **Low freedom** (exact scripts/commands): fragile operations, consistency critical
+- **High freedom** — multiple valid approaches; explain *why*
+- **Medium freedom** — preferred pattern with template or pseudocode
+- **Low freedom** — exact scripts/commands for fragile or destructive ops
 
-## Avoid Offering Too Many Options
+**Defaults, not menus.** One recommended approach; alternatives only when context genuinely differs.
 
-Provide one recommended approach. Add alternatives only when the context genuinely differs (e.g. different frameworks). Never list multiple libraries for the same task without a clear default.
+## Consistent terminology
 
-## Forward Slashes Only
+Pick one term per concept within a skill. Use forward slashes in paths: `scripts/helper.py`.
 
-Always use forward slashes in file paths, even on Windows: `scripts/helper.py`, not `scripts\helper.py`.
+## No time-sensitive information
+
+Never date-gate instructions. Use an "Old patterns" section with `<details>` for deprecated approaches.

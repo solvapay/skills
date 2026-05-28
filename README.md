@@ -14,8 +14,6 @@ Agent skills for adding SolvaPay to any project: paid MCP servers, TypeScript SD
 | [website-checkout](skills/website-checkout/) | Hosted checkout and customer portal for web apps |
 | [lovable-checkout](skills/lovable-checkout/) | Paste-in preview-only checkout for Lovable (Vite + shadcn/ui + Supabase Edge) |
 
-The five skills are grouped on [skills.sh/solvapay/skills](https://www.skills.sh/solvapay/skills) via [`skills.sh.json`](skills.sh.json).
-
 ## What can it do?
 
 - "Scaffold a paid MCP server from this OpenAPI spec" → `create-mcp-app`
@@ -61,6 +59,18 @@ To list all discoverable skills before pushing:
 npx skills add . --list
 ```
 
+To validate every skill against the [agentskills.io spec](https://agentskills.io/specification):
+
+```bash
+npm run validate
+```
+
+This runs `npx skills-reference validate` against each skill directory. The validator catches drift in `SKILL.md` frontmatter (name length, description length, missing required fields) and basic structural issues. Note: both `skills-reference` (npm) and `skills-ref` (Python) self-describe as "for demonstration purposes only" — treat as a drift-catcher, not a hard production gate.
+
+## `AGENTS.md` symlinks
+
+Each skill directory ships an `AGENTS.md -> SKILL.md` symlink. This is a compatibility shim for `AGENTS.md`-aware clients (Claude Code, OpenAI Codex, OpenHands) that look for `AGENTS.md` at the root of a project or skill. The agentskills.io spec only requires `SKILL.md`; the symlink is purely additive so the same directory works in both ecosystems.
+
 ## Skill quality expectations
 
 A skill is considered complete when:
@@ -75,39 +85,47 @@ A skill is considered complete when:
 
 ```
 skills/
-├── skills.sh.json              # skills.sh leaderboard groupings (Paid MCP / SDK / Checkout)
+├── LICENSE                       # MIT
+├── package.json                  # validate script (npx skills-reference)
 ├── .claude-plugin/
-│   └── marketplace.json        # Claude Code marketplace manifest (default scan picks up all 5 skills)
+│   └── marketplace.json          # Claude Code marketplace manifest (scans the 5 skill roots)
+├── .github/workflows/
+│   └── validate-skills.yml       # CI: runs skills-reference on PRs touching skills/
+├── evals/                        # Eval specs (not loaded into agent context)
+│   ├── create-mcp-app/           # evals.json, trigger-queries.json, fixtures/
+│   ├── solvapay/
+│   ├── sdk-integration/
+│   ├── website-checkout/
+│   └── lovable-checkout/
 └── skills/
-    ├── solvapay/               # Router and shared context
+    ├── solvapay/                 # Router and shared context
     │   ├── SKILL.md
     │   └── AGENTS.md -> SKILL.md
-    ├── create-mcp-app/         # Create or scaffold a paid MCP app on Cloudflare Workers
+    ├── create-mcp-app/           # Create or scaffold a paid MCP app on Cloudflare Workers
+    │   ├── SKILL.md              # Entry, mandatory read order, first-decision routing, guardrails
+    │   ├── AGENTS.md -> SKILL.md
+    │   ├── scripts/              # describe.mjs / scaffold.mjs wrappers → create-solvapay
+    │   └── references/
+    │       ├── tool-design.md
+    │       ├── hitl-conventions.md
+    │       ├── solvapay-init.md
+    │       ├── existing-server.md
+    │       ├── from-openapi/     # Generate from an OpenAPI / Swagger spec (agent path)
+    │       ├── from-scratch/     # Hand-written tools (greenfield)
+    │       └── hosting/cloudflare/  # setup, widget-templates-*, deploy-verify, troubleshooting
+    ├── sdk-integration/          # SDK paywall, checkout, usage, webhooks
+    │   ├── SKILL.md              # Stack detection, implementation order, guardrails
+    │   ├── AGENTS.md -> SKILL.md
+    │   └── references/
+    │       ├── REFERENCE.md        # Package map, install, env vars, operations
+    │       ├── WEBHOOKS.md
+    │       └── {nextjs,react,express,mcp-server,supabase-edge}.md
+    ├── website-checkout/         # Hosted checkout for web apps
     │   ├── SKILL.md
     │   ├── AGENTS.md -> SKILL.md
-    │   ├── guide.md            # Three-mode router (from-openapi / from-scratch / existing-server)
-    │   ├── tool-design.md      # Shared tool-design contract (load-bearing)
-    │   ├── solvapay-init.md    # Credential bootstrap (npx solvapay init)
-    │   ├── hosting/{cloudflare,alternatives}.md
-    │   ├── from-openapi/       # Generate from an OpenAPI / Swagger spec (agent path)
-    │   ├── from-scratch/       # Hand-written tools (greenfield)
-    │   └── existing-server/    # Add SolvaPay to an existing MCP server
-    ├── sdk-integration/        # SDK paywall, checkout, usage, webhooks
-    │   ├── SKILL.md
-    │   ├── AGENTS.md -> SKILL.md
-    │   ├── guide.md            # Stack detection entry point
-    │   ├── reference.md        # Package map and API operations
-    │   ├── webhooks.md
-    │   └── {nextjs,react,express,mcp-server,supabase-edge}/guide.md
-    ├── website-checkout/       # Hosted checkout for web apps
-    │   ├── SKILL.md
-    │   ├── AGENTS.md -> SKILL.md
-    │   ├── guide.md
-    │   ├── nextjs/{guide,01-setup,02-auth,03-checkout}.md
-    │   └── react/guide.md
-    └── lovable-checkout/       # Paste-in checkout for Lovable (preview)
+    │   └── references/{nextjs,react}.md
+    └── lovable-checkout/         # Paste-in checkout for Lovable (preview)
         ├── SKILL.md
         ├── AGENTS.md -> SKILL.md
-        ├── guide.md
-        └── reference.md
+        └── references/{GUIDE.md, REFERENCE.md}
 ```

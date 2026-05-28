@@ -1,0 +1,27 @@
+{
+  "skill_name": "website-checkout",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add SolvaPay hosted checkout to my Next.js 14 App Router site. I need a server route that creates a checkout session and a return URL page that refreshes access.",
+      "expected_output": "Agent loads website-checkout, runs npx solvapay init guidance, implements server-side checkout session route per references/nextjs.md, return URL handler reads server truth.",
+      "files": [],
+      "expectations": [
+        "Agent reads references/nextjs.md",
+        "Checkout session created on server, not client-only fetch to SolvaPay API with secret",
+        "Return URL flow refreshes access from server-side check",
+        "Verification loop includes sandbox happy path"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have a Vite + Supabase Lovable app — paste solvapay checkout in.",
+      "expected_output": "Agent routes to lovable-checkout skill, not website-checkout.",
+      "files": [],
+      "expectations": [
+        "Handoff to lovable-checkout or explicit note that Lovable path differs",
+        "Does not apply Next.js-only patterns to Lovable stack"
+      ]
+    }
+  ]
+}

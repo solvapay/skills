@@ -1,13 +1,17 @@
 ---
 name: solvapay
 description: >
-  Router and disambiguation entry point for the SolvaPay skill family. Use only when the
-  user's intent is vague ("add solvapay to my project", "where do I start with solvapay",
-  "what can solvapay do") and no specific surface skill has triggered. Owns the shared
-  documentation-discovery preference and the cross-skill guardrails; routes the agent to
-  exactly one of `create-mcp-app`, `sdk-integration`, `website-checkout`, or
-  `lovable-checkout`. For specific intents (paywall, checkout, paid MCP, Lovable, SDK,
-  webhooks, usage metering), the surface skills should auto-trigger -- use them directly.
+  Router and disambiguation entry point for the SolvaPay skill family. Use when the user
+  asks "add solvapay to my project", "where do I start with solvapay", "what can solvapay
+  do", or any ambiguous request that spans multiple SolvaPay surfaces. Owns the shared
+  documentation-discovery preference and cross-skill guardrails; routes the agent to one
+  of the four sibling SolvaPay skills based on intent.
+license: MIT
+metadata:
+  version: "1.0.0"
+compatibility: >
+  Only useful when bundled with at least one sibling skill - relative links assume
+  create-mcp-app, sdk-integration, website-checkout, or lovable-checkout live as siblings.
 ---
 
 # SolvaPay — Router
@@ -44,17 +48,25 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 - Always prefer official SolvaPay SDK helpers over ad-hoc raw HTTP calls.
 - Always prefer topic-based docs discovery (MCP or `llms.txt`), not hard-coded doc paths.
 
+## Gotchas
+
+- Installing only this router (`--skill solvapay`) breaks `../sibling/...` links — use `npx skills add solvapay/skills --all -y`.
+- "Paywall my API" or "paywall web app" without MCP context routes to `sdk-integration`, not `create-mcp-app`.
+- "Scaffold mcp" / greenfield MCP worker routes to `create-mcp-app`, not `sdk-integration`.
+- Hosted no-code MCP monetization requests are deprecated — ask which code-based surface the user wants; default to `create-mcp-app`.
+- Surface skill descriptions own specific keywords; this router owns ambiguous top-of-funnel prompts only.
+
 ## Intent Matrix
 
 | User intent | Trigger examples | Route to |
 | --- | --- | --- |
 | Create / scaffold a paid MCP app | "create mcp app", "scaffold mcp", "new mcp server", "greenfield mcp", "openapi to mcp", "wrap rest api as mcp", "generate mcp from swagger", "build mcp app", "npm create solvapay", "from scratch mcp worker", "cloudflare workers mcp from scratch", "paid mcp", "monetize mcp", "paywall mcp", "mcp with payments", "mcp billing", "intent-driven mcp", "data mcp server", "intelligence mcp" | [../create-mcp-app/SKILL.md](../create-mcp-app/SKILL.md) |
-| Add paywall to an existing MCP server | "add solvapay to my mcp", "integrate into existing mcp", "integrate solvapay into existing mcp", "paywall my mcp tools", "monetize my mcp tools" (no scaffold / greenfield intent) | [../create-mcp-app/existing-server/guide.md](../create-mcp-app/existing-server/guide.md) or [../sdk-integration/mcp-server/guide.md](../sdk-integration/mcp-server/guide.md) depending on whether they need the full worker template |
+| Add paywall to an existing MCP server | "add solvapay to my mcp", "integrate into existing mcp", "integrate solvapay into existing mcp", "paywall my mcp tools", "monetize my mcp tools" (no scaffold / greenfield intent) | [../create-mcp-app/references/existing-server.md](../create-mcp-app/references/existing-server.md) or [../sdk-integration/references/mcp-server.md](../sdk-integration/references/mcp-server.md) depending on whether they need the full worker template |
 | SDK integration | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "express", "MCP Server code integration", "nextjs sdk", "npx solvapay init", "cli", "init project", "cancel renewal", "reactivate", "activate plan", "switch plan", "supabase edge functions", "deno", "edge runtime backend", "lovable backend" | [../sdk-integration/SKILL.md](../sdk-integration/SKILL.md) |
-| MCP server on edge runtime (existing server) | "createSolvaPayMcpFetch", "fetch-first mcp", "@solvapay/mcp/fetch", "mcp on the edge", "wrangler mcp", "supabase edge mcp", "deno mcp server" — when the user already has a server and wants SDK wiring only | [../sdk-integration/mcp-server/guide.md](../sdk-integration/mcp-server/guide.md) |
+| MCP server on edge runtime (existing server) | "createSolvaPayMcpFetch", "fetch-first mcp", "@solvapay/mcp/fetch", "mcp on the edge", "wrangler mcp", "supabase edge mcp", "deno mcp server" — when the user already has a server and wants SDK wiring only | [../sdk-integration/references/mcp-server.md](../sdk-integration/references/mcp-server.md) |
 | New MCP server on edge runtime (greenfield) | "cloudflare workers mcp", "new cloudflare workers mcp", "scaffold cloudflare mcp worker" — when they want a new Workers project from scratch | [../create-mcp-app/SKILL.md](../create-mcp-app/SKILL.md) |
-| MCP checkout app / embedded MCP UI | "mcp checkout app", "mcp app", "CurrentPlanCard", "LaunchCustomerPortalButton", "usePaymentMethod", "createMcpAppAdapter", "embedded checkout in mcp host", "basic-host checkout", "ChatGPT mcp app" | [../sdk-integration/mcp-server/guide.md](../sdk-integration/mcp-server/guide.md) (server) + [../sdk-integration/react/guide.md](../sdk-integration/react/guide.md) (client) |
-| Account management UI | "customer portal button", "current plan card", "update card", "cancel plan", "payment method preview", "render mirrored card", "self-serve billing ui" | [../sdk-integration/react/guide.md](../sdk-integration/react/guide.md) |
+| MCP checkout app / embedded MCP UI | "mcp checkout app", "mcp app", "CurrentPlanCard", "LaunchCustomerPortalButton", "usePaymentMethod", "createMcpAppAdapter", "embedded checkout in mcp host", "basic-host checkout", "ChatGPT mcp app" | [../sdk-integration/references/mcp-server.md](../sdk-integration/references/mcp-server.md) (server) + [../sdk-integration/references/react.md](../sdk-integration/references/react.md) (client) |
+| Account management UI | "customer portal button", "current plan card", "update card", "cancel plan", "payment method preview", "render mirrored card", "self-serve billing ui" | [../sdk-integration/references/react.md](../sdk-integration/references/react.md) |
 | Web app checkout | "add checkout to website", "hosted checkout", "customer portal", "nextjs checkout" | [../website-checkout/SKILL.md](../website-checkout/SKILL.md) |
 | Lovable checkout (preview) | "lovable", "vite checkout", "shadcn checkout", "supabase edge checkout", "solvapay in lovable", "paste this into lovable", "@preview" | [../lovable-checkout/SKILL.md](../lovable-checkout/SKILL.md) |
 

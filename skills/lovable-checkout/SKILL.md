@@ -8,6 +8,12 @@ description: >
   `@preview` tag and the SolvaPay dev backend (`https://api-dev.solvapay.com`). Not for
   production. Use `website-checkout` for Next.js / production web apps, or `sdk-integration`
   for general SDK wiring.
+license: MIT
+metadata:
+  version: "1.0.0"
+compatibility: >
+  Requires Lovable, Vite, shadcn/ui, and Supabase Edge Functions. Pinned to @preview
+  and api-dev.solvapay.com - not for production.
 ---
 
 # Lovable Checkout (preview)
@@ -16,8 +22,8 @@ Self-contained guide for wiring SolvaPay hosted checkout into a Lovable app. The
 
 ## Quick Start
 
-1. Read [guide.md](guide.md) end-to-end before generating code. The guide owns environment setup, Supabase edge function templates, the `@preview` install commands, and the Lovable-specific guardrails.
-2. Cross-reference [reference.md](reference.md) for the package + hook map.
+1. Read [references/GUIDE.md](references/GUIDE.md) end-to-end before generating code. The guide owns environment setup, Supabase edge function templates, the `@preview` install commands, and the Lovable-specific guardrails. It's also designed to be pasted into the Lovable chat verbatim to bias the agent toward a working integration on turn zero.
+2. Cross-reference [references/REFERENCE.md](references/REFERENCE.md) for the package + hook map and extended troubleshooting.
 
 ## Guardrails
 

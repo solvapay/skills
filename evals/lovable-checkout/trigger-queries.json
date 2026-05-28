@@ -1,0 +1,22 @@
+[
+  { "query": "paste solvapay checkout into my lovable vite app", "should_trigger": true, "split": "train" },
+  { "query": "solvapay in lovable supabase edge @preview", "should_trigger": true, "split": "train" },
+  { "query": "vite shadcn checkout solvapay api-dev", "should_trigger": true, "split": "validation" },
+  { "query": "supabase edge checkout solvapay preview tag", "should_trigger": true, "split": "validation" },
+  { "query": "add hosted checkout to nextjs production site", "should_trigger": false, "split": "train" },
+  { "query": "website checkout nextjs app router", "should_trigger": false, "split": "train" },
+  { "query": "integrate solvapay sdk express webhooks", "should_trigger": false, "split": "train" },
+  { "query": "scaffold mcp from openapi cloudflare", "should_trigger": false, "split": "validation" },
+  { "query": "where do I start with solvapay", "should_trigger": false, "split": "validation" },
+  { "query": "lovable paste this into chat checkout guide", "should_trigger": true, "split": "train" },
+  { "query": "react native mobile checkout", "should_trigger": false, "split": "validation" },
+  { "query": "put SOLVAPAY_SECRET_KEY in VITE env lovable", "should_trigger": false, "split": "train" },
+  { "query": "shadcn ui purchase gate lovable preview", "should_trigger": true, "split": "validation" },
+  { "query": "full sdk integration nextjs metering", "should_trigger": false, "split": "train" },
+  { "query": "supabase edge function solvapay secret only server", "should_trigger": true, "split": "train" },
+  { "query": "wordpress checkout plugin", "should_trigger": false, "split": "validation" },
+  { "query": "production solvapay.com checkout lovable", "should_trigger": false, "split": "validation" },
+  { "query": "@preview solvapay react-supabase install", "should_trigger": true, "split": "train" },
+  { "query": "customer portal nextjs hosted", "should_trigger": false, "split": "validation" },
+  { "query": "monetize mcp server openapi", "should_trigger": false, "split": "train" }
+]

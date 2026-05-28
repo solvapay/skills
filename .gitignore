@@ -1,4 +1,6 @@
 .DS_Store
+node_modules/
 
 # Eval run outputs (regenerable, see evals/ for the specs)
-skills/solvapay/create-mcp-app-workspace/
+evals/**/iterations/
+eval-workspaces/

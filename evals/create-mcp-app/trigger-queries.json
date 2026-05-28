@@ -1,0 +1,22 @@
+[
+  { "query": "scaffold a paid mcp server from this openapi spec", "should_trigger": true, "split": "train" },
+  { "query": "npm create solvapay my-mcp -- --type mcp", "should_trigger": true, "split": "train" },
+  { "query": "wrap my rest api as mcp tools on cloudflare workers", "should_trigger": true, "split": "train" },
+  { "query": "greenfield paid mcp worker from swagger", "should_trigger": true, "split": "validation" },
+  { "query": "intent-driven mcp from petstore openapi", "should_trigger": true, "split": "validation" },
+  { "query": "add solvapay paywall to my existing express api", "should_trigger": false, "split": "train" },
+  { "query": "integrate solvapay sdk into nextjs for usage metering", "should_trigger": false, "split": "train" },
+  { "query": "add hosted checkout to my website", "should_trigger": false, "split": "train" },
+  { "query": "paywall my existing mcp server tools without rescaffolding", "should_trigger": false, "split": "validation" },
+  { "query": "lovable vite checkout with supabase edge", "should_trigger": false, "split": "validation" },
+  { "query": "where do I start with solvapay", "should_trigger": false, "split": "train" },
+  { "query": "CurrentPlanCard in my react dashboard", "should_trigger": false, "split": "validation" },
+  { "query": "createSolvaPayMcpFetch wiring only — server already exists", "should_trigger": false, "split": "train" },
+  { "query": "deploy my scaffolded mcp to cloudflare", "should_trigger": true, "split": "validation" },
+  { "query": "generate haiku mcp tool from scratch no openapi", "should_trigger": true, "split": "train" },
+  { "query": "fix stripe webhook in my app", "should_trigger": false, "split": "validation" },
+  { "query": "build a chatgpt app with skybridge", "should_trigger": false, "split": "train" },
+  { "query": "openapi to mcp one-to-one petstore v3", "should_trigger": true, "split": "validation" },
+  { "query": "customer portal for my saas web app", "should_trigger": false, "split": "train" },
+  { "query": "monetize mcp server no-code hosted proxy", "should_trigger": false, "split": "validation" }
+]
