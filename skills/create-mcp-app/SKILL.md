@@ -5,7 +5,7 @@ description: >
   OpenAPI / Swagger or from scratch. Use when the user says "create mcp app",
   "scaffold mcp", "new mcp server", "openapi to mcp", "wrap rest api as mcp",
   "npm create solvapay", or wants a greenfield paid MCP worker. For humans at
-  a terminal, point to `npm create solvapay@latest <name> -- --type mcp`. For agents,
+  a terminal, point to `npm create solvapay@latest my-mcp -- --type mcp`. For agents,
   use describe.mjs + scaffold.mjs (intent-driven clustering requires an LLM).
 metadata:
   version: "1.0.0"
