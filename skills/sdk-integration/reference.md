@@ -425,4 +425,4 @@ The trailing-slash `"@solvapay/server/"` entry is what unlocks subpath imports (
 
 ## Retrieval Hints
 
-When docs URLs change, resolve by topic using the documentation sources defined in the root [SKILL.md](../SKILL.md#documentation-sources).
+When docs URLs change, resolve by topic using the documentation sources defined in the root [SKILL.md](../solvapay/SKILL.md#documentation-sources).
