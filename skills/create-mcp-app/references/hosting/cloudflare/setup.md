@@ -14,7 +14,7 @@ Prerequisites through local dev. Templates: [widget-templates-config.md](widget-
 
 ## Step 2 — Scaffold
 
-**Existing project?** Skip any file that already exists. Never overwrite an existing `src/worker.ts`; if its import subpath is stale (e.g. `@solvapay/mcp` → `@solvapay/mcp/fetch`), patch only that line. For deploy-only tasks on an existing worker, jump to [deploy-verify.md](deploy-verify.md) and add only `scripts/deploy.mjs` + `wrangler.jsonc` vars.
+**Existing project?** Skip any file that already exists. **Never edit an existing `src/worker.ts` on deploy tasks** — deploy scaffolding only. For deploy-only tasks on an existing worker, jump to [deploy-verify.md](deploy-verify.md) and add only `scripts/deploy.mjs` + `wrangler.jsonc` vars.
 
 Create the project directory and write each file from [widget-templates-config.md](widget-templates-config.md) and [widget-templates-widget-and-scripts.md](widget-templates-widget-and-scripts.md):
 

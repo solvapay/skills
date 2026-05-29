@@ -20,8 +20,8 @@ If the project already has `src/worker.ts` calling `createSolvaPayMcpFetch` or `
 
 - Jump to [deploy-verify.md](deploy-verify.md) (Step 8 deploy + Step 9 verify).
 - Add only deploy scaffolding: `scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`.
-- Do **not** write `src/worker.ts`, `src/tools/*`, or widget files from the templates.
-- If an import subpath is stale, patch that single line in the existing `worker.ts` — never replace the file with the full template from [widget-templates-config.md](widget-templates-config.md).
+- **Leave `src/worker.ts` byte-for-byte unchanged** — do not write `src/tools/*` or widget files from the templates.
+- Run `npx wrangler whoami` as a pre-flight check before deploy (confirms auth + prints your `*.workers.dev` subdomain).
 
 ## Read order
 

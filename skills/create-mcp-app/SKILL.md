@@ -27,11 +27,11 @@ SolvaPay-monetized MCP server on Cloudflare Workers. OpenAPI auto-generation or 
 - Never set `_meta.ui.resourceUri` on merchant payable tools.
 - Never return custom iframe/UI on paywall gates — text-only narration naming the recovery intent tool.
 - Always use `mode: 'json-stateless'` on stateless edge runtimes.
-- Always hide UI-only virtual tools with `hideToolsByAudience: ['ui']`.
+- Never edit `src/worker.ts` on deploy-existing tasks — leave it byte-for-byte unchanged; add deploy scaffolding only.
 
 ## Gotchas
 
-- **Existing-project deploy = patch, never rewrite.** When the task is "deploy my existing server," only add deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). Never replace `src/worker.ts` with the full Cloudflare template. If an import subpath or option is stale (e.g. `@solvapay/mcp` → `@solvapay/mcp/fetch`), patch that single line — do NOT swap in the canonical template.
+- **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, or the canonical template. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy.
 - `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
 - `ctx.registerPayable(name, config)` takes **exactly two arguments**.
 - Paid handlers use `c.respond(data, { text })` — never raw `content` arrays.
