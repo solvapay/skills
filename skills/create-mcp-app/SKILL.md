@@ -1,16 +1,14 @@
 ---
 name: create-mcp-app
 description: >
-  Use this skill when the user wants to build a NEW paid MCP server from nothing — generate
-  tools from an OpenAPI/Swagger spec or hand-write from scratch, monetize them, deploy the
-  Worker on Cloudfare Workers; also when they need an existing-server audit plus a regenerated
-  worker template. Triggers on: npm create solvapay, scaffold mcp, openapi to mcp, swagger to
-  mcp, turn swagger file into monetized mcp tools, haiku mcp tool from scratch, greenfield paid
-  mcp worker, wrap my rest api as mcp tools, boss wants paid mcp server from openapi spec,
-  manager asked for intent driven mcp, deploy scaffolded mcp to cloudflare, need this today,
-  one shot build paid mcp server, hand write mcp tools myself, mcp from openapi asap.
-  Do not use for wiring an existing MCP server without re-scaffolding, paywalling an existing
-  web/API, or web/Lovable checkout — use solvapay/sdk-integration or checkout skills instead.
+  Use this skill when building a brand-new paid MCP server — not wiring an existing one, but
+  scaffolding from scratch. Use for: npm create solvapay --type mcp, converting OpenAPI or Swagger
+  specs into monetized MCP tools, hand-writing paid tools from scratch, deploying a new paid MCP
+  worker to Cloudflare Workers (use this skill even when the user only says "deploy to cloudflare"
+  if the context is a new MCP server), greenfield MCP scaffolding, and auditing then re-scaffolding
+  an existing MCP codebase into a fresh paid worker template. Skip for adding a paywall or metering
+  to an already-running server without a full rebuild, and for web or Lovable checkout pages —
+  use sdk-integration or checkout skills instead.
 metadata:
   version: "1.0.0"
 compatibility: >

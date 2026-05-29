@@ -1,22 +1,22 @@
-Evaluating: Use this skill when the user wants hosted SolvaPay checkout on a production web app — server creates a session, browser redirects, return URL refreshes access from server truth; includes letting customers manage a subscription after checkout via hosted portal redirect; React SPA without Next.js; minimal card handling; minimal pci checkout redirect solvapay. Triggers on: hosted checkout on my nextjs wesbite, nextjs checkout session route solvapay return url, checkout session api route next app, add upgrade page redirects to solvapay checkout, let customers manage subscription after checkout on my site, boss wants hosted checkout live by friday, i need checkout on website solvapay hosted asap, react spa checkout no next.js, my users wanna buy subscription on my site, hosted checkout return url handler refresh access. Do not use for full SDK metering/webhooks, embedding billing UI components in an existing dashboard (solvapay/sdk-integration), Lovable preview, custom card forms, or paid MCP.
-Results: 12/20 passed
-  [FAIL] rate=0/1 expected=True: hosted checkout return url handler refresh access do fast
-  [FAIL] rate=0/1 expected=True: i need hosted checkout on my nextjs wesbite boss wanna it live friday 
-  [FAIL] rate=0/1 expected=True: nextjs checkout session route solvapay return url
-  [FAIL] rate=0/1 expected=True: checkout session api route next app
-  [PASS] rate=1/1 expected=True: my users wanna buy subscription on my site one shot setup if possible
-  [PASS] rate=1/1 expected=True: add upgrade page redirects to solvapay checkout
-  [FAIL] rate=0/1 expected=True: react spa checkout i have no next.js
-  [FAIL] rate=0/1 expected=True: let customers manage there subscription after checkout on my site w ho
-  [FAIL] rate=0/1 expected=True: i need checkout on website solvapay hosted asap dont wanna build custo
-  [FAIL] rate=0/1 expected=True: minimal pci checkout redirect solvapay
-  [PASS] rate=0/1 expected=False: integrate full sdk usage metering webhooks express
-  [PASS] rate=0/1 expected=False: my boss said paste solvapay checkout lovable vite supabase
-  [PASS] rate=0/1 expected=False: scaffold paid mcp openapi
-  [PASS] rate=0/1 expected=False: npx solvapay init only no checkout ui
-  [PASS] rate=0/1 expected=False: mcp server paywall sdk integration
-  [PASS] rate=0/1 expected=False: stripe checkout embedded elements custom form
-  [PASS] rate=0/1 expected=False: where do i start solvapay
-  [PASS] rate=0/1 expected=False: record usage events metred billing
-  [PASS] rate=0/1 expected=False: add billing page plan card solvapay sdk
-  [PASS] rate=0/1 expected=False: paywall mcp tools cloudflare
+Evaluating: Use this skill when someone wants to add a subscription or one-time purchase to an existing website — the server creates a SolvaPay checkout session, the user is redirected to SolvaPay's hosted payment page, then lands back on the site with access unlocked. Also use for wiring the return URL, building a subscribe/upgrade button, or giving paying customers a link to manage or cancel their subscription via the hosted portal. Primarily for Next.js; plain React (no server framework) is partially supported. Do not use for embedding plan cards or billing UI into a dashboard, processing webhooks or metering API usage, Lovable or Vite+Supabase setups, or wiring MCP tool paywalls.
+Results: 10/20 passed
+  [FAIL] rate=0/3 expected=True: i need hosted checkout on my nextjs wesbite boss wanna it live friday 
+  [FAIL] rate=0/3 expected=True: nextjs checkout session route solvapay return url
+  [FAIL] rate=0/3 expected=True: hosted checkout return url handler refresh access do fast
+  [FAIL] rate=0/3 expected=True: checkout session api route next app
+  [FAIL] rate=0/3 expected=True: add upgrade page redirects to solvapay checkout
+  [FAIL] rate=0/3 expected=True: my users wanna buy subscription on my site one shot setup if possible
+  [FAIL] rate=0/3 expected=True: let customers manage there subscription after checkout on my site w ho
+  [FAIL] rate=0/3 expected=True: minimal pci checkout redirect solvapay
+  [FAIL] rate=1/3 expected=True: react spa checkout i have no next.js
+  [FAIL] rate=0/3 expected=True: i need checkout on website solvapay hosted asap dont wanna build custo
+  [PASS] rate=0/3 expected=False: integrate full sdk usage metering webhooks express
+  [PASS] rate=0/3 expected=False: scaffold paid mcp openapi
+  [PASS] rate=0/3 expected=False: my boss said paste solvapay checkout lovable vite supabase
+  [PASS] rate=0/3 expected=False: stripe checkout embedded elements custom form
+  [PASS] rate=0/3 expected=False: npx solvapay init only no checkout ui
+  [PASS] rate=0/3 expected=False: mcp server paywall sdk integration
+  [PASS] rate=0/3 expected=False: paywall mcp tools cloudflare
+  [PASS] rate=0/3 expected=False: where do i start solvapay
+  [PASS] rate=0/3 expected=False: add billing page plan card solvapay sdk
+  [PASS] rate=0/3 expected=False: record usage events metred billing

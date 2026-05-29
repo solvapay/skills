@@ -1,21 +1,13 @@
 {
   "skill_name": "create-mcp-app",
-  "description": "Use this skill when the user wants to build a NEW paid MCP server from nothing \u2014 generate tools from an OpenAPI/Swagger spec or hand-write from scratch, monetize them, deploy the Worker on Cloudfare Workers; also when they need an existing-server audit plus a regenerated worker template. Triggers on: npm create solvapay, scaffold mcp, openapi to mcp, swagger to mcp, turn swagger file into monetized mcp tools, haiku mcp tool from scratch, greenfield paid mcp worker, wrap my rest api as mcp tools, boss wants paid mcp server from openapi spec, manager asked for intent driven mcp, deploy scaffolded mcp to cloudflare, need this today, one shot build paid mcp server, hand write mcp tools myself, mcp from openapi asap. Do not use for wiring an existing MCP server without re-scaffolding, paywalling an existing web/API, or web/Lovable checkout \u2014 use solvapay/sdk-integration or checkout skills instead.",
+  "description": "Use this skill when building a brand-new paid MCP server \u2014 not wiring an existing one, but scaffolding from scratch. Use for: npm create solvapay --type mcp, converting OpenAPI or Swagger specs into monetized MCP tools, hand-writing paid tools from scratch, deploying a new paid MCP worker to Cloudflare Workers (use this skill even when the user only says \"deploy to cloudflare\" if the context is a new MCP server), greenfield MCP scaffolding, and auditing then re-scaffolding an existing MCP codebase into a fresh paid worker template. Skip for adding a paywall or metering to an already-running server without a full rebuild, and for web or Lovable checkout pages \u2014 use sdk-integration or checkout skills instead.",
   "results": [
     {
-      "query": "npm create solvapay my-mcp -- --type mcp",
+      "query": "my boss wanna me to scaffold a paid mcp server from this openapi spec by end of week",
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
-      "pass": false
-    },
-    {
-      "query": "one shot build me paid mcp server ill hand write the tools myself",
-      "should_trigger": true,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
@@ -23,39 +15,23 @@
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "npm create solvapay my-mcp -- --type mcp",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
       "pass": false
     },
     {
       "query": "haiku mcp tool from scratch no openapi",
       "should_trigger": true,
-      "trigger_rate": 1.0,
-      "triggers": 1,
-      "runs": 1,
-      "pass": true
-    },
-    {
-      "query": "my boss wanna me to scaffold a paid mcp server from this openapi spec by end of week",
-      "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
-      "pass": false
-    },
-    {
-      "query": "turn my swagger file into monetized mcp tools",
-      "should_trigger": true,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
-      "pass": false
-    },
-    {
-      "query": "deploy scaffolded mcp to cloudflare need this today",
-      "should_trigger": true,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
@@ -63,7 +39,23 @@
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "turn my swagger file into monetized mcp tools",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "one shot build me paid mcp server ill hand write the tools myself",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
       "pass": false
     },
     {
@@ -71,7 +63,15 @@
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "deploy scaffolded mcp to cloudflare need this today",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
       "pass": false
     },
     {
@@ -79,23 +79,15 @@
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
-      "query": "add hosted checkout to my website",
+      "query": "i need solvapay paywall on my exsiting express api asap",
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
-      "pass": true
-    },
-    {
-      "query": "where do i start with solvapay",
-      "should_trigger": false,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
@@ -103,39 +95,23 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
-      "query": "i need solvapay paywall on my exsiting express api asap",
+      "query": "add hosted checkout to my website",
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
-      "query": "customer portal for my saas web app",
+      "query": "where do i start with solvapay",
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
-      "pass": true
-    },
-    {
-      "query": "boss said paywall my existing mcp server tools without rescaffolding one shot",
-      "should_trigger": false,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
-      "pass": true
-    },
-    {
-      "query": "lovable vite checkout w my supabase",
-      "should_trigger": false,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
@@ -143,7 +119,31 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "customer portal for my saas web app",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "boss said paywall my existing mcp server tools without rescaffolding one shot",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "lovable vite checkout w my supabase",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
       "pass": true
     },
     {
@@ -151,7 +151,7 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
@@ -159,13 +159,13 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     }
   ],
   "summary": {
     "total": 20,
-    "passed": 11,
-    "failed": 9
+    "passed": 10,
+    "failed": 10
   }
 }

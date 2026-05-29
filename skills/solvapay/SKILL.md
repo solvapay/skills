@@ -1,15 +1,14 @@
 ---
 name: solvapay
 description: >
-  Use this skill when the user has vague, top-of-funnel, or comparison SolvaPay intent —
-  where do I start, what can SolvaPay do, checkout vs MCP vs SDK, monetize something, compare
-  billing options, add solvapay to my app, just add payments, solvapay saas where do i start,
-  boss wants solvapay, my manager wants to monetize our product with solvapay, need a solvapay
-  recommendation asap, help me pick the right solvapay integration, which solvapay do i need,
-  i need billing but dont know which option, been thinking bout adding payments to my side project,
-  checkout or sdk for my app — spanning surfaces without naming a concrete stack; route to a
-  surface skill and stop. Do not use once the prompt names a specific stack or task — hand off
-  to the surface skill that owns it.
+  Use this skill when the user is undecided about which SolvaPay integration to use —
+  capability questions ("what can SolvaPay do"), surface comparisons ("checkout vs SDK vs MCP"),
+  "where do I start" moments, or vague "add payments to my app/SaaS" without a named stack or
+  explicit task. Also trigger when surface names appear alongside decision language
+  ("checkout or SDK for my app?", "which solvapay do I need?", "not sure where to start").
+  Skip for execution tasks that already name a specific surface and action — "integrate SDK into
+  nextjs", "paywall my express API", "scaffold mcp from openapi" go directly to the surface skill
+  that owns them.
 metadata:
   version: "1.0.0"
 ---

@@ -1,13 +1,14 @@
 ---
 name: sdk-integration
 description: >
-  Load to wire SolvaPay into an existing codebase — any existing Next.js, React, Express,
-  Supabase edge function, or MCP server that needs SolvaPay added to it. Handles SDK setup
-  (`npx solvapay init`), paywall/gate middleware, subscription or usage checks, billing UI
-  components (plan status, manage-billing button), and webhook handlers. Use whenever the
-  user wants to protect, meter, charge, or add billing UI to code they already have. Skip
-  for: greenfield paid MCP server (create-mcp-app), Lovable paste-in checkout flows, or
-  redirect-only checkout link (website-checkout).
+  Use when writing SolvaPay into existing code — not exploring options, but implementing.
+  Invoke for: integrating or wiring the SolvaPay SDK, adding a paywall or access gate,
+  enforcing subscription or usage limits, embedding billing UI (manage-billing button, plan
+  status), protecting API routes or endpoints, wiring a fetch or webhook handler — in any
+  existing Next.js, React, Express, Supabase edge function, or MCP server. The trigger
+  phrase: user has existing code and needs SolvaPay functionality built into it. Skip for
+  greenfield paid MCP scaffold (create-mcp-app), Lovable paste-in checkout, or
+  redirect-only checkout with no SDK work.
 metadata:
   version: "1.0.0"
 compatibility: >

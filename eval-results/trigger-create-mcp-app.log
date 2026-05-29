@@ -1,22 +1,22 @@
-Evaluating: Use this skill when the user wants to build a NEW paid MCP server from nothing — generate tools from an OpenAPI/Swagger spec or hand-write from scratch, monetize them, deploy the Worker on Cloudfare Workers; also when they need an existing-server audit plus a regenerated worker template. Triggers on: npm create solvapay, scaffold mcp, openapi to mcp, swagger to mcp, turn swagger file into monetized mcp tools, haiku mcp tool from scratch, greenfield paid mcp worker, wrap my rest api as mcp tools, boss wants paid mcp server from openapi spec, manager asked for intent driven mcp, deploy scaffolded mcp to cloudflare, need this today, one shot build paid mcp server, hand write mcp tools myself, mcp from openapi asap. Do not use for wiring an existing MCP server without re-scaffolding, paywalling an existing web/API, or web/Lovable checkout — use solvapay/sdk-integration or checkout skills instead.
-Results: 11/20 passed
-  [FAIL] rate=0/1 expected=True: npm create solvapay my-mcp -- --type mcp
-  [FAIL] rate=0/1 expected=True: one shot build me paid mcp server ill hand write the tools myself
-  [FAIL] rate=0/1 expected=True: i need wrap my rest api as mcp tools on cloudfare workers do this fast
-  [PASS] rate=1/1 expected=True: haiku mcp tool from scratch no openapi
-  [FAIL] rate=0/1 expected=True: my boss wanna me to scaffold a paid mcp server from this openapi spec 
-  [FAIL] rate=0/1 expected=True: turn my swagger file into monetized mcp tools
-  [FAIL] rate=0/1 expected=True: deploy scaffolded mcp to cloudflare need this today
-  [FAIL] rate=0/1 expected=True: greenfield paid mcp worker swagger
-  [FAIL] rate=0/1 expected=True: my manager asked for intent driven mcp from petstore openapi v3 spec w
-  [FAIL] rate=0/1 expected=True: openapi to mcp one to one petstore v3
-  [PASS] rate=0/1 expected=False: add hosted checkout to my website
-  [PASS] rate=0/1 expected=False: where do i start with solvapay
-  [PASS] rate=0/1 expected=False: integrate solvapay sdk nextjs usage metring
-  [PASS] rate=0/1 expected=False: i need solvapay paywall on my exsiting express api asap
-  [PASS] rate=0/1 expected=False: customer portal for my saas web app
-  [PASS] rate=0/1 expected=False: boss said paywall my existing mcp server tools without rescaffolding o
-  [PASS] rate=0/1 expected=False: lovable vite checkout w my supabase
-  [PASS] rate=0/1 expected=False: solvapay wiring on existing mcp server dont rescaffold
-  [PASS] rate=0/1 expected=False: plan card in react dashboard
-  [PASS] rate=0/1 expected=False: monetize mcp server no code hosted proxy
+Evaluating: Use this skill when building a brand-new paid MCP server — not wiring an existing one, but scaffolding from scratch. Use for: npm create solvapay --type mcp, converting OpenAPI or Swagger specs into monetized MCP tools, hand-writing paid tools from scratch, deploying a new paid MCP worker to Cloudflare Workers (use this skill even when the user only says "deploy to cloudflare" if the context is a new MCP server), greenfield MCP scaffolding, and auditing then re-scaffolding an existing MCP codebase into a fresh paid worker template. Skip for adding a paywall or metering to an already-running server without a full rebuild, and for web or Lovable checkout pages — use sdk-integration or checkout skills instead.
+Results: 10/20 passed
+  [FAIL] rate=0/3 expected=True: my boss wanna me to scaffold a paid mcp server from this openapi spec 
+  [FAIL] rate=0/3 expected=True: i need wrap my rest api as mcp tools on cloudfare workers do this fast
+  [FAIL] rate=0/3 expected=True: npm create solvapay my-mcp -- --type mcp
+  [FAIL] rate=0/3 expected=True: haiku mcp tool from scratch no openapi
+  [FAIL] rate=0/3 expected=True: greenfield paid mcp worker swagger
+  [FAIL] rate=0/3 expected=True: turn my swagger file into monetized mcp tools
+  [FAIL] rate=0/3 expected=True: one shot build me paid mcp server ill hand write the tools myself
+  [FAIL] rate=0/3 expected=True: my manager asked for intent driven mcp from petstore openapi v3 spec w
+  [FAIL] rate=0/3 expected=True: deploy scaffolded mcp to cloudflare need this today
+  [FAIL] rate=0/3 expected=True: openapi to mcp one to one petstore v3
+  [PASS] rate=0/3 expected=False: i need solvapay paywall on my exsiting express api asap
+  [PASS] rate=0/3 expected=False: integrate solvapay sdk nextjs usage metring
+  [PASS] rate=0/3 expected=False: add hosted checkout to my website
+  [PASS] rate=0/3 expected=False: where do i start with solvapay
+  [PASS] rate=0/3 expected=False: solvapay wiring on existing mcp server dont rescaffold
+  [PASS] rate=0/3 expected=False: customer portal for my saas web app
+  [PASS] rate=0/3 expected=False: boss said paywall my existing mcp server tools without rescaffolding o
+  [PASS] rate=0/3 expected=False: lovable vite checkout w my supabase
+  [PASS] rate=0/3 expected=False: plan card in react dashboard
+  [PASS] rate=0/3 expected=False: monetize mcp server no code hosted proxy

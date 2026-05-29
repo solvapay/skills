@@ -1,21 +1,13 @@
 {
   "skill_name": "solvapay",
-  "description": "Use this skill when the user has vague, top-of-funnel, or comparison SolvaPay intent \u2014 where do I start, what can SolvaPay do, checkout vs MCP vs SDK, monetize something, compare billing options, add solvapay to my app, just add payments, solvapay saas where do i start, boss wants solvapay, my manager wants to monetize our product with solvapay, need a solvapay recommendation asap, help me pick the right solvapay integration, which solvapay do i need, i need billing but dont know which option, been thinking bout adding payments to my side project, checkout or sdk for my app \u2014 spanning surfaces without naming a concrete stack; route to a surface skill and stop. Do not use once the prompt names a specific stack or task \u2014 hand off to the surface skill that owns it.",
+  "description": "Use this skill when the user is undecided about which SolvaPay integration to use \u2014 capability questions (\"what can SolvaPay do\"), surface comparisons (\"checkout vs SDK vs MCP\"), \"where do I start\" moments, or vague \"add payments to my app/SaaS\" without a named stack or explicit task. Also trigger when surface names appear alongside decision language (\"checkout or SDK for my app?\", \"which solvapay do I need?\", \"not sure where to start\"). Skip for execution tasks that already name a specific surface and action \u2014 \"integrate SDK into nextjs\", \"paywall my express API\", \"scaffold mcp from openapi\" go directly to the surface skill that owns them.",
   "results": [
     {
-      "query": "can u help me figure out which solvapay integration i need i need an answer today pls",
+      "query": "my boss asked me to add solvapay to our project but im not sure were to start and its kinda urgent",
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
-      "pass": false
-    },
-    {
-      "query": "i need to add solvapay to my app checkout or mcp or sdk idk which one",
-      "should_trigger": true,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
@@ -23,31 +15,23 @@
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
-      "query": "my boss asked me to add solvapay to our project but im not sure were to start and its kinda urgent",
+      "query": "can u help me figure out which solvapay integration i need i need an answer today pls",
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
-      "query": "i need billing but dont know if i wanna hosted checkout or sdk",
+      "query": "i need to add solvapay to my app checkout or mcp or sdk idk which one",
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
-      "pass": false
-    },
-    {
-      "query": "been thinking bout adding payments to my side project not really sure how tho",
-      "should_trigger": true,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
@@ -55,7 +39,31 @@
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "been thinking bout adding payments to my side project not really sure how tho",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "i need billing but dont know if i wanna hosted checkout or sdk",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
+      "pass": false
+    },
+    {
+      "query": "solvapay saas where do i start",
+      "should_trigger": true,
+      "trigger_rate": 0.3333333333333333,
+      "triggers": 1,
+      "runs": 3,
       "pass": false
     },
     {
@@ -63,15 +71,15 @@
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
-      "query": "solvapay saas where do i start",
+      "query": "compare solvapay options for billing my users \u2014 one shot reccomendation pls i dont wanna read docs",
       "should_trigger": true,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": false
     },
     {
@@ -79,7 +87,7 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
@@ -87,31 +95,15 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
-    },
-    {
-      "query": "compare solvapay options for billing my users \u2014 one shot reccomendation pls i dont wanna read docs",
-      "should_trigger": true,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
-      "pass": false
     },
     {
       "query": "integrate the solvapay typscript sdk into express",
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
-      "pass": true
-    },
-    {
-      "query": "fix solvapay webhook sig verification",
-      "should_trigger": false,
-      "trigger_rate": 0.0,
-      "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
@@ -119,15 +111,15 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
-      "query": "paste solvapay checkout into my lovable app pls one shot",
+      "query": "fix solvapay webhook sig verification",
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
@@ -135,15 +127,15 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
-      "query": "one shot npm create solvapay my-mcp -- --type mcp",
+      "query": "paste solvapay checkout into my lovable app pls one shot",
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     },
     {
@@ -151,7 +143,15 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
+      "pass": true
+    },
+    {
+      "query": "one shot npm create solvapay my-mcp -- --type mcp",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 3,
       "pass": true
     },
     {
@@ -159,7 +159,7 @@
       "should_trigger": false,
       "trigger_rate": 0.0,
       "triggers": 0,
-      "runs": 1,
+      "runs": 3,
       "pass": true
     }
   ],
