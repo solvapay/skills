@@ -1,82 +1,22 @@
 [
-  {
-    "query": "next.js 14 app router: add solvapay hosted checkout — server route POST /api/checkout/session, return url /billing/return that re-reads purchase server-side before showing premium UI.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "minimal pci — redirect users to solvapay hosted checkout from our marketing site, no stripe elements in our repo.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "react 18 spa (no next in package.json) — need checkout session created on our small express backend and a return page that refreshes entitlements.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "customer portal for subscribers: self-serve update card + cancel via solvapay hosted portal, keep card data off our servers.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "add checkout to website — solvapay hosted flow, return handler must not trust query params alone.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "checkout session api route app router — create session with secret key server-side only.",
-    "should_trigger": true,
-    "split": "validation"
-  },
-  {
-    "query": "after hosted checkout redirect, refresh access from solvapay checkPurchase on the return url page.",
-    "should_trigger": true,
-    "split": "validation"
-  },
-  {
-    "query": "we refuse custom card forms — solvapay hosted checkout + return url for our nextjs saas.",
-    "should_trigger": true,
-    "split": "validation"
-  },
-  {
-    "query": "integrate full solvapay sdk: usage events, webhooks, paywall middleware on /api/premium/* in express.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "lovable project — vite, shadcn, supabase edge — paste solvapay checkout with @preview packages.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "greenfield paid mcp from openapi on cloudflare workers npm create solvapay.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "paywall mcp tools with createSolvaPayMcpFetch — server already deployed.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "where do i start with solvapay — mcp vs checkout vs sdk?",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "add CurrentPlanCard and payment method preview in react — account management ui.",
-    "should_trigger": false,
-    "split": "validation"
-  },
-  {
-    "query": "npx solvapay init only — no checkout ui yet, just project keys.",
-    "should_trigger": false,
-    "split": "validation"
-  },
-  {
-    "query": "stripe checkout embedded elements + payment element in our next app (not solvapay hosted).",
-    "should_trigger": false,
-    "split": "validation"
-  }
+  { "query": "add hosted checkout to my nextjs wesbite", "should_trigger": true, "split": "train" },
+  { "query": "nextjs checkout session route solvapay return url", "should_trigger": true, "split": "train" },
+  { "query": "customer portal for my react web app minmal pci", "should_trigger": true, "split": "validation" },
+  { "query": "add checkout to website solvapay hosted", "should_trigger": true, "split": "validation" },
+  { "query": "integrate full sdk usage metering webhooks express", "should_trigger": false, "split": "train" },
+  { "query": "scaffold paid mcp from openapi", "should_trigger": false, "split": "train" },
+  { "query": "lovable vite supabase edge checkout paste", "should_trigger": false, "split": "train" },
+  { "query": "paywall my mcp tools cloudflare", "should_trigger": false, "split": "validation" },
+  { "query": "where do I start with solvapay", "should_trigger": false, "split": "validation" },
+  { "query": "stripe checkout embedded elements custom form", "should_trigger": false, "split": "train" },
+  { "query": "react spa checkout — I have no next.js", "should_trigger": true, "split": "validation" },
+  { "query": "npx solvapay init only no checkout ui", "should_trigger": false, "split": "train" },
+  { "query": "hosted checkout return url handler refresh access", "should_trigger": true, "split": "train" },
+  { "query": "supabase edge functions solvapay lovable", "should_trigger": false, "split": "validation" },
+  { "query": "add billing page with CurrentPlanCard", "should_trigger": false, "split": "validation" },
+  { "query": "checkout session api route app router", "should_trigger": true, "split": "train" },
+  { "query": "record usage events metred billing", "should_trigger": false, "split": "validation" },
+  { "query": "wordpress woocommerce payment plugin", "should_trigger": false, "split": "train" },
+  { "query": "minimal pci checkout redirect solvapay", "should_trigger": true, "split": "validation" },
+  { "query": "mcp server paywall sdk integration", "should_trigger": false, "split": "train" }
 ]

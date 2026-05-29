@@ -1,102 +1,22 @@
 [
-  {
-    "query": "scaffold a paid mcp server from https://petstore.swagger.io/v2/swagger.json into ./petstore-mcp — intent-driven clustering, agent path with describe + scaffold scripts.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "npm create solvapay@latest my-data-mcp -- --type mcp then add tools from our internal openapi.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "wrap our rest api as mcp tools on cloudflare workers with solvapay paywall — greenfield worker.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "greenfield paid mcp worker from swagger — one-to-one mode is fine for v3 petstore.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "intent-driven mcp from petstore openapi — surface G2 cluster proposal before scaffold.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "generate haiku mcp tool from scratch no openapi — replace placeholder tool in ./haiku-mcp.",
-    "should_trigger": true,
-    "split": "train"
-  },
-  {
-    "query": "deploy my scaffolded mcp at ./petstore-mcp to cloudflare — wrangler secret for SOLVAPAY_SECRET_KEY.",
-    "should_trigger": true,
-    "split": "validation"
-  },
-  {
-    "query": "openapi to mcp one-to-one petstore v3 — fetch spec locally before describe.mjs.",
-    "should_trigger": true,
-    "split": "validation"
-  },
-  {
-    "query": "company wont use cloudflare — scaffold paid mcp on express with createSolvaPayMcpServer + oauth bridge per alternatives.md.",
-    "should_trigger": true,
-    "split": "validation"
-  },
-  {
-    "query": "monetize new mcp server on workers: npm create solvapay, paid tools, no existing codebase.",
-    "should_trigger": true,
-    "split": "validation"
-  },
-  {
-    "query": "add solvapay paywall to my existing express rest api — protect /api/v1/reports, not mcp.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "integrate solvapay typescript sdk into nextjs for usage metering and webhooks on /api/billing.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "add hosted checkout to my nextjs marketing website — checkout session route only.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "worker already live with createSolvaPayMcpFetch — register two more payable tools, no rescaffold.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "where do i start with solvapay — checkout vs mcp vs sdk?",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "lovable vite checkout paste with supabase edge @preview.",
-    "should_trigger": false,
-    "split": "train"
-  },
-  {
-    "query": "CurrentPlanCard + LaunchCustomerPortalButton in our react saas dashboard.",
-    "should_trigger": false,
-    "split": "validation"
-  },
-  {
-    "query": "hosted no-code mcp monetization — plug server url into a managed proxy (deprecated path).",
-    "should_trigger": false,
-    "split": "validation"
-  },
-  {
-    "query": "npx solvapay init for our monorepo — no mcp scaffold yet.",
-    "should_trigger": false,
-    "split": "validation"
-  },
-  {
-    "query": "customer portal on nextjs hosted checkout — minimal pci web app.",
-    "should_trigger": false,
-    "split": "validation"
-  }
+  { "query": "scaffold a paid mcp server from this openapi spec", "should_trigger": true, "split": "train" },
+  { "query": "npm create solvapay my-mcp -- --type mcp", "should_trigger": true, "split": "train" },
+  { "query": "wrap my rest api as mcp tools on cloudfare workers", "should_trigger": true, "split": "train" },
+  { "query": "greenfield paid mcp worker from swagger", "should_trigger": true, "split": "validation" },
+  { "query": "intent-driven mcp from petstore openapi", "should_trigger": true, "split": "validation" },
+  { "query": "add solvapay paywall to my exsiting express api", "should_trigger": false, "split": "train" },
+  { "query": "integrate solvapay sdk into nextjs for usage metring", "should_trigger": false, "split": "train" },
+  { "query": "add hosted checkout to my website", "should_trigger": false, "split": "train" },
+  { "query": "paywall my existing mcp server tools without rescaffolding", "should_trigger": false, "split": "validation" },
+  { "query": "lovable vite checkout with supabase edge", "should_trigger": false, "split": "validation" },
+  { "query": "where do I start with solvapay", "should_trigger": false, "split": "train" },
+  { "query": "CurrentPlanCard in my react dashboard", "should_trigger": false, "split": "validation" },
+  { "query": "createSolvaPayMcpFetch wiring only — server already exists", "should_trigger": false, "split": "train" },
+  { "query": "deploy scaffolded mcp to cloudflare", "should_trigger": true, "split": "validation" },
+  { "query": "generate haiku mcp tool from scratch no openapi", "should_trigger": true, "split": "train" },
+  { "query": "fix stripe webhook in my app", "should_trigger": false, "split": "validation" },
+  { "query": "build a chatgpt app with skybridge", "should_trigger": false, "split": "train" },
+  { "query": "openapi to mcp one-to-one petstore v3", "should_trigger": true, "split": "validation" },
+  { "query": "customer portal for my saas web app", "should_trigger": false, "split": "train" },
+  { "query": "monetize mcp server no-code hosted proxy", "should_trigger": false, "split": "validation" }
 ]
