@@ -1,11 +1,13 @@
 ---
 name: sdk-integration
 description: >
-  Use this skill when the user wants SolvaPay in an existing app — "integrate sdk",
-  "protect endpoints", "charge for API usage", "paywall my api", "usage metering",
-  "webhooks", "cancel subscription", or account UI (CurrentPlanCard, customer portal)
-  even without saying "sdk". Also use for wiring an existing MCP server. Do not use for
-  greenfield MCP scaffold — use solvapay/create-mcp-app instead.
+  Load to wire SolvaPay into an existing codebase — any existing Next.js, React, Express,
+  Supabase edge function, or MCP server that needs SolvaPay added to it. Handles SDK setup
+  (`npx solvapay init`), paywall/gate middleware, subscription or usage checks, billing UI
+  components (plan status, manage-billing button), and webhook handlers. Use whenever the
+  user wants to protect, meter, charge, or add billing UI to code they already have. Skip
+  for: greenfield paid MCP server (create-mcp-app), Lovable paste-in checkout flows, or
+  redirect-only checkout link (website-checkout).
 metadata:
   version: "1.0.0"
 compatibility: >

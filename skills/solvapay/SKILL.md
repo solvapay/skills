@@ -1,11 +1,15 @@
 ---
 name: solvapay
 description: >
-  Use this skill when the user wants to add SolvaPay but intent is vague — "add solvapay",
-  "where do I start", "monetize something", "just add payments", or any request spanning
-  multiple surfaces without a clear stack. Routes to solvapay/create-mcp-app,
-  solvapay/sdk-integration, solvapay/website-checkout, or solvapay/lovable-checkout.
-  Do not use for stack-specific implementation tasks — those belong on surface skills.
+  Use this skill when the user has vague, top-of-funnel, or comparison SolvaPay intent —
+  where do I start, what can SolvaPay do, checkout vs MCP vs SDK, monetize something, compare
+  billing options, add solvapay to my app, just add payments, solvapay saas where do i start,
+  boss wants solvapay, my manager wants to monetize our product with solvapay, need a solvapay
+  recommendation asap, help me pick the right solvapay integration, which solvapay do i need,
+  i need billing but dont know which option, been thinking bout adding payments to my side project,
+  checkout or sdk for my app — spanning surfaces without naming a concrete stack; route to a
+  surface skill and stop. Do not use once the prompt names a specific stack or task — hand off
+  to the surface skill that owns it.
 metadata:
   version: "1.0.0"
 ---

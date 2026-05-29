@@ -1,0 +1,22 @@
+Evaluating: Use this skill when the user wants to add SolvaPay checkout to a Lovable app (Vite + shadcn + Supabase Edge) on the preview/dev channel with secrets server-side — paste-in checkout, gate content behind purchase, or set up billing; even when they do not name SolvaPay; no-backend preview flow. Triggers on: lovable checkout, lovible checkout, vite shadcn checkout solvapay, paste into lovable, solvapay lovable supabase @preview, @preview solvapay react-supabase install, my supabase checkout solvapay preview tag, solvapay secret only supabase server side not client, boss wants solvapay checkout pasted into our lovable vite app, i need paywall on lovable app do this fast, set up billing in my vite supabase app from lovable, shadcn ui purchase gate, supabase edge billing. Do not use for production Next.js checkout (solvapay/website-checkout), full SDK metering in an existing backend (solvapay/sdk-integration), or building a paid MCP server (solvapay/create-mcp-app).
+Results: 11/20 passed
+  [FAIL] rate=0/1 expected=True: solvapay lovable supabase @preview
+  [FAIL] rate=0/1 expected=True: @preview solvapay react-supabase install
+  [FAIL] rate=0/1 expected=True: my boss wanna solvapay checkout pasted into our lovable vite app by to
+  [PASS] rate=1/1 expected=True: lovable paste this into chat checkout guide
+  [FAIL] rate=0/1 expected=True: solvapay secret only supabase server side not client pls
+  [FAIL] rate=0/1 expected=True: vite shadcn checkout solvapay api-dev
+  [FAIL] rate=0/1 expected=True: i need paywall on lovable app do this fast
+  [FAIL] rate=0/1 expected=True: one shot set up billing in my vite + supabase app from lovable i dont 
+  [PASS] rate=0/1 expected=False: hosted checkout nextjs production site
+  [FAIL] rate=0/1 expected=True: shadcn ui purchase gate lovible preview
+  [PASS] rate=0/1 expected=False: website checkout nextjs app
+  [FAIL] rate=0/1 expected=True: my supabase checkout solvapay preview tag
+  [PASS] rate=0/1 expected=False: my boss wanna solvapay sdk in express w webhooks not lovable
+  [PASS] rate=0/1 expected=False: full sdk integration nextjs metering
+  [PASS] rate=0/1 expected=False: scaffold mcp openapi cloudflare
+  [PASS] rate=0/1 expected=False: where start solvapay
+  [PASS] rate=0/1 expected=False: put solvapay secret in client env lovable
+  [PASS] rate=0/1 expected=False: production solvapay.com checkout lovable
+  [PASS] rate=0/1 expected=False: monetize mcp server openapi
+  [PASS] rate=0/1 expected=False: customer portal nextjs hosted

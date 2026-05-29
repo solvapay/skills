@@ -1,12 +1,16 @@
 ---
 name: create-mcp-app
 description: >
-  Use this skill when the user wants a greenfield paid MCP server — "create mcp app",
-  "scaffold mcp", "openapi to mcp", "wrap my REST API as MCP", "monetize tools",
-  "npm create solvapay", or "paid MCP worker" even without saying OpenAPI. Also use when
-  they need audit + worker template for an existing MCP server. Do not use for SDK wiring
-  only on an existing app or web/Lovable checkout — use solvapay/sdk-integration or checkout
-  skills instead.
+  Use this skill when the user wants to build a NEW paid MCP server from nothing — generate
+  tools from an OpenAPI/Swagger spec or hand-write from scratch, monetize them, deploy the
+  Worker on Cloudfare Workers; also when they need an existing-server audit plus a regenerated
+  worker template. Triggers on: npm create solvapay, scaffold mcp, openapi to mcp, swagger to
+  mcp, turn swagger file into monetized mcp tools, haiku mcp tool from scratch, greenfield paid
+  mcp worker, wrap my rest api as mcp tools, boss wants paid mcp server from openapi spec,
+  manager asked for intent driven mcp, deploy scaffolded mcp to cloudflare, need this today,
+  one shot build paid mcp server, hand write mcp tools myself, mcp from openapi asap.
+  Do not use for wiring an existing MCP server without re-scaffolding, paywalling an existing
+  web/API, or web/Lovable checkout — use solvapay/sdk-integration or checkout skills instead.
 metadata:
   version: "1.0.0"
 compatibility: >
@@ -31,7 +35,7 @@ SolvaPay-monetized MCP server on Cloudflare Workers. OpenAPI auto-generation or 
 
 ## Gotchas
 
-- **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, the canonical template, or "stale API shape" patches. Run `npx wrangler whoami` as the first pre-flight command (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy.
+- **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, the canonical template, or "stale API shape" patches. Run `npx wrangler whoami` as the first pre-flight command (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy. **Exception:** paywall-wiring tasks (e.g. "add SolvaPay paywall to my existing MCP server") explicitly require editing `src/worker.ts` — the deploy guardrail does not apply to those tasks.
 - `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
 - `ctx.registerPayable(name, config)` takes **exactly two arguments**.
 - Paid handlers use `c.respond(data, { text })` — never raw `content` arrays.

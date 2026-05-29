@@ -1,0 +1,22 @@
+Evaluating: Use this skill when the user wants to add SolvaPay to an app they already have — gate or charge existing endpoints, meter usage, handle webhooks, embed billing/account UI (plan status, manage-billing button); Next.js/React/Express/edge runtimes plus wiring an existing MCP server; even when they only describe the outcome. Triggers on: integrate solvapay sdk nextjs app, paywall on my express api with usage events, verify solvapay webhook signiture in express, wire webhooks doing today, npx solvapay init wire webhooks, protect my supabase function with solvapay limits check, add solvapay to existing mcp server dont rescaffold, cancel renewal and reactivate plan wired with solvapay sdk, solvapay fetch handler in my supabase edge function, manage billing button in our existing react dashboard, boss wants paywall on express api live by friday, build mcp app ui solvapay react. Do not use for building a new MCP server from scratch (solvapay/create-mcp-app), Lovable preview checkout (solvapay/lovable-checkout), or hosted-checkout-only redirect flows (solvapay/website-checkout).
+Results: 11/20 passed
+  [FAIL] rate=0/1 expected=True: integrate solvapay sdk nextjs app
+  [FAIL] rate=0/1 expected=True: verify solvapay webhook signiture in express
+  [FAIL] rate=0/1 expected=True: build mcp app ui solvapay react
+  [FAIL] rate=0/1 expected=True: npx solvapay init wire webhooks doing today
+  [FAIL] rate=0/1 expected=True: i need paywall on my express api with usage events boss wanna it live 
+  [FAIL] rate=0/1 expected=True: protect my supabase function with solvapay limits check
+  [FAIL] rate=0/1 expected=True: add solvapay to existing mcp server dont rescaffold one shot
+  [PASS] rate=1/1 expected=True: i need cancel renewal and reactivate plan wired w solvapay sdk its bro
+  [FAIL] rate=0/1 expected=True: solvapay fetch handler in my supabase edge function pls wire it up
+  [PASS] rate=0/1 expected=False: scaffold brand new paid mcp from openapi
+  [FAIL] rate=0/1 expected=True: my boss wanna manage billing button in our existing react dashboard ca
+  [PASS] rate=0/1 expected=False: migrate mongodb postgres
+  [PASS] rate=0/1 expected=False: where do i start solvapay
+  [PASS] rate=0/1 expected=False: need hosted checkout nextjs marketing site asap
+  [PASS] rate=0/1 expected=False: openapi to mcp cloudflare workers
+  [PASS] rate=0/1 expected=False: minimal website checkout session only
+  [PASS] rate=0/1 expected=False: paste solvapay lovable vite app
+  [PASS] rate=0/1 expected=False: set up stripe billing for my saas
+  [PASS] rate=0/1 expected=False: npm create solvapay --type mcp greenfield worker
+  [PASS] rate=0/1 expected=False: one shot redirect users to solvapay checkout from landing page no sdk 

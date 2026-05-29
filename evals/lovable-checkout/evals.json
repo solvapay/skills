@@ -4,7 +4,7 @@
     {
       "id": 1,
       "slug": "lovable-preview-edge-checkout",
-      "prompt": "Wire SolvaPay hosted checkout into my Lovable app (Vite + shadcn + Supabase). Use the preview/dev backend and paste-in flow.",
+      "prompt": "add solvapay checkout to my lovable app, i just wanna paste it in",
       "expected_output": "Agent loads lovable-checkout, reads reference material (GUIDE.md index or numbered 01/02/03 files), installs @preview packages, creates Supabase edge functions, keeps secret in edge secrets only.",
       "files": [],
       "assertions": [
@@ -17,7 +17,7 @@
     {
       "id": 2,
       "slug": "negative-nextjs-production",
-      "prompt": "Add SolvaPay checkout to my Next.js production website on Vercel — not a Lovable project.",
+      "prompt": "add solvapay checkout to my nextjs production website on vercel — not a lovable project",
       "expected_output": "Agent routes to solvapay/website-checkout, not lovable-checkout (preview-only skill).",
       "files": [],
       "assertions": [
@@ -28,7 +28,7 @@
     {
       "id": 3,
       "slug": "lovable-supabase-secret-placement",
-      "prompt": "Lovable app — can I put SOLVAPAY_SECRET_KEY in .env as VITE_SOLVAPAY_SECRET so the vite client can create checkout sessions?",
+      "prompt": "lovable app — can i just put my solvapay secret key in my app so it can do checkout? where does it go",
       "expected_output": "Agent refuses client-side secret, follows edge-secret pattern from 01-edge-and-secrets.md (or GUIDE.md index) and edge-proxied API calls.",
       "files": [],
       "assertions": [

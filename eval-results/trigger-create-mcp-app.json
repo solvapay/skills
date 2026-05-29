@@ -1,0 +1,171 @@
+{
+  "skill_name": "create-mcp-app",
+  "description": "Use this skill when the user wants to build a NEW paid MCP server from nothing \u2014 generate tools from an OpenAPI/Swagger spec or hand-write from scratch, monetize them, deploy the Worker on Cloudfare Workers; also when they need an existing-server audit plus a regenerated worker template. Triggers on: npm create solvapay, scaffold mcp, openapi to mcp, swagger to mcp, turn swagger file into monetized mcp tools, haiku mcp tool from scratch, greenfield paid mcp worker, wrap my rest api as mcp tools, boss wants paid mcp server from openapi spec, manager asked for intent driven mcp, deploy scaffolded mcp to cloudflare, need this today, one shot build paid mcp server, hand write mcp tools myself, mcp from openapi asap. Do not use for wiring an existing MCP server without re-scaffolding, paywalling an existing web/API, or web/Lovable checkout \u2014 use solvapay/sdk-integration or checkout skills instead.",
+  "results": [
+    {
+      "query": "npm create solvapay my-mcp -- --type mcp",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "one shot build me paid mcp server ill hand write the tools myself",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "i need wrap my rest api as mcp tools on cloudfare workers do this fast pls",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "haiku mcp tool from scratch no openapi",
+      "should_trigger": true,
+      "trigger_rate": 1.0,
+      "triggers": 1,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "my boss wanna me to scaffold a paid mcp server from this openapi spec by end of week",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "turn my swagger file into monetized mcp tools",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "deploy scaffolded mcp to cloudflare need this today",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "greenfield paid mcp worker swagger",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "my manager asked for intent driven mcp from petstore openapi v3 spec we have sitting in repo",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "openapi to mcp one to one petstore v3",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "add hosted checkout to my website",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "where do i start with solvapay",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "integrate solvapay sdk nextjs usage metring",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "i need solvapay paywall on my exsiting express api asap",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "customer portal for my saas web app",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "boss said paywall my existing mcp server tools without rescaffolding one shot",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "lovable vite checkout w my supabase",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "solvapay wiring on existing mcp server dont rescaffold",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "plan card in react dashboard",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "monetize mcp server no code hosted proxy",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 20,
+    "passed": 11,
+    "failed": 9
+  }
+}

@@ -4,7 +4,7 @@
     {
       "id": 1,
       "slug": "router-ambiguous-billing",
-      "prompt": "I want to add SolvaPay to our product but I'm not sure whether we need hosted checkout, the TypeScript SDK on our API, or a paid MCP server for agents. Stack is Next.js plus an experimental MCP worker.",
+      "prompt": "wanna add solvapay to our product but not sure if we need hosted checkout, sdk on our api, or a paid mcp server for agents. stack is next.js plus an experimental mcp worker",
       "expected_output": "Agent loads the solvapay router skill, asks one disambiguation question or routes using the intent matrix by skill id, and names the correct surface skill without implementing integration code.",
       "files": [],
       "assertions": [
@@ -27,7 +27,7 @@
     {
       "id": 3,
       "slug": "router-deprecated-hosted-mcp",
-      "prompt": "monetize my mcp server with a hosted no-code proxy — just paste the server url and gate tools without code.",
+      "prompt": "monetize my mcp server with a hosted no-code proxy — just paste the server url and gate tools without code",
       "expected_output": "Agent clarifies deprecated hosted-proxy path, does not recommend MCP Pay, and steers toward code-based surfaces (default solvapay/create-mcp-app if user insists on MCP).",
       "files": [],
       "assertions": [

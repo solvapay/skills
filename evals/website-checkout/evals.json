@@ -4,7 +4,7 @@
     {
       "id": 1,
       "slug": "nextjs-checkout-return-url",
-      "prompt": "Add SolvaPay hosted checkout to my Next.js 14 App Router site. I need a server route that creates a checkout session and a return URL page at /billing/return that refreshes access from server-side purchase state.",
+      "prompt": "add solvapay hosted checkout to my next 14 site. need a server route that creates a checkout session and a return page at /billing/return that refreshes access from server-side purchase state",
       "expected_output": "Agent loads website-checkout, runs npx solvapay init guidance, implements server-side checkout session route per references/nextjs.md, return URL handler reads server truth.",
       "files": [],
       "assertions": [
@@ -17,7 +17,7 @@
     {
       "id": 2,
       "slug": "negative-lovable-handoff",
-      "prompt": "I have a Vite + Supabase Lovable app — paste SolvaPay checkout in with @preview packages.",
+      "prompt": "ive got a lovable app, can you paste solvapay checkout in?",
       "expected_output": "Agent routes to solvapay/lovable-checkout skill, not website-checkout.",
       "files": [],
       "assertions": [
@@ -28,7 +28,7 @@
     {
       "id": 3,
       "slug": "react-spa-hosted-checkout",
-      "prompt": "React 18 SPA with Vite frontend and a small Express API — add SolvaPay hosted checkout redirect and a return page. No Next.js in package.json.",
+      "prompt": "react spa with vite frontend and a small express api — add solvapay hosted checkout redirect and a return page. no next.js in package.json",
       "expected_output": "Agent follows references/react.md for SPA + backend checkout session contract.",
       "files": [],
       "assertions": [
@@ -40,7 +40,7 @@
     {
       "id": 4,
       "slug": "negative-sdk-full-paywall",
-      "prompt": "Add SolvaPay usage metering, webhooks, and paywall middleware on all /api/premium routes in Express — full SDK integration.",
+      "prompt": "add solvapay usage metering, webhooks, and paywall middleware on all /api/premium routes in express — full sdk integration not just checkout",
       "expected_output": "Agent routes to solvapay/sdk-integration, not website-checkout.",
       "files": [],
       "assertions": [

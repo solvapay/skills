@@ -1,0 +1,171 @@
+{
+  "skill_name": "lovable-checkout",
+  "description": "Use this skill when the user wants to add SolvaPay checkout to a Lovable app (Vite + shadcn + Supabase Edge) on the preview/dev channel with secrets server-side \u2014 paste-in checkout, gate content behind purchase, or set up billing; even when they do not name SolvaPay; no-backend preview flow. Triggers on: lovable checkout, lovible checkout, vite shadcn checkout solvapay, paste into lovable, solvapay lovable supabase @preview, @preview solvapay react-supabase install, my supabase checkout solvapay preview tag, solvapay secret only supabase server side not client, boss wants solvapay checkout pasted into our lovable vite app, i need paywall on lovable app do this fast, set up billing in my vite supabase app from lovable, shadcn ui purchase gate, supabase edge billing. Do not use for production Next.js checkout (solvapay/website-checkout), full SDK metering in an existing backend (solvapay/sdk-integration), or building a paid MCP server (solvapay/create-mcp-app).",
+  "results": [
+    {
+      "query": "solvapay lovable supabase @preview",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "@preview solvapay react-supabase install",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "my boss wanna solvapay checkout pasted into our lovable vite app by tomorrow",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "lovable paste this into chat checkout guide",
+      "should_trigger": true,
+      "trigger_rate": 1.0,
+      "triggers": 1,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "solvapay secret only supabase server side not client pls",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "vite shadcn checkout solvapay api-dev",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "i need paywall on lovable app do this fast",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "one shot set up billing in my vite + supabase app from lovable i dont wanna mess up secrets",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "hosted checkout nextjs production site",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "shadcn ui purchase gate lovible preview",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "website checkout nextjs app",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "my supabase checkout solvapay preview tag",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "my boss wanna solvapay sdk in express w webhooks not lovable",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "full sdk integration nextjs metering",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "scaffold mcp openapi cloudflare",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "where start solvapay",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "put solvapay secret in client env lovable",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "production solvapay.com checkout lovable",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "monetize mcp server openapi",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "customer portal nextjs hosted",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 20,
+    "passed": 11,
+    "failed": 9
+  }
+}
