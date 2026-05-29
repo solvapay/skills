@@ -31,10 +31,10 @@ Pick the variant that matches the context.
 | --- | --- | --- |
 | **Top-of-funnel** (README hero, marketing) | `npx skills add solvapay/skills` | Opens a multi-select prompt across all 5 skills. Best for human discovery. |
 | **Quickstart / "install everything"** | `npx skills add solvapay/skills --all -y` | Installs all 5 to every detected agent, no prompts. Optional convenience. |
-| **Surface-specific** (e.g. a docs page for one product) | `npx skills add solvapay/skills --skill solvapay/create-mcp-app -y` | Install just one skill. Each skill is self-contained. Use `solvapay/<surface>` ids. |
+| **Surface-specific** (e.g. a docs page for one product) | `npx skills add solvapay/skills --skill create-mcp-app -y` | Install just one skill. Routing id is `solvapay/<surface>`; CLI `--skill` uses the flat folder name. |
 | **Power user / CI** | `npx skills add solvapay/skills --all -g -y` | Non-interactive global install. |
 
-> Vague intent? Install `solvapay` alone — it routes by **skill id** (`solvapay/<surface>`) and tells the agent to run `npx skills add solvapay/skills --skill solvapay/<surface> -y` when needed.
+> Vague intent? Install `solvapay` alone — it routes by **routing id** (`solvapay/<surface>`) and tells the agent to run `npx skills add solvapay/skills --skill <surface> -y` when needed (flat CLI name, e.g. `create-mcp-app`).
 
 ## Documentation source priority
 
@@ -48,7 +48,7 @@ If MCP is unavailable, the skill continues with fallbacks. MCP setup is a recomm
 
 ## Maintainer note: MCP server wiring
 
-`skills/solvapay/create-mcp-app/references/mcp-server-wiring.md` is a vendored copy of `skills/solvapay/sdk-integration/references/mcp-server.md`. When you change MCP paywall wiring guidance, update **both** files (or add a sync script later).
+`skills/create-mcp-app/references/mcp-server-wiring.md` is a vendored copy of `skills/sdk-integration/references/mcp-server.md`. When you change MCP paywall wiring guidance, update **both** files (or add a sync script later).
 
 ## Evals
 
@@ -59,7 +59,7 @@ Per skill: `trigger-queries.json` (8–10 should-trigger + 8–10 should-not, tr
 ## Local development and testing
 
 1. Edit skill files in this repository.
-2. Install/update locally with `npx skills add . --skill solvapay/create-mcp-app` (or `--all -y` to mount everything).
+2. Install/update locally with `npx skills add . --skill create-mcp-app` (or `--all -y` to mount everything).
 3. Run 2–3 prompt checks per skill: routing intent, happy-path implementation, failure-path / troubleshooting.
 4. Verify outputs follow each skill's guardrails and the shared docs source priority.
 
@@ -75,7 +75,7 @@ To validate every skill against the [agentskills.io spec](https://agentskills.io
 npm run validate
 ```
 
-This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md` (router + nested `skills/solvapay/*`).
+This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md` (router + four flat surface skills).
 
 ## `AGENTS.md` symlinks
 
@@ -95,16 +95,16 @@ A skill is considered complete when:
 
 ```
 skills/
-└── solvapay/
-    ├── SKILL.md                    # Router (skill id: solvapay)
-    ├── AGENTS.md -> SKILL.md
-    ├── create-mcp-app/             # solvapay/create-mcp-app
-    │   ├── SKILL.md
-    │   ├── scripts/
-    │   └── references/
-    ├── sdk-integration/            # solvapay/sdk-integration
-    ├── website-checkout/           # solvapay/website-checkout
-    └── lovable-checkout/           # solvapay/lovable-checkout
+├── solvapay/                       # Router (routing id: solvapay)
+│   ├── SKILL.md
+│   └── AGENTS.md -> SKILL.md
+├── create-mcp-app/                 # routing id: solvapay/create-mcp-app
+│   ├── SKILL.md
+│   ├── scripts/
+│   └── references/
+├── sdk-integration/                # routing id: solvapay/sdk-integration
+├── website-checkout/               # routing id: solvapay/website-checkout
+└── lovable-checkout/               # routing id: solvapay/lovable-checkout
 ```
 
-Public skill ids use the `solvapay/<surface>` namespace. Each leaf directory's `name` frontmatter matches the leaf folder (e.g. `create-mcp-app`).
+Routing ids use the `solvapay/<surface>` namespace for handoffs. Each directory's `name` frontmatter matches the folder (e.g. `create-mcp-app`); `npx skills add --skill` uses that flat name.

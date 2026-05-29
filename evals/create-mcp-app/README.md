@@ -1,6 +1,6 @@
 # create-mcp-app evals
 
-Skill: `solvapay/create-mcp-app` at [../../skills/solvapay/create-mcp-app/](../../skills/solvapay/create-mcp-app/).
+Skill: `solvapay/create-mcp-app` at [../../skills/create-mcp-app/](../../skills/create-mcp-app/).
 
 Family-wide harness contract: [../README.md](../README.md).
 
@@ -9,8 +9,8 @@ Family-wide harness contract: [../README.md](../README.md).
 Eval prompts use:
 
 ```text
-<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs
-<skills-repo>/skills/solvapay/create-mcp-app/scripts/scaffold.mjs
+<skills-repo>/skills/create-mcp-app/scripts/describe.mjs
+<skills-repo>/skills/create-mcp-app/scripts/scaffold.mjs
 ```
 
 Set `SCAFFOLDER_SCRIPTS_DIR` to `create-solvapay/scripts/mcp` or install `create-solvapay` locally if resolution fails.

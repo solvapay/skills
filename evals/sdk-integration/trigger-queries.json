@@ -30,7 +30,7 @@
     "split": "train"
   },
   {
-    "query": "verify solvapay webhook signature in express — WEBHOOKS.md pattern.",
+    "query": "verify solvapay webhook signature in express — raw body before json parse.",
     "should_trigger": true,
     "split": "validation"
   },

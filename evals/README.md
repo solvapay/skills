@@ -9,10 +9,10 @@ Guides: [optimizing descriptions](https://agentskills.io/skill-creation/optimizi
 | Eval directory | Installed skill id | Skill path |
 | --- | --- | --- |
 | `evals/solvapay/` | `solvapay` | `skills/solvapay/SKILL.md` |
-| `evals/create-mcp-app/` | `solvapay/create-mcp-app` | `skills/solvapay/create-mcp-app/` |
-| `evals/sdk-integration/` | `solvapay/sdk-integration` | `skills/solvapay/sdk-integration/` |
-| `evals/website-checkout/` | `solvapay/website-checkout` | `skills/solvapay/website-checkout/` |
-| `evals/lovable-checkout/` | `solvapay/lovable-checkout` | `skills/solvapay/lovable-checkout/` |
+| `evals/create-mcp-app/` | `solvapay/create-mcp-app` | `skills/create-mcp-app/` |
+| `evals/sdk-integration/` | `solvapay/sdk-integration` | `skills/sdk-integration/` |
+| `evals/website-checkout/` | `solvapay/website-checkout` | `skills/website-checkout/` |
+| `evals/lovable-checkout/` | `solvapay/lovable-checkout` | `skills/lovable-checkout/` |
 
 ## Files per skill
 
@@ -92,8 +92,8 @@ Handoff / router cases assert **skill id** (`solvapay/sdk-integration`), not fil
 Default scaffolder path in prompts:
 
 ```text
-<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs
-<skills-repo>/skills/solvapay/create-mcp-app/scripts/scaffold.mjs
+<skills-repo>/skills/create-mcp-app/scripts/describe.mjs
+<skills-repo>/skills/create-mcp-app/scripts/scaffold.mjs
 ```
 
 ## Source control

@@ -1,0 +1,85 @@
+# Next.js SDK Guide
+
+Use App Router patterns and `@solvapay/next` helpers.
+
+## Prerequisites
+
+- Run `npx -y solvapay@latest init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
+  `.env`, and install base SDK packages.
+- Install additional packages for this flow:
+
+```bash
+npm install @solvapay/next @solvapay/react @solvapay/react-supabase
+```
+
+## Docs References (Topic-Based)
+
+- Topics: `nextjs guide`, `webhooks`, `testing`, `error handling`, `checkout sessions`, `customer sessions`.
+- Retrieval hint: resolve via MCP first; fallback to `llms.txt` topic lookup.
+
+## Recommended Flow
+
+1. Add middleware/proxy auth extraction for `/api/*`.
+2. Create API routes for checkout session, customer session, and access checks.
+3. Wrap app in `SolvaPayProvider` and connect auth adapter.
+4. Gate premium views based on purchase/access state.
+5. Add webhook endpoint to synchronize purchase/payment events.
+
+> **Breaking change in SDK 1.1:** every `@solvapay/next` route-wrapper helper (`checkPurchase`, `createPaymentIntent`, `processPaymentIntent`, `activatePlan`, `cancelRenewal`, `reactivateRenewal`, `createCheckoutSession`, `createCustomerSession`, `syncCustomer`, `listPlans`, `getMerchant`, `getProduct`, `getPaymentMethod`, `getCustomerBalance`, `trackUsage`) now always returns `Promise<NextResponse>`. Collapse handlers to `return wrapperHelper(request, body)` — remove any `result instanceof NextResponse ? result : NextResponse.json(result)` branches. For Server Components, call the `*Core` primitives from `@solvapay/server` directly and check with `isErrorResult`. `getAuthenticatedUser` / `getCustomerReference` / `syncCustomer` data helpers are unchanged.
+
+## Hosted vs Embedded Decision
+
+- Default to hosted checkout for faster integration and lower PCI burden.
+- Use embedded payment intents only when product requirements need custom payment UI.
+- If unclear, ask one clarifying question and continue with hosted checkout unless the user explicitly needs embedded UI.
+
+## Implementation Checklist
+
+- [ ] Auth middleware/proxy extracts stable user identity
+- [ ] `/api/create-checkout-session` implemented
+- [ ] `/api/create-customer-session` implemented
+- [ ] `/api/check-access` or equivalent implemented
+- [ ] UI redirects to hosted checkout/customer URLs
+- [ ] Webhook route verifies signatures and updates local state
+- [ ] `/api/cancel-renewal` implemented (if subscription management needed)
+- [ ] `/api/reactivate-renewal` implemented (if subscription management needed)
+- [ ] `/api/activate-plan` implemented (if free plans, credit activation, or plan switching needed)
+- [ ] `/api/list-plans` implemented (if plan selection UI needed)
+- [ ] `/api/merchant`, `/api/product`, `/api/payment-method` implemented (if you render branding, product details, or the mirrored card in account UI)
+
+## Verification
+
+1. Unauthenticated call to protected route returns 401.
+2. Authenticated customer can open checkout.
+3. Successful purchase unlocks premium route/component.
+4. Customer session redirects to portal successfully.
+5. At least one webhook event is received and processed.
+6. Cancel and reactivate renewal round-trips correctly (if implemented).
+7. Plan activation and switching works as expected (if implemented).
+
+Before handoff, emit a runnable verification artifact (curl block or test script) — not a prose summary. Adapt route paths to your project:
+
+```bash
+# Failure path — authenticated, no purchase → 402 with checkoutUrl
+curl -i http://localhost:3000/api/premium/data \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+# Expect: HTTP/1.1 402 ... body includes "checkoutUrl"
+
+# Happy path — after sandbox purchase → 200
+curl -i http://localhost:3000/api/premium/data \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+# Expect: HTTP/1.1 200
+```
+
+## Guardrails
+
+- Prefer hosted checkout unless user explicitly needs embedded card UX.
+- Keep all SolvaPay secret usage in route handlers only.
+- Always return clear 401/402 responses from protected API routes.
+
+## Troubleshooting
+
+- Redirect loop on auth routes -> middleware matcher too broad.
+- Checkout URL missing -> server route not returning SDK response shape.
+- Access not updated after purchase -> webhook not configured or stale cache.
+- Signature verification failures -> body parser/edge runtime mismatch or wrong secret.

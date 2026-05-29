@@ -16,10 +16,10 @@
       "strict": false,
       "skills": [
         "./skills/solvapay",
-        "./skills/solvapay/create-mcp-app",
-        "./skills/solvapay/sdk-integration",
-        "./skills/solvapay/lovable-checkout",
-        "./skills/solvapay/website-checkout"
+        "./skills/create-mcp-app",
+        "./skills/sdk-integration",
+        "./skills/lovable-checkout",
+        "./skills/website-checkout"
       ]
     }
   ]

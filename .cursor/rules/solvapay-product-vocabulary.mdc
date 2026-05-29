@@ -22,4 +22,4 @@ When a user's intent matches what a deprecated product used to cover (e.g. hoste
 
 ## Canonical name
 
-The current canonical skill id for the code-based paid-MCP path is `solvapay/create-mcp-app` (directory `skills/solvapay/create-mcp-app/`). The npm scaffolder is `create-solvapay` (`npm create solvapay -- --type mcp`). Older drafts referenced `create-paid-mcp-app`, `mcp-app`, or split the surface into `openapi-to-mcp` and `building-mcp-app` — all of those are historical.
+The current canonical skill id for the code-based paid-MCP path is `solvapay/create-mcp-app` (directory `skills/create-mcp-app/`). The npm scaffolder is `create-solvapay` (`npm create solvapay -- --type mcp`). Older drafts referenced `create-paid-mcp-app`, `mcp-app`, or split the surface into `openapi-to-mcp` and `building-mcp-app` — all of those are historical.

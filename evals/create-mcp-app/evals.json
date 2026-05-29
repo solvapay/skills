@@ -5,7 +5,7 @@
     {
       "id": 1,
       "slug": "intent-driven-petstore-v2",
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs` (set SCAFFOLDER_SCRIPTS_DIR or npm install create-solvapay if resolution fails). Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp`. Use intent-driven mode.",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs` (set SCAFFOLDER_SCRIPTS_DIR or npm install create-solvapay if resolution fails). Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp`. Use intent-driven mode.",
       "expected_output": "A scaffolded Cloudflare Workers MCP project at ./petstore-mcp/ with src/tools/ containing true intent-driven clusters (action-verb names like manage_pet, find_pet — NOT tag-named files like pets.ts/users.ts). selections.json written outside the project. Tools follow references/tool-design.md response-mode contract (c.respond with text narration). Tier assignments respect describe.mjs's suggestedTier output.",
       "files": [],
       "assertions": [
@@ -22,14 +22,14 @@
     {
       "id": 2,
       "slug": "one-to-one-petstore-v3",
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Wrap `https://petstore3.swagger.io/api/v3/openapi.json` as MCP tools. Greenfield, one-to-one mode is fine.",
-      "expected_output": "One-to-one scaffold with per-operation files. Agent fetches spec to a temp file before describe.mjs. Agent flags the serverProbeError advisory (Petstore v3 has relative servers[0] = /api/v3). Agent skips uploadFile (binary, unfit for MCP text tools). scaffold.mjs succeeds on first attempt (no 'target dir exists' error).",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Wrap `https://petstore3.swagger.io/api/v3/openapi.json` as MCP tools. Greenfield, one-to-one mode is fine.",
+      "expected_output": "One-to-one scaffold with per-operation files. Agent fetches spec to a temp file before describe.mjs. Agent flags the serverProbeError advisory (Petstore v3 has relative servers[0] = /api/v3). Agent skips uploadFile (binary, unfit for MCP text tools). scaffold.mjs completes successfully (retry into alternate dir after 'target dir exists' is acceptable on dirty workspaces).",
       "files": [],
       "assertions": [
         "The agent fetched the spec URL to a local temp file (e.g. /tmp/spec-*.json) BEFORE running describe.mjs — the URL was NOT passed directly to describe.mjs",
         "The agent flagged the serverProbeError advisory (Petstore v3's servers[0] is relative '/api/v3', not an absolute URL) and either fixed it in selections.json or surfaced it to the user as a known issue",
         "The agent set tier='skip' for uploadFile (or equivalent binary/multipart operation) in selections.json — these are unfit for MCP text tools",
-        "scaffold.mjs succeeded on the first invocation (no 'target dir exists' error in transcript; agent did not have to retry)",
+        "scaffold.mjs completed successfully and produced a valid project directory (retry into an alternate target dir after 'target dir exists' is acceptable on dirty workspaces)",
         "src/tools/ contains one file per non-skipped Petstore v3 operation (one-to-one mode — many files like getPetById.ts, findPetsByStatus.ts, etc.)",
         "src/tools/index.ts exists with a registerTools aggregator that imports and calls each per-operation register function",
         "The agent ran node scripts/describe.mjs against the local temp spec file"
@@ -54,7 +54,8 @@
         "The tool's handler returns c.respond(data, { text: narration }) — NOT raw content arrays, NOT custom MCP response shapes, NOT iframes/UI payloads",
         "./petstore-mcp/src/tools/index.ts was updated to import and call the new tool's register function",
         "The original ./petstore-mcp/package.json, wrangler.jsonc, and src/worker.ts were NOT overwritten or deleted",
-        "The agent read references/tool-design.md before authoring the tool (visible in transcript)"
+        "The new paid tool's `annotations` object includes `openWorldHint: true` — this flag is required for tools that call external APIs and is only documented in references/tool-design.md; agents without skill guidance typically omit it or set it to false",
+        "The new paid tool is registered exclusively via `ctx.registerPayable` — there is NO `ctx.server.registerTool` call for the same tool. Mixing the two registration APIs for one tool is an error only caught by reading tool-design.md"
       ]
     },
     {
@@ -83,7 +84,7 @@
     {
       "id": 5,
       "slug": "hitl-gates-g2-g6",
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/solvapay/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp-gated`. Use intent-driven mode at the default (standard) confirmation level, then author the intent-tool files matching the cluster proposal you surfaced at G2.",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: Generate an MCP server from `https://petstore.swagger.io/v2/swagger.json` into `./petstore-mcp-gated`. Use intent-driven mode at the default (standard) confirmation level, then author the intent-tool files matching the cluster proposal you surfaced at G2.",
       "expected_output": "The agent surfaces gate G2 — a structured cluster proposal listing the proposed intent_name / ops covered / tier / one-line description rows — BEFORE writing selections.json or invoking scaffold.mjs. After G2 approval, the agent surfaces gate G6 (selections.json preview with upstreamAuth.key redacted, showing the resolved mode / workerName / upstreamAuth payload) before running scaffold.mjs. After scaffold, the agent authors one `src/tools/<intent>.ts` per row of the G2 proposal and wires the aggregator. Gates use stable id strings (G2:approve, G6:run).",
       "files": [],
       "assertions": [
@@ -110,7 +111,8 @@
         "`generate_haiku` is registered via `ctx.registerPayable('generate_haiku', { title, description, schema, handler, annotations? })` — the 2-arg shape, second arg a single config object",
         "The handler returns `c.respond({ lines: [...] }, { text: <narration with render instruction> })` — not raw content arrays, not iframe payloads",
         "The Zod schema validates `topic: z.string()` (required) and `mood: z.enum(['serene','melancholy','playful']).optional()`",
-        "The agent read `references/from-scratch/guide.md` AND `references/from-scratch/scaffold-and-extend.md` AND `references/tool-design.md` (visible in transcript) — all three are load-bearing for the placeholder-replacement workflow"
+        "The `c.respond` call's text narration includes an explicit render instruction (e.g. 'Display as three lines of poetry', 'Show each line on its own line', or equivalent) — not just a bare data label or summary. Agents without skill guidance return raw content arrays or write narration with no render hint; the render-instruction pattern is only documented in references/tool-design.md",
+        "The `registerPayable` call's `annotations` object includes both `openWorldHint` and `readOnlyHint` properties (not omitted entirely) — annotation hygiene is enforced by tool-design.md and is typically absent when agents work without that reference"
       ]
     },
     {
@@ -127,7 +129,8 @@
         "No `wrangler.jsonc` is created (Cloudflare-specific; not applicable on Express)",
         "At least one paid tool is registered via `ctx.registerPayable(name, { title, description, schema, handler })` with the 2-arg shape, and its handler returns `c.respond(data, { text })`",
         "The agent did NOT run the OpenAPI agent path (`describe.mjs` / `scaffold.mjs` from `scripts/mcp/`) — there is no OpenAPI spec in this task",
-        "The agent read references/hosting/alternatives.md (visible in transcript) — it is the routing doc that documents the Node + Express wiring pattern"
+        "The `createSolvaPayMcpServer` call includes `mode: 'json-stateless'` — this option is required for stateless HTTP deployments on Node/Express and is only documented in references/hosting/alternatives.md; agents without that reference typically omit it or pass no mode",
+        "`createMcpOAuthBridge(...)` is spread into `app.use()` using the spread operator (e.g. `app.use(...createMcpOAuthBridge(...))`) — the bridge returns an array of Express route handlers that must be spread; calling it as a single middleware (`app.use(createMcpOAuthBridge(...))`) is a pattern error only caught by reading alternatives.md"
       ]
     },
     {
@@ -143,8 +146,9 @@
         "fixtures/petstore-mcp/src/tools/index.ts"
       ],
       "assertions": [
-        "The agent read references/existing-server.md (visible in transcript)",
         "The agent did NOT run scaffold.mjs or npm create solvapay as the primary path",
+        "`hideToolsByAudience: ['ui']` is present in the `createSolvaPayMcpFetch` or `createSolvaPayMcpServer` call in `./petstore-mcp/src/worker.ts` — this option hides SolvaPay's internal virtual tools from text-only MCP clients and is only documented in references/existing-server.md; agents without that reference do not know it exists",
+        "Any SolvaPay API client (e.g. `createSolvaPay(...)`) is instantiated per-request (inside the `fetch()` handler or equivalent), NOT at module scope — module-scope instantiation breaks in Cloudflare Workers isolates and the per-request requirement is a key gotcha in references/existing-server.md",
         "At least one tool uses ctx.registerPayable with the 2-arg config-object shape",
         "Paid handler returns c.respond(data, { text }) — not raw MCP content arrays",
         "./petstore-mcp/src/worker.ts was not replaced with a greenfield scaffold default"

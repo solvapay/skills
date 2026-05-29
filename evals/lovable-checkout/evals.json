@@ -5,10 +5,10 @@
       "id": 1,
       "slug": "lovable-preview-edge-checkout",
       "prompt": "Wire SolvaPay hosted checkout into my Lovable app (Vite + shadcn + Supabase). Use the preview/dev backend and paste-in flow.",
-      "expected_output": "Agent loads lovable-checkout, reads references/GUIDE.md, installs @preview packages, creates Supabase edge functions, keeps secret in edge secrets only.",
+      "expected_output": "Agent loads lovable-checkout, reads reference material (GUIDE.md index or numbered 01/02/03 files), installs @preview packages, creates Supabase edge functions, keeps secret in edge secrets only.",
       "files": [],
       "assertions": [
-        "Agent reads references/GUIDE.md",
+        "Agent reads the lovable-checkout reference material (GUIDE.md index or the numbered 01-edge-and-secrets / 02-provider-and-routes / 03-troubleshooting files it points to)",
         "SOLVAPAY_SECRET_KEY is placed in Supabase edge secrets — not VITE_* or committed .env in repo",
         "Uses @solvapay/react@preview and @solvapay/react-supabase@preview (or equivalent @preview guidance)",
         "Browser calls go through Supabase edge functions, not direct api-dev fetch with secret"
@@ -29,12 +29,12 @@
       "id": 3,
       "slug": "lovable-supabase-secret-placement",
       "prompt": "Lovable app — can I put SOLVAPAY_SECRET_KEY in .env as VITE_SOLVAPAY_SECRET so the vite client can create checkout sessions?",
-      "expected_output": "Agent refuses client-side secret, follows GUIDE.md edge-secret pattern and edge-proxied API calls.",
+      "expected_output": "Agent refuses client-side secret, follows edge-secret pattern from 01-edge-and-secrets.md (or GUIDE.md index) and edge-proxied API calls.",
       "files": [],
       "assertions": [
         "Agent explicitly rejects exposing SOLVAPAY_SECRET_KEY via VITE_* or client bundle",
         "Agent directs secret to Supabase edge secrets (or equivalent server-only storage)",
-        "Agent references references/GUIDE.md"
+        "Agent cites the secret-placement guardrail from the lovable-checkout references (01-edge-and-secrets.md or GUIDE.md)"
       ]
     }
   ]
