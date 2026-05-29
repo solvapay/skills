@@ -27,11 +27,11 @@ SolvaPay-monetized MCP server on Cloudflare Workers. OpenAPI auto-generation or 
 - Never set `_meta.ui.resourceUri` on merchant payable tools.
 - Never return custom iframe/UI on paywall gates — text-only narration naming the recovery intent tool.
 - Always use `mode: 'json-stateless'` on stateless edge runtimes.
-- Never edit `src/worker.ts` on deploy-existing tasks — leave it byte-for-byte unchanged; add deploy scaffolding only.
+- **Never edit `src/worker.ts` on deploy-existing tasks** — leave it byte-for-byte unchanged; add deploy scaffolding only. This applies even if the call shape looks stale, uses an older API, or is missing options — do NOT patch it. If you notice API drift, note it in the handoff as a follow-up item but do not touch the file.
 
 ## Gotchas
 
-- **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, or the canonical template. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy.
+- **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, the canonical template, or "stale API shape" patches. Run `npx wrangler whoami` as the first pre-flight command (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy.
 - `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
 - `ctx.registerPayable(name, config)` takes **exactly two arguments**.
 - Paid handlers use `c.respond(data, { text })` — never raw `content` arrays.
@@ -48,8 +48,9 @@ Before writing tool code:
 1. This SKILL.md — routing, input mode, host.
 2. [references/tool-design.md](references/tool-design.md) — `registerPayable` shape, response contract.
 3. One input-mode guide: [references/from-openapi/guide.md](references/from-openapi/guide.md) **or** [references/from-scratch/guide.md](references/from-scratch/guide.md) **or** [references/existing-server.md](references/existing-server.md).
+4. **If intent-driven mode (OpenAPI):** also read [references/from-openapi/intent-driven.md](references/from-openapi/intent-driven.md) (defines G2/G3/G7 gate shapes and cluster patterns) **and** [references/from-openapi/scaffold.md](references/from-openapi/scaffold.md) (defines G6 gate and `selections.json` preview rules) before executing any gate.
 
-Do not write `registerPayable(...)`, `additionalTools`, or `src/tools/*` until all three are loaded.
+Do not write `registerPayable(...)`, `additionalTools`, or `src/tools/*` until all required files are loaded.
 
 ## Routing procedure
 
