@@ -3,24 +3,38 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Wire SolvaPay hosted checkout into my Lovable app (Vite + shadcn + Supabase). Use the preview/dev backend.",
-      "expected_output": "Agent loads lovable-checkout, reads references/GUIDE.md, installs @preview packages, creates Supabase edge functions, keeps secret in edge secrets only.",
+      "slug": "lovable-preview-edge-checkout",
+      "prompt": "add solvapay checkout to my lovable app, i just wanna paste it in",
+      "expected_output": "Agent loads lovable-checkout, reads reference material (GUIDE.md index or numbered 01/02/03 files), installs @preview packages, creates Supabase edge functions, keeps secret in edge secrets only.",
       "files": [],
-      "expectations": [
-        "Agent reads references/GUIDE.md",
-        "SOLVAPAY_SECRET_KEY is placed in Supabase edge secrets — not VITE_* or .env in repo",
-        "Uses @solvapay/react@preview and @solvapay/react-supabase@preview",
-        "Browser calls go through Supabase edge functions, not direct api-dev fetch"
+      "assertions": [
+        "Agent reads the lovable-checkout reference material (GUIDE.md index or the numbered 01-edge-and-secrets / 02-provider-and-routes / 03-troubleshooting files it points to)",
+        "SOLVAPAY_SECRET_KEY is placed in Supabase edge secrets — not VITE_* or committed .env in repo",
+        "Uses @solvapay/react@preview and @solvapay/react-supabase@preview (or equivalent @preview guidance)",
+        "Browser calls go through Supabase edge functions, not direct api-dev fetch with secret"
       ]
     },
     {
       "id": 2,
-      "prompt": "Add SolvaPay checkout to my Next.js production website.",
-      "expected_output": "Agent routes to website-checkout, not lovable-checkout (preview-only skill).",
+      "slug": "negative-nextjs-production",
+      "prompt": "add solvapay checkout to my nextjs production website on vercel — not a lovable project",
+      "expected_output": "Agent routes to solvapay/website-checkout, not lovable-checkout (preview-only skill).",
       "files": [],
-      "expectations": [
-        "Handoff to website-checkout or explicit note that lovable-checkout is preview/dev only",
-        "Does not pin @preview for production Next.js path"
+      "assertions": [
+        "Handoff to solvapay/website-checkout or explicit note that lovable-checkout is preview/dev only",
+        "Does not pin @preview packages for production Next.js path"
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "lovable-supabase-secret-placement",
+      "prompt": "lovable app — can i just put my solvapay secret key in my app so it can do checkout? where does it go",
+      "expected_output": "Agent refuses client-side secret, follows edge-secret pattern from 01-edge-and-secrets.md (or GUIDE.md index) and edge-proxied API calls.",
+      "files": [],
+      "assertions": [
+        "Agent explicitly rejects exposing SOLVAPAY_SECRET_KEY via VITE_* or client bundle",
+        "Agent directs secret to Supabase edge secrets (or equivalent server-only storage)",
+        "Agent cites the secret-placement guardrail from the lovable-checkout references (01-edge-and-secrets.md or GUIDE.md)"
       ]
     }
   ]

@@ -4,3 +4,4 @@ node_modules/
 # Eval run outputs (regenerable, see evals/ for the specs)
 evals/**/iterations/
 eval-workspaces/
+eval-results/

@@ -1,0 +1,57 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Acme Widgets API (Bearer)",
+    "version": "1.0.0",
+    "description": "Eval fixture for the bearer auth scenario: every operation authenticates with an HTTP Bearer token (Authorization: Bearer <token>). Generic Acme Widgets API — no real vendor."
+  },
+  "servers": [{ "url": "https://api.acme-widgets.test" }],
+  "security": [{ "acme-bearer": [] }],
+  "paths": {
+    "/widgets/{id}": {
+      "get": {
+        "operationId": "getWidget",
+        "summary": "Fetch a widget by ID.",
+        "tags": ["Widgets"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "example": "wdg_123" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget details",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } } }
+          }
+        }
+      }
+    },
+    "/widgets": {
+      "post": {
+        "operationId": "createWidget",
+        "summary": "Create a widget.",
+        "tags": ["Widgets"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "example": "Sprocket" } } }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Widget created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "acme-bearer": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT", "description": "Acme API bearer token." }
+    },
+    "schemas": {
+      "Widget": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } }
+    }
+  }
+}

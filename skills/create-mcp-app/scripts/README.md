@@ -5,7 +5,10 @@ Thin wrappers around the `create-solvapay` scaffolder scripts. Run from the skil
 ```bash
 node scripts/describe.mjs path/to/openapi.json
 node scripts/scaffold.mjs path/to/openapi.json ./target --selections /tmp/selections.json
+node scripts/validate-selections.mjs /tmp/selections.json
 ```
+
+All skill scripts support `--help`. Upstream scaffolder scripts (`describe.mjs`, `scaffold.mjs`) also support `--help` when resolved.
 
 ## Resolution order
 

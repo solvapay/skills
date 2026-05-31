@@ -2,6 +2,45 @@
 
 Code templates for the three intent-tool shapes referenced from [intent-driven.md](intent-driven.md). Read the design context in [intent-driven.md](intent-driven.md) (mode question, clustering heuristics, gate contracts, tier rules) **before** copy-pasting from this file. The contract for `registerPayable` / `c.respond` lives in [../tool-design.md](../tool-design.md) — non-negotiable, regardless of how familiar these templates feel.
 
+## Upstream auth headers (by `upstreamAuth.kind`)
+
+In intent-driven mode the scaffolder writes **no** tool files — so you inject the upstream credential yourself in every tool's `headers`. Scaffold has already seeded the secret(s) into `.env` and declared them on the `Env` interface based on `selections.json.upstreamAuth.kind`; your job is to read them off `env` in each handler. Match the snippet to the kind:
+
+| `upstreamAuth.kind` | `env` binding(s) | Header snippet inside `upstreamFetchJson` |
+| --- | --- | --- |
+| `none` | — | `headers: { 'content-type': 'application/json' }` (drop the `env` param from the register fn) |
+| `bearer` | `UPSTREAM_API_KEY` | `` authorization: `Bearer ${env.UPSTREAM_API_KEY}` `` |
+| `apiKey` | `UPSTREAM_API_KEY` | `'<header-name>': env.UPSTREAM_API_KEY` (header name from the spec, lower-cased) |
+| `oauth2-client-credentials` | `UPSTREAM_OAUTH_*` | `const token = await getAccessToken(env)` before the call, then `` authorization: `Bearer ${token}` `` (import `getAccessToken` from `'../lib/upstreamOAuth'`) |
+| **`apiKey-multi`** | `UPSTREAM_API_HEADERS` | spread the whole header set (see below) |
+
+### `apiKey-multi` — spread `UPSTREAM_API_HEADERS`
+
+For APIs that require **two or more static credential headers** (e.g. `x-leyr-client-id` + `x-leyr-client-secret`, or VTEX's `X-VTEX-API-AppKey` + `X-VTEX-API-AppToken`), scaffold seeds a **single** env var, `UPSTREAM_API_HEADERS`, holding a compact-JSON object keyed by header name → value. Spread it into every request's `headers` — don't hard-code the header names:
+
+```ts
+const data = await upstreamFetchJson<Appointment>(url, {
+  method: 'POST',
+  headers: {
+    ...(JSON.parse(env.UPSTREAM_API_HEADERS ?? '{}') as Record<string, string>),
+    'content-type': 'application/json',
+  },
+  body: JSON.stringify({ /* ... */ }),
+})
+```
+
+This is N-agnostic (works for two headers or three), keeps the header names in `.env` rather than the source, and matches exactly what the one-to-one codegen emits. The register function takes `(ctx, env)` because the handler reads `env`. For a parallel fan-out, build the spread once and reuse it across legs:
+
+```ts
+const upstreamHeaders = JSON.parse(env.UPSTREAM_API_HEADERS ?? '{}') as Record<string, string>
+const [a, b] = await Promise.all([
+  upstreamFetchJson<A>(urlA, { headers: upstreamHeaders }),
+  upstreamFetchJson<B>(urlB, { headers: upstreamHeaders }),
+])
+```
+
+> The templates below use the `bearer` snippet (`Bearer ${env.UPSTREAM_API_KEY}`) for brevity. If your spec resolved to a different kind, swap the header block per the table above — the rest of each pattern is unchanged.
+
 ## The three patterns
 
 Every intent tool follows one of these three shapes. Copy the template, fill in the spec-specific bits, drop it into `src/tools/`.

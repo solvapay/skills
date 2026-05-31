@@ -1,0 +1,57 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Acme Widgets API (single API key)",
+    "version": "1.0.0",
+    "description": "Eval fixture for the single-header apiKey scenario: every operation authenticates with ONE API key header (X-Acme-Api-Key). Generic Acme Widgets API — no real vendor."
+  },
+  "servers": [{ "url": "https://api.acme-widgets.test" }],
+  "security": [{ "acme-api-key": [] }],
+  "paths": {
+    "/widgets/{id}": {
+      "get": {
+        "operationId": "getWidget",
+        "summary": "Fetch a widget by ID.",
+        "tags": ["Widgets"],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "example": "wdg_123" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget details",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } } }
+          }
+        }
+      }
+    },
+    "/widgets": {
+      "post": {
+        "operationId": "createWidget",
+        "summary": "Create a widget.",
+        "tags": ["Widgets"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "example": "Sprocket" } } }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Widget created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "acme-api-key": { "type": "apiKey", "in": "header", "name": "X-Acme-Api-Key", "description": "Acme API key, single header." }
+    },
+    "schemas": {
+      "Widget": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } }
+    }
+  }
+}

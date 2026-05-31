@@ -2,6 +2,16 @@
 
 Continues from [setup.md](setup.md). Templates: [widget-templates-config.md](widget-templates-config.md), [widget-templates-widget-and-scripts.md](widget-templates-widget-and-scripts.md). For common failure modes see [troubleshooting.md](troubleshooting.md).
 
+## Pre-flight (deploy-existing)
+
+Before Step 8, run:
+
+```bash
+npx wrangler whoami
+```
+
+Confirms Cloudflare auth and prints your account's `*.workers.dev` subdomain (needed for `MCP_PUBLIC_BASE_URL`). On deploy-existing tasks, do **not** edit `src/worker.ts` — add scaffolding only.
+
 ## Step 8 — Deploy
 
 ```bash
