@@ -1,15 +1,23 @@
 # Supabase Edge Functions Guide
 
-Use `@solvapay/server/fetch` to deploy SolvaPay endpoints as Supabase Edge Functions with one-liner handlers. This subpath replaces the older standalone `@solvapay/supabase` / `@solvapay/fetch` packages — same handlers, same signatures, now co-located with the `*Core` helpers they wrap.
+## Contents
 
-## When To Use
+- When to use
+- Prerequisites
+- Implementation checklist
+- Deno import map
+- Troubleshooting
+
+Use `@solvapay/server/fetch` one-liner handlers on Supabase Edge Functions.
+
+## When to use
 
 - Project uses Supabase as backend (React/Vite + Supabase, Lovable, Bolt)
 - `supabase/functions/` directory exists or will be created
 - No Node.js backend (Next.js, Express) is available for API routes
 - Deno/Edge runtime is the deployment target
 
-If the project already has a Next.js backend, prefer [nextjs.md](nextjs.md) instead.
+If the project already has a Next.js backend, use the Next.js stack guide from sdk-integration SKILL.md instead.
 
 ## Prerequisites
 

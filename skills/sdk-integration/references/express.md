@@ -1,57 +1,49 @@
 # Express SDK Guide
 
-Use SolvaPay paywall wrappers around Express business handlers.
+## Contents
 
-## Prerequisites
+- Implementation checklist
+- Route protection pattern
+- Validation
+- Troubleshooting
 
-- Run `npx -y solvapay@latest init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
-  `.env`, and install base SDK packages.
-- Base packages from init are sufficient for this flow.
+Paywall wrappers around Express business handlers.
 
-## Docs References (Topic-Based)
+## Implementation checklist
 
-- Topics: `express guide`, `limits`, `usage`, `checkout sessions`, `error handling`, `testing`.
-- Retrieval hint: resolve guide topic first; pull API operation topics only when needed.
+- [ ] Run `npx -y solvapay@latest init`
+- [ ] Initialize SolvaPay server client
+- [ ] Create `payable` handler with product configuration
+- [ ] Wrap routes with `payable.http(...)`
+- [ ] Pass stable customer reference from auth/header
+- [ ] Verify free-tier path works
+- [ ] Verify over-limit returns 402 with checkout URL
+- [ ] Verify protected logic skipped when limits deny access
 
-## Recommended Flow
-
-1. Initialize SolvaPay server client.
-2. Create `payable` handler with product configuration.
-3. Wrap routes with `payable.http(...)`.
-4. Pass stable customer reference from auth/header.
-5. Add usage tracking and failure-path responses.
-
-## Route Protection Pattern
-
-Use one payable handler per product:
+## Route protection pattern
 
 ```typescript
 const payable = solvaPay.payable({ product: 'prd_api' })
 app.post('/v1/generate', payable.http(generateHandler))
 ```
 
-Plans are managed on the product in SolvaPay Console. The SDK resolves the correct plan from the customer's purchase automatically.
+Plans live in SolvaPay Console — SDK resolves plan from customer purchase.
 
 ## Validation
 
-- Ensure free-tier path works.
-- Ensure request over limit returns payment-required response with checkout URL.
-- Ensure per-customer isolation is preserved.
-- Ensure protected logic is never executed when limits deny access.
+- Free-tier path works.
+- Over-limit returns payment-required with checkout URL.
+- Per-customer isolation preserved.
+- Protected logic not executed when limits deny.
 
-## 402 Handling Guidance
+## 402 handling
 
-- Return structured message with checkout/upgrade URL.
-- Keep client retry logic idempotent and user-visible.
-- Log product/plan/customer context for debugging.
-
-## Guardrails
-
-- Never hardcode temporary demo refs in production.
-- Never skip customer identity extraction for protected endpoints.
+- Structured message with checkout/upgrade URL.
+- Idempotent client retry logic.
+- Log product/plan/customer context.
 
 ## Troubleshooting
 
-- 402 for every request -> wrong plan/product refs or missing customer identity.
-- No paywall enforcement -> route not wrapped with `payable.http(...)`.
-- Inconsistent limits -> customer reference unstable across requests.
+- 402 every request → wrong plan/product refs or missing customer identity.
+- No enforcement → route not wrapped with `payable.http(...)`.
+- Inconsistent limits → unstable customer reference.

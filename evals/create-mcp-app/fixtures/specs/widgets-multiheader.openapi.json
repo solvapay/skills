@@ -1,0 +1,174 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Acme Widgets API",
+    "version": "1.0.0",
+    "description": "Eval fixture for the apiKey-multi auth scenario: every operation requires TWO static credential headers together (X-Acme-App-Key AND X-Acme-App-Token) — the OpenAPI 'multiple required schemes (AND)' case, with no token exchange. Deliberately named AppKey/AppToken (not client-id/secret) so the scenario exercises the generic apiKey-multi kind, not an id/secret special case."
+  },
+  "servers": [
+    { "url": "https://api.acme-widgets.test" }
+  ],
+  "security": [
+    { "acme-app-key": [], "acme-app-token": [] }
+  ],
+  "paths": {
+    "/widgets": {
+      "get": {
+        "operationId": "listWidgets",
+        "summary": "List widgets.",
+        "tags": ["Widgets"],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Filter by lifecycle status.",
+            "schema": { "type": "string", "enum": ["active", "archived"], "example": "active" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of widgets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Widget" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createWidget",
+        "summary": "Create a widget.",
+        "tags": ["Widgets"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string", "example": "Sprocket" },
+                  "status": { "type": "string", "enum": ["active", "archived"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Widget created",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } }
+            }
+          }
+        }
+      }
+    },
+    "/widgets/{id}": {
+      "get": {
+        "operationId": "getWidget",
+        "summary": "Fetch a widget by ID.",
+        "tags": ["Widgets"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Widget identifier.",
+            "schema": { "type": "string", "example": "wdg_123" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget details",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateWidget",
+        "summary": "Update a widget.",
+        "tags": ["Widgets"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "example": "wdg_123" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "status": { "type": "string", "enum": ["active", "archived"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Widget updated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteWidget",
+        "summary": "Delete a widget.",
+        "tags": ["Widgets"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "example": "wdg_123" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "Widget deleted" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "acme-app-key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Acme-App-Key",
+        "description": "Acme application key, generated in the Acme developer portal."
+      },
+      "acme-app-token": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Acme-App-Token",
+        "description": "Acme application token, paired with the app key. Sent on every request alongside the key."
+      }
+    },
+    "schemas": {
+      "Widget": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "archived"] }
+        }
+      }
+    }
+  }
+}

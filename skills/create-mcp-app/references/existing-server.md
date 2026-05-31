@@ -75,6 +75,29 @@ Match your runtime to the right `@solvapay/mcp` subpath:
 
 See [hosting/alternatives.md](hosting/alternatives.md) for the full matrix with platform docs links.
 
+## Cloudflare Workers: env bindings are per-request, not module-scope
+
+On Cloudflare Workers, secrets and vars arrive as `env.*` bindings inside the `fetch()` handler — they are **not** available at module scope. Do **not** call `createSolvaPay(...)` or read `env.SOLVAPAY_SECRET_KEY` at the top level of your worker module; it will be `undefined`.
+
+The correct pattern is the lazy-cached handler used in the scaffold template:
+
+```ts
+let cachedHandler: ((req: Request) => Promise<Response>) | undefined
+
+function getHandler(env: Env) {
+  if (cachedHandler) return cachedHandler
+  cachedHandler = createSolvaPayMcpFetch({
+    solvaPay: createSolvaPay({ apiKey: env.SOLVAPAY_SECRET_KEY }),
+    // ...
+  })
+  return cachedHandler
+}
+
+export default { fetch: (req, env) => getHandler(env)(req) }
+```
+
+This initialises `createSolvaPay` once per isolate (not once per request), reading `env.*` safely. **This constraint is Cloudflare Workers-specific** — on Node, Bun, or Deno, reading `process.env` / `Deno.env` at module scope is fine.
+
 ## Wire the paywall
 
 Follow [`sdk-integration/references/mcp-server.md`](../../sdk-integration/references/mcp-server.md) for:

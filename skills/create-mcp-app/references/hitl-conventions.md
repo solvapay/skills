@@ -85,6 +85,7 @@ When a gate previews a payload that includes secrets, redact before rendering:
 | ---------------------------------- | -------------- |
 | `upstreamAuth.key`                 | `"<redacted>"` |
 | `upstreamAuth.clientSecret`        | `"<redacted>"` |
+| `upstreamAuth.headers[].value`     | `"<redacted>"` (redact **every** entry's value; `name` renders verbatim) |
 | Any field whose name ends `secret` | `"<redacted>"` |
 | Any field whose name ends `Key`    | `"<redacted>"` (when value looks like a token / >12 chars and not a URL) |
 

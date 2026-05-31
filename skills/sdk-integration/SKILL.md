@@ -27,7 +27,7 @@ Add SolvaPay to an existing TypeScript / JavaScript app via the `@solvapay/*` pa
    - [references/express.md](references/express.md)
    - [references/mcp-server.md](references/mcp-server.md) — fetch-first MCP server already in place (Cloudflare Workers, Supabase Edge, Deno)
    - [references/supabase-edge.md](references/supabase-edge.md)
-4. Use [references/REFERENCE.md](references/REFERENCE.md) for the package map and API operations; [references/WEBHOOKS.md](references/WEBHOOKS.md) for signature verification.
+4. Use [references/operations.md](references/operations.md) for API operations; [references/env-and-init.md](references/env-and-init.md) for env vars and init; [references/mcp-product-console.md](references/mcp-product-console.md) for MCP product setup; [references/WEBHOOKS.md](references/WEBHOOKS.md) for signature verification.
 
 ## Stack Detection Rules
 

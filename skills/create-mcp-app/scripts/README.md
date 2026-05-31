@@ -5,7 +5,10 @@ Thin wrappers around the `create-solvapay` scaffolder scripts. Run from the skil
 ```bash
 node scripts/describe.mjs path/to/openapi.json
 node scripts/scaffold.mjs path/to/openapi.json ./target --selections /tmp/selections.json
+node scripts/validate-selections.mjs /tmp/selections.json
 ```
+
+All skill scripts support `--help`. Upstream scaffolder scripts (`describe.mjs`, `scaffold.mjs`) also support `--help` when resolved.
 
 ## Resolution order
 
@@ -21,6 +24,27 @@ On first use against a fresh checkout, install scaffolder deps once:
 ( cd "$SCAFFOLDER_SCRIPTS_DIR" && npm install )
 # or: ( cd solvapay-sdk/packages/create-solvapay/scripts/mcp && npm install )
 ```
+
+### Stable vs preview (`--dev`)
+
+When resolving via the local npm package (option 2), pick the dist-tag that
+matches the run:
+
+```bash
+# standard (stable) — what end users get
+npm install create-solvapay
+
+# --dev / internal testing — pulls the preview build, which carries
+# preview-only features the skill docs describe (e.g. apiKey-multi).
+npm install create-solvapay@preview
+```
+
+Installing stable (`@latest`) while running `--dev` is the trap that bites:
+`scaffold.mjs` rejects preview-only `upstreamAuth.kind` values (such as
+`apiKey-multi`) with ``upstreamAuth.kind` must be one of none, bearer, apiKey,
+oauth2-client-credentials``. `resolve-scaffolder.mjs` warns when it detects a
+stable build under a dev backend, but pinning `@preview` at install time avoids
+the mismatch entirely.
 
 ## Project-local scripts
 
