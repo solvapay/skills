@@ -1,6 +1,13 @@
 # Next.js Hosted Checkout
 
-Add SolvaPay hosted checkout and customer portal to a Next.js App Router project.
+## Contents
+
+- Step 1 — Setup
+- Step 2 — Authentication
+- Step 3 — Checkout and portal routes
+- Verification flow
+
+Add SolvaPay hosted checkout and customer portal to Next.js App Router.
 
 ## What you build
 
@@ -151,6 +158,23 @@ window.location.href = checkoutUrl
 4. App refreshes purchase / access state and unlocks features.
 5. Customer portal redirect works.
 
+Before handoff, emit a runnable verification artifact (curl block or test script) — not a prose summary:
+
+```bash
+# Happy path — after sandbox checkout, access refresh returns granted
+curl -i -X POST http://localhost:3000/api/check-access \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"productRef":"'"$NEXT_PUBLIC_PRODUCT_REF"'"}'
+# Expect: { "hasAccess": true } (or equivalent granted payload)
+
+# Failure path — unauthenticated checkout blocked
+curl -i -X POST http://localhost:3000/api/create-checkout-session \
+  -H "Content-Type: application/json" \
+  -d '{"productRef":"'"$NEXT_PUBLIC_PRODUCT_REF"'","planRef":"pln_..."}'
+# Expect: HTTP/1.1 401
+```
+
 ## Note
 
-For advanced SDK patterns (usage metering, Express/MCP paths, webhook-heavy flows), see the [`sdk-integration`](../../sdk-integration/SKILL.md) skill.
+For usage metering, Express/MCP paths, or webhook-heavy flows, hand off to `solvapay/sdk-integration` (install separately).

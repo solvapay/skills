@@ -21,8 +21,11 @@ Self-contained guide for wiring SolvaPay hosted checkout into a Lovable app. The
 
 ## Quick Start
 
-1. Read [references/GUIDE.md](references/GUIDE.md) end-to-end before generating code. The guide owns environment setup, Supabase edge function templates, the `@preview` install commands, and the Lovable-specific guardrails. It's also designed to be pasted into the Lovable chat verbatim to bias the agent toward a working integration on turn zero.
-2. Cross-reference [references/REFERENCE.md](references/REFERENCE.md) for the package + hook map and extended troubleshooting.
+1. Read references in order before generating code:
+   - [references/01-edge-and-secrets.md](references/01-edge-and-secrets.md) — Supabase edge function secrets and env setup
+   - [references/02-provider-and-routes.md](references/02-provider-and-routes.md) — `@preview` install, provider wiring, edge routes
+   - [references/03-troubleshooting-and-sandbox.md](references/03-troubleshooting-and-sandbox.md) — sandbox verification and common failures
+2. Cross-reference [references/GUIDE.md](references/GUIDE.md) for the paste-into-Lovable index (links to the files above).
 
 ## Guardrails
 

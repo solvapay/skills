@@ -35,8 +35,9 @@ Before writing any tool code, load these files in order:
 1. This SKILL.md — routing decision (existing project vs greenfield, input mode, host).
 2. [references/tool-design.md](references/tool-design.md) — the response-mode contract, gate rules, `registerPayable` shape.
 3. Exactly one input-mode guide: [references/from-openapi/guide.md](references/from-openapi/guide.md) **or** [references/from-scratch/guide.md](references/from-scratch/guide.md) **or** [references/existing-server.md](references/existing-server.md).
+4. **If intent-driven mode (OpenAPI):** also read [references/from-openapi/intent-driven.md](references/from-openapi/intent-driven.md) (defines G2/G3/G7 gate shapes and cluster patterns) **and** [references/from-openapi/scaffold.md](references/from-openapi/scaffold.md) (defines G6 gate and `selections.json` preview rules) before executing any gate.
 
-Do not write `registerPayable(...)`, `additionalTools`, or new files under `src/tools/` until those three files are loaded.
+Do not write `registerPayable(...)`, `additionalTools`, or new files under `src/tools/` until all required files are loaded.
 
 **`tool-design.md` is non-negotiable**, including when you think you've seen the patterns before. It is the only file that pins down the `registerPayable(name, config)` two-argument shape, the `c.respond(data, { text })` response-mode contract, and the rule that paid handlers never return raw `content` arrays. Routing past it and authoring tools "from memory" is the single most common failure mode in this skill — the input-mode guides build on it and do not duplicate its contract. If you find yourself about to call `registerPayable` and you cannot recall those rules verbatim, you have not read `tool-design.md`; stop and read it.
 
@@ -145,9 +146,12 @@ Inherited by both input modes; `from-openapi/` and `from-scratch/` no longer rep
 - Never return a custom iframe or structured UI payload on a paywall gate. Gates are **text-only** in `content[0].text` naming the recovery intent tool; the widget only mounts on deliberate intent-tool calls.
 - Always use `mode: 'json-stateless'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge). Isolates don't pin across requests, so in-memory sessions break.
 - Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
+- **Never edit `src/worker.ts` on deploy-existing tasks** — leave it byte-for-byte unchanged; add deploy scaffolding only. This applies even if the call shape looks stale, uses an older API, or is missing options — do NOT patch it. If you notice API drift, note it in the handoff as a follow-up item but do not touch the file.
 
 ## Gotchas
 
+- **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, the canonical template, or "stale API shape" patches. Run `npx wrangler whoami` as the first pre-flight command (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy. **Exception:** paywall-wiring tasks (e.g. "add SolvaPay paywall to my existing MCP server") explicitly require editing `src/worker.ts` — the deploy guardrail does not apply to those tasks.
+- `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
 - `ctx.registerPayable(name, config)` takes **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
 - Paid handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from paid handlers.
 - Run `node scripts/describe.mjs` against a **local spec file** — fetch URLs to `/tmp/spec-*.json` first; don't pass URLs directly.
@@ -185,7 +189,7 @@ When the chosen mode + host guide completes, confirm:
 - Hand-written mode: [references/from-scratch/](references/from-scratch/)
 - Existing-server integration: [references/existing-server.md](references/existing-server.md)
 - Host details: [references/hosting/](references/hosting/)
-- Scaffolder scripts (`describe.mjs` / `scaffold.mjs`): [scripts/README.md](scripts/README.md)
+- Scaffolder scripts (`describe.mjs` / `scaffold.mjs` / `validate-selections.mjs`): [scripts/README.md](scripts/README.md)
 
 ## Task progress
 

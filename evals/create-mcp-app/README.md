@@ -1,59 +1,34 @@
 # create-mcp-app evals
 
-This directory defines the eval suite for the `create-mcp-app` skill (which lives at [../../skills/create-mcp-app/](../../skills/create-mcp-app/)). The harness that executes these evals lives outside this repo; this README is the contract it implements.
+Skill: `solvapay/create-mcp-app` at [../../skills/create-mcp-app/](../../skills/create-mcp-app/).
 
-Evals live at the repo root (under `evals/<skill>/`) rather than inside the skill itself, so they are not loaded into the agent's context when the skill is activated — only the harness reads them.
+Family-wide harness contract: [../README.md](../README.md).
 
-Each skill has `trigger-queries.json` (~20 labeled queries with train/validation split) for description optimization, plus `evals.json` with 2+ output eval cases where applicable.
+## Scaffolder paths
 
-**Portable scaffolder paths:** eval prompts use `<skills-repo>/skills/create-mcp-app/scripts/` wrappers. Set `SCAFFOLDER_SCRIPTS_DIR` to `create-solvapay/scripts/mcp` or install `create-solvapay` locally when running create-mcp-app evals.
+Eval prompts use:
 
-## Source control
+```text
+<skills-repo>/skills/create-mcp-app/scripts/describe.mjs
+<skills-repo>/skills/create-mcp-app/scripts/scaffold.mjs
+```
 
-Commit the **eval spec**, not **run results**. The repo is the versioned contract; each harness run is regenerable.
+Set `SCAFFOLDER_SCRIPTS_DIR` to `create-solvapay/scripts/mcp` or install `create-solvapay` locally if resolution fails.
 
-| Commit | Do not commit |
-| --- | --- |
-| `evals.json` — prompts, expectations, file lists | `iterations/` — generated outputs, transcripts, `timing.json`, `grading.json` |
-| `fixtures/` — stable inputs for setup evals | Anything under a per-run workspace the harness creates locally |
-| This README — harness contract | Benchmark aggregates or CI artifacts (store those outside git) |
-
-Run outputs go under `iterations/<iteration>/<eval-id>/{with_skill,without_skill}/`. That tree is gitignored at the repo root. Re-run the harness to reproduce them; upload iteration folders as CI artifacts if you need to share a failed run.
-
-## `evals.json` schema
-
-| Field | Type | Required | Purpose |
-| --- | --- | --- | --- |
-| `skill_name` | string | yes | Skill the suite covers. |
-| `dev_mode_suffix` | string | no | Text the harness MUST append verbatim to each eval's `prompt` when running in dev mode (see below). Absent → dev mode is a no-op. |
-| `evals[]` | array | yes | Eval cases. Each has `id`, `prompt`, `expected_output`, `files`, `expectations`. |
+Fixtures: copy from `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` per eval setup blocks.
 
 ## Dev-mode contract
 
-The harness selects dev mode when the env var `EVAL_DEV_MODE=1` is set on its invocation.
+Harness sets `EVAL_DEV_MODE=1` to append `dev_mode_suffix` from `evals.json` to each prompt (verbatim). When inactive, send `prompt` as-is.
 
-When dev mode is active and `dev_mode_suffix` is present, the harness MUST concatenate `dev_mode_suffix` to the end of each eval's `prompt` (unchanged) before sending it to the executor. No per-eval edits, no other transformations.
+`--dev` seeds `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` into `.env`:
 
-When dev mode is inactive, the harness MUST send `prompt` as-is.
-
-## How `--dev` flows end-to-end
-
-`--dev` seeds `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` into the project `.env`. From there:
-
-- The Cloudflare Worker reads it via `env.SOLVAPAY_API_BASE_URL` and routes SolvaPay SDK calls to api-dev.
-- `scripts/deploy.mjs` forwards it as a `--var` override to `wrangler deploy`, so the deployed Worker hits api-dev too.
-- `solvapay init --dev` mints keys against api-dev and writes them to `.env`.
-
-Supported entry points:
-
-| Entry point | Flag | Behaviour |
-| --- | --- | --- |
-| `npm create solvapay@latest ... --type mcp --dev` | `--dev` | Seeds `.env`, forwards to `solvapay init --dev`. |
-| `npx solvapay@latest init --dev` | `--dev` | Mints api-dev keys, writes to `.env`. |
-| `node scripts/scaffold.mjs <spec> <dir> --selections <path> --dev` | `--dev` | Seeds `.env`. Explicit `selections.apiBaseUrl` wins over the flag. |
+| Entry point | Flag |
+| --- | --- |
+| `npm create solvapay@latest ... --type mcp --dev` | `--dev` |
+| `npx solvapay@latest init --dev` | `--dev` |
+| `node scripts/scaffold.mjs ... --dev` | `--dev` |
 
 Internal testing only — production keys are rejected by api-dev.
 
-## Follow-up
-
-Per-eval `expectations_dev` to assert the dev codepath actually ran (e.g. `.env` contains `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com`) is deferred to a separate slice; current expectations are dev/prod-agnostic.
+Per-eval `assertions_dev` for dev codepath verification is deferred; current assertions are dev/prod-agnostic.

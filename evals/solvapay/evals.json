@@ -3,23 +3,37 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "I want to add SolvaPay to my project but I'm not sure whether I need checkout, SDK integration, or an MCP server.",
-      "expected_output": "Agent loads the solvapay router skill, asks one disambiguation question or routes using the intent matrix, and points to the correct sibling surface skill without implementing code itself.",
+      "slug": "router-ambiguous-billing",
+      "prompt": "wanna add solvapay to our product but not sure if we need hosted checkout, sdk on our api, or a paid mcp server for agents. stack is next.js plus an experimental mcp worker",
+      "expected_output": "Agent loads the solvapay router skill, asks one disambiguation question or routes using the intent matrix by skill id, and names the correct surface skill without implementing integration code.",
       "files": [],
-      "expectations": [
+      "assertions": [
         "Agent references the solvapay router SKILL.md or intent matrix",
-        "Agent routes toward create-mcp-app, sdk-integration, website-checkout, or lovable-checkout — not a generic web search only",
-        "Agent does not start scaffolding code before routing"
+        "Agent routes by namespaced skill id (solvapay/<surface>) — not ../ file paths",
+        "Agent does not start scaffolding or writing paywall code before routing"
       ]
     },
     {
       "id": 2,
-      "prompt": "paywall my api with solvapay",
-      "expected_output": "Agent routes to sdk-integration (REST/web paywall), not create-mcp-app, unless user clarifies MCP context.",
+      "slug": "router-api-paywall",
+      "prompt": "paywall my rest api with solvapay — express backend, no mcp involved.",
+      "expected_output": "Agent routes to solvapay/sdk-integration for REST/web paywall, not solvapay/create-mcp-app.",
       "files": [],
-      "expectations": [
-        "Handoff target is sdk-integration surface, not create-mcp-app",
-        "Agent does not assume greenfield MCP scaffold"
+      "assertions": [
+        "Handoff target is solvapay/sdk-integration, not solvapay/create-mcp-app",
+        "Agent does not assume greenfield MCP scaffold or OpenAPI-to-MCP flow"
+      ]
+    },
+    {
+      "id": 3,
+      "slug": "router-deprecated-hosted-mcp",
+      "prompt": "monetize my mcp server with a hosted no-code proxy — just paste the server url and gate tools without code",
+      "expected_output": "Agent clarifies deprecated hosted-proxy path, does not recommend MCP Pay, and steers toward code-based surfaces (default solvapay/create-mcp-app if user insists on MCP).",
+      "files": [],
+      "assertions": [
+        "Agent does not mention MCP Pay or a managed no-code proxy product by name",
+        "Agent asks for clarification or routes to a code-based skill id",
+        "If a default is stated, it is solvapay/create-mcp-app or sdk-integration — not a deprecated proxy SKU"
       ]
     }
   ]

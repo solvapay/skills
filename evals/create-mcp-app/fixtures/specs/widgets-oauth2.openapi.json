@@ -1,0 +1,70 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Acme Widgets API (OAuth2 client credentials)",
+    "version": "1.0.0",
+    "description": "Eval fixture for the oauth2-client-credentials scenario: every operation authenticates with a bearer token obtained via the OAuth2 client_credentials grant (exchange client_id + client_secret at the token endpoint). Generic Acme Widgets API — no real vendor."
+  },
+  "servers": [{ "url": "https://api.acme-widgets.test" }],
+  "security": [{ "acme-oauth": ["widgets:read"] }],
+  "paths": {
+    "/widgets/{id}": {
+      "get": {
+        "operationId": "getWidget",
+        "summary": "Fetch a widget by ID.",
+        "tags": ["Widgets"],
+        "security": [{ "acme-oauth": ["widgets:read"] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "example": "wdg_123" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget details",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } } }
+          }
+        }
+      }
+    },
+    "/widgets": {
+      "post": {
+        "operationId": "createWidget",
+        "summary": "Create a widget.",
+        "tags": ["Widgets"],
+        "security": [{ "acme-oauth": ["widgets:write"] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "example": "Sprocket" } } }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Widget created",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Widget" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "acme-oauth": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://api.acme-widgets.test/oauth/token",
+            "scopes": {
+              "widgets:read": "Read widgets",
+              "widgets:write": "Create and modify widgets"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Widget": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" } } }
+    }
+  }
+}

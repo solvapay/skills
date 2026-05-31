@@ -1,40 +1,58 @@
-# React Website Checkout
+# React Website Checkout — Integration Procedure
 
-React-only projects need a backend that owns SolvaPay secret operations.
+## Contents
 
-## Docs References (Topic-Based)
+- Procedure
+- Minimal Express backend skeleton
+- Verification checklist
 
-- Topics: `react guide`, `checkout sessions`, `customer sessions`, `auth`.
-- Retrieval hint: resolve via MCP first; fallback to `llms.txt`.
+React-only projects need a backend for SolvaPay secret operations.
 
-## Required Backend Contract
+## Procedure
 
-1. Build backend routes (Node/Express/Next API) for checkout / customer sessions.
-2. Keep `SOLVAPAY_SECRET_KEY` only on backend.
-3. Use frontend redirects to hosted checkout / customer URLs returned by backend.
+1. Confirm a backend exists (Express, Next API, etc.). If none → hand off to `solvapay/sdk-integration`.
+2. Implement backend routes (below).
+3. Keep `SOLVAPAY_SECRET_KEY` server-only.
+4. Frontend: send auth token to backend; redirect to hosted URLs; refresh access after return.
 
-### Minimum routes
+## Minimal Express backend skeleton
+
+```typescript
+import express from 'express'
+import { createSolvaPayServer } from '@solvapay/server'
+
+const app = express()
+app.use(express.json())
+const solvaPay = createSolvaPayServer({ secretKey: process.env.SOLVAPAY_SECRET_KEY! })
+
+app.post('/api/create-checkout-session', async (req, res) => {
+  const { customerRef, productRef, planRef, returnUrl } = req.body
+  const session = await solvaPay.checkout.createSession({
+    customerRef,
+    productRef,
+    planRef,
+    returnUrl,
+  })
+  res.json({ checkoutUrl: session.checkoutUrl })
+})
+
+app.get('/api/check-access', async (req, res) => {
+  // map auth user → customerRef; check purchase/access
+  res.json({ hasAccess: true })
+})
+```
+
+Adapt to your auth middleware. For full SDK patterns install `solvapay/sdk-integration`.
+
+## Required routes
 
 - `POST /api/create-checkout-session` → `{ checkoutUrl }`
 - `POST /api/create-customer-session` → `{ customerUrl }`
-- `GET /api/check-access` (or equivalent) → current access state
+- `GET /api/check-access` → access state
 
-## Frontend Responsibilities
+## Verification checklist
 
-- Send auth token/session to backend routes.
-- Redirect to hosted URLs from backend response.
-- Refresh access state after return from checkout.
-
-## Verification Checklist
-
-- [ ] Hosted checkout redirect works from React app
+- [ ] Hosted checkout redirect works
 - [ ] Customer portal redirect works
-- [ ] Premium UI updates after successful checkout return
-- [ ] Backend denies unauthorized users correctly
-
-## Limitations
-
-- React-only client cannot securely call SolvaPay secret endpoints directly.
-- Webhook handling remains backend responsibility.
-
-For full stack-specific implementation details, see the [`sdk-integration`](../../sdk-integration/SKILL.md) skill (React reference).
+- [ ] Premium UI updates after checkout return
+- [ ] Backend denies unauthorized users

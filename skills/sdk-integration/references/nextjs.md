@@ -57,6 +57,20 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 6. Cancel and reactivate renewal round-trips correctly (if implemented).
 7. Plan activation and switching works as expected (if implemented).
 
+Before handoff, emit a runnable verification artifact (curl block or test script) — not a prose summary. Adapt route paths to your project:
+
+```bash
+# Failure path — authenticated, no purchase → 402 with checkoutUrl
+curl -i http://localhost:3000/api/premium/data \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+# Expect: HTTP/1.1 402 ... body includes "checkoutUrl"
+
+# Happy path — after sandbox purchase → 200
+curl -i http://localhost:3000/api/premium/data \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+# Expect: HTTP/1.1 200
+```
+
 ## Guardrails
 
 - Prefer hosted checkout unless user explicitly needs embedded card UX.

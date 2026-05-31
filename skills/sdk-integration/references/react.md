@@ -37,7 +37,7 @@ React client alone is not enough. The integration needs server endpoints that us
 
 ## Frontend Integration Pattern
 
-- Initialize `SolvaPayProvider` at app root. Pass `config.transport` if you're running inside an MCP host sandbox (see [mcp-server.md](mcp-server.md) and `createMcpAppAdapter` from `@solvapay/react/mcp`). Per-method transport props on the provider were removed in SDK 1.1 — `config.transport` is the only supported shape.
+- Initialize `SolvaPayProvider` at app root. For MCP host iframe transport, load [references/mcp-server.md](references/mcp-server.md) from sdk-integration SKILL mandatory read order.
 - Ensure auth token is attached to backend API calls.
 - Use purchase/access hooks to gate premium UI (`usePurchase`, `PurchaseGate`).
 - Trigger redirects using returned hosted URLs.
