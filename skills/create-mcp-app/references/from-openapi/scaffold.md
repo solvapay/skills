@@ -124,7 +124,7 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 
 ## What it does
 
-1. Validates `selections.json` (discriminated union on `upstreamAuth.kind` — one of `none` / `bearer` / `apiKey` / `oauth2-client-credentials`; `mode` optional with `'one-to-one'` default).
+1. Validates `selections.json` (discriminated union on `upstreamAuth.kind` — one of `none` / `bearer` / `apiKey` / `oauth2-client-credentials` / `apiKey-multi`; `mode` optional with `'one-to-one'` default).
 2. Hard-fails if `<target-dir>` exists, or if `--selections` resolves inside `<target-dir>`.
 3. Copies the template (`template/`) to `<target-dir>`, substituting placeholders (`__WORKER_NAME__`, `__RESOURCE_URI_SLUG__`, `__SOLVAPAY_PRODUCT_REF__`, `__MCP_PUBLIC_BASE_URL__`). Preserves `.env.example` verbatim. Includes `scripts/verify.mjs`, `scripts/test.mjs`, and `scripts/lib/` for post-deploy checks (see [verify.md](verify.md) and [test.md](test.md)).
 4. **In one-to-one mode (default)**, for each operation with `tier !== 'skip'`, writes `src/tools/<operationId>.ts` with:
@@ -134,6 +134,7 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
      - `bearer` → `Authorization: Bearer ${env.UPSTREAM_API_KEY}`
      - `apiKey` → `<name>: ${env.UPSTREAM_API_KEY}`
      - `oauth2-client-credentials` → `const token = await getAccessToken(env)` right before URL construction, then `Authorization: Bearer ${token}`. The `getAccessToken` helper lives in `src/lib/upstreamOAuth.ts` (shipped in `_base`) and caches the exchanged token in-isolate.
+     - `apiKey-multi` → spread `...(JSON.parse(env.UPSTREAM_API_HEADERS ?? '{}') as Record<string, string>)` into the request headers (two or more static credential headers, carried as one compact-JSON env var).
 
    **In intent-driven mode**, skips per-op codegen entirely. The agent (you) authors `src/tools/<intent>.ts` files directly after scaffold finishes — see [intent-driven.md](intent-driven.md) for templates and clustering guidance.
 5. Writes `src/tools/index.ts`:
@@ -142,6 +143,7 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 6. Writes `.env` with `SOLVAPAY_PRODUCT_REF` (or the `__SOLVAPAY_PRODUCT_REF__` placeholder when `solvapayProductRef` is omitted from `selections.json`), `MCP_PUBLIC_BASE_URL`, and per `upstreamAuth.kind`:
    - `bearer` / `apiKey` → `UPSTREAM_API_KEY`
    - `oauth2-client-credentials` → `UPSTREAM_OAUTH_TOKEN_URL`, `UPSTREAM_OAUTH_CLIENT_ID`, `UPSTREAM_OAUTH_CLIENT_SECRET`, plus `UPSTREAM_OAUTH_SCOPE` / `UPSTREAM_OAUTH_AUDIENCE` when supplied.
+   - `apiKey-multi` → `UPSTREAM_API_HEADERS` (a single compact-JSON object keyed by header name → value).
 
    **Does not write `SOLVAPAY_SECRET_KEY`** — that's [../solvapay-init.md](../solvapay-init.md).
 7. Ensures `.gitignore` covers `.env`.

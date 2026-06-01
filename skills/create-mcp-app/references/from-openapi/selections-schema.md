@@ -43,6 +43,10 @@ type UpstreamAuth =
       scope?: string           // optional, space-delimited; default empty
       audience?: string        // optional; some providers (e.g. Auth0) require this
     }
+  | {
+      kind: 'apiKey-multi'     // 2+ static credential headers required together (OpenAPI multi-scheme AND)
+      headers: Array<{ name: string; value: string }>  // >= 2 entries; `name` from spec, `value` user-supplied secret
+    }
 ```
 
 ## Mode
@@ -62,9 +66,10 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | `solvapayProductRef` | **Optional** | Omit during curate — `npx -y solvapay@latest init` lists account products and prompts (or auto-picks). Include only when you want a specific ref written at scaffold time. If the user has no product yet, ask them to create one in SolvaPay Console (https://app.solvapay.com) before init. |
 | `mcpPublicBaseUrl` | Agent default + deploy auto-resolve | Use `http://localhost:8787` initially. `deploy.mjs` auto-resolves the live `*.workers.dev` URL on first deploy when still a placeholder. For custom domains, set explicitly before deploy (see [deploy.md](deploy.md) step 2). |
 | `mode` | **Optional**, agent asks user once after `describe.mjs` (recommends `'intent-driven'` when running inside the skill) | `'one-to-one'` (default) for faithful per-op mapping; `'intent-driven'` for agent-authored clusters. See [intent-driven.md](intent-driven.md). The standalone `npx -y create-solvapay@latest -- --type mcp` CLI always writes `'one-to-one'`. |
-| `upstreamAuth.kind` | Agent reads from `describe.mjs` security schemes, then confirms with user | One of `none` / `bearer` / `apiKey` / `oauth2-client-credentials`. |
+| `upstreamAuth.kind` | Agent reads from `describe.mjs` security schemes, then confirms with user | One of `none` / `bearer` / `apiKey` / `oauth2-client-credentials` / `apiKey-multi`. |
 | `upstreamAuth.key` | **User-supplied** | The literal upstream API key. Treat like a secret — see `scaffold.md`'s "selections.json lifecycle". |
 | `upstreamAuth.name` | Agent reads from `describe.mjs` | Header name for `apiKey` (e.g. `X-API-Key`). Only `in: "header"` is supported in v1. |
+| `upstreamAuth.headers[]` | `name` from `describe.mjs`; `value` **user-supplied** | For `apiKey-multi`: 2+ `{ name, value }` pairs, one per required header (e.g. `X-VTEX-API-AppKey` + `X-VTEX-API-AppToken`). Each `value` is a secret. Seeded into `.env` as one compact-JSON `UPSTREAM_API_HEADERS` var. |
 | `upstreamAuth.tokenUrl` | Agent reads from `describe.mjs.securitySchemes[*].tokenUrl` | OAuth 2.0 token endpoint. Must be HTTPS (or `http://localhost` for local tests). |
 | `upstreamAuth.clientId` / `clientSecret` | **User-supplied** | OAuth client credentials. Both treated as secrets. |
 | `upstreamAuth.scope` / `audience` | **Optional, user-supplied** | `scope` is a space-delimited list (defaults to empty); `audience` is only required by some providers (Auth0). |
@@ -152,13 +157,35 @@ Add paid tiers as separate plans with `default: false` (or omit `default`).
 
 Scaffold writes the five `UPSTREAM_OAUTH_*` keys to `.env`; `scripts/deploy.mjs` uploads them as Worker Secrets on first deploy. `src/lib/upstreamOAuth.ts` (shipped in `_base`) exchanges the credentials for a short-lived bearer token, caches it in the Workers isolate until ~30s before expiry, and stamps each upstream call with `Authorization: Bearer <token>`.
 
+### apiKey-multi (two or more static credential headers)
+
+For APIs that require multiple credential headers on every request (the OpenAPI "multiple required schemes (AND)" case — no token exchange):
+
+```jsonc
+{
+  "workerName": "leyr-booking-agent",
+  "mcpPublicBaseUrl": "http://localhost:8787",
+  "upstreamAuth": {
+    "kind": "apiKey-multi",
+    "headers": [
+      { "name": "x-leyr-client-id",     "value": "client_id_value" },
+      { "name": "x-leyr-client-secret", "value": "client_secret_value" }
+    ]
+  },
+  "mode": "intent-driven"
+}
+```
+
+Generic over N headers and header names — works for `AppKey` + `AppToken`, a three-header combination, etc. Scaffold writes a **single** `.env` var, `UPSTREAM_API_HEADERS`, holding compact JSON keyed by header name → value (`{"x-leyr-client-id":"…","x-leyr-client-secret":"…"}`); `scripts/deploy.mjs` uploads it as a Worker Secret. One-to-one tools spread it into each request's headers; in intent-driven mode the agent spreads it by hand (see [intent-driven-patterns.md](intent-driven-patterns.md#upstream-auth-headers-by-upstreamauthkind)).
+
 ## Validation
 
 `scaffold.mjs` validates this schema and refuses to proceed on shape mismatch:
 
-- `kind` must be one of `none`, `bearer`, `apiKey`, `oauth2-client-credentials`.
+- `kind` must be one of `none`, `bearer`, `apiKey`, `oauth2-client-credentials`, `apiKey-multi`.
 - `kind: "bearer"` requires `key`.
 - `kind: "apiKey"` requires `in: "header"`, `name`, and `key`. Query / cookie shapes are routed to the "unsupported, generate without auth" advisory path.
+- `kind: "apiKey-multi"` requires `headers`: an array of **at least two** `{ name, value }` entries, each with a non-empty `name` and `value`, and no duplicate `name`s (case-insensitive). A single header should use `kind: "apiKey"` instead.
 - `kind: "oauth2-client-credentials"` requires `tokenUrl`, `clientId`, and `clientSecret`. `tokenUrl` must parse as a URL and must be `https:` (only `http://localhost` / `http://127.0.0.1` are permitted for local tests). `scope` and `audience` are optional strings. Other OAuth2 flows (`authorizationCode`, `implicit`, `password`) are still unsupported and routed through the advisories path.
 - `mode` (when provided) must be `'one-to-one'` or `'intent-driven'`.
 - When `mode === 'one-to-one'` (or absent), `operations[]` is required. Each `operations[].tier` must be `free`, `paid`, or `skip`, and every `operationId` referenced must exist in the OpenAPI document.

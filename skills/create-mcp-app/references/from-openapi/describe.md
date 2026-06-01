@@ -202,11 +202,12 @@ Prompt: Confirm upstream auth shape, then paste the credential(s).
 Options:
   - bearer:           HTTP Bearer — paste API key
   - apiKey:           API key in header — paste API key
+  - multiHeader:      Two or more static headers required together — paste each header's value
   - oauth2:           OAuth2 client credentials — paste clientId + clientSecret
   - none:             No auth (upstream tolerates anonymous calls)
 ```
 
-Pick the default option from `describe.mjs.securitySchemes` (the first `supported: true` entry). After the user picks, prompt for the secret(s) per [guide.md](guide.md#what-you-gather-during-curate-between-describemjs-and-writing-selectionsjson) step 3. The resolved value lands in `selections.json.upstreamAuth` — `key` for `bearer`/`apiKey`, `clientId` + `clientSecret` (plus optional `scope` / `audience`) for `oauth2-client-credentials`. Treat the file as a secret per [scaffold.md](scaffold.md#selectionsjson-lifecycle-important).
+Pick the default option from `describe.mjs.securitySchemes` (the first `supported: true` entry — or `multiHeader` when an operation's `security` requires **two or more** `apiKey-header` schemes together). After the user picks, prompt for the secret(s) per [guide.md](guide.md#what-you-gather-during-curate-between-describemjs-and-writing-selectionsjson) step 3. The resolved value lands in `selections.json.upstreamAuth` — `key` for `bearer`/`apiKey`, `clientId` + `clientSecret` (plus optional `scope` / `audience`) for `oauth2-client-credentials`, an array of `{ name, value }` for `apiKey-multi`. Treat the file as a secret per [scaffold.md](scaffold.md#selectionsjson-lifecycle-important).
 
 ### Next gate
 

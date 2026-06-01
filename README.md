@@ -58,10 +58,27 @@ Per skill: `trigger-queries.json` (8–10 should-trigger + 8–10 should-not, tr
 
 ## Local development and testing
 
-1. Edit skill files in this repository.
-2. Install/update locally with `npx skills add . --skill create-mcp-app` (or `--all -y` to mount everything).
-3. Run 2–3 prompt checks per skill: routing intent, happy-path implementation, failure-path / troubleshooting.
-4. Verify outputs follow each skill's guardrails and the shared docs source priority.
+For live editing, symlink every skill in this repo into the agent skill search
+paths (`~/.agents/skills/<name>` plus a `~/.claude/skills/<name>` mirror) so
+edits are picked up without reinstalling:
+
+```bash
+npm run dev:link     # local development ON  — symlink all skills to this repo
+npm run dev:status   # show what is linked where
+npm run dev:unlink   # local development OFF — remove symlinks, restore any backups
+```
+
+`dev:link` moves any pre-existing standalone copy aside to `<name>.local-backup`
+and restores it on `dev:unlink`, so toggling is non-destructive. Run `dev:link`
+again after `git pull` only if new skills were added.
+
+Then validate each skill with prompt checks:
+
+1. Edit skill files in this repository (changes are live via the symlinks above).
+2. Run 2–3 prompt checks per skill: routing intent, happy-path implementation, failure-path / troubleshooting.
+3. Verify outputs follow each skill's guardrails and the shared docs source priority.
+
+Alternatively, install a snapshot with `npx skills add . --skill <name>` (or `--all -y` to mount everything) — but that copies files rather than linking, so edits require a reinstall.
 
 To list all discoverable skills before pushing:
 

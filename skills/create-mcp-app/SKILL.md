@@ -20,28 +20,37 @@ compatibility: >
 
 SolvaPay-monetized MCP server on Cloudflare Workers. OpenAPI auto-generation or hand-written tools.
 
-> **Human at a terminal?** `npm create solvapay@latest <name> -- --type mcp` (use `@latest`). **Agent?** `scripts/describe.mjs` + `scripts/scaffold.mjs` per [references/from-openapi/guide.md](references/from-openapi/guide.md).
+> **Human at a terminal?** `npm create solvapay@latest <name> -- --type mcp` (use `@latest`). Ships from-openapi (one-to-one) and from-scratch modes, runs install + `solvapay init` in one pass.
+>
+> **Agent?** `scripts/describe.mjs` + `scripts/scaffold.mjs` per [references/from-openapi/guide.md](references/from-openapi/guide.md). Intent-driven clustering and hand-tuned narration require an LLM — the CLI cannot author `src/tools/*.ts`.
+
+## Scope
+
+This skill covers **any MCP server whose tools return text or `structuredContent`** — data, intelligence and analytics, search and retrieval, integrations with external APIs, actions and workflows, computations, content generation. Domain-agnostic.
+
+The only UI this skill ships is SolvaPay's built-in checkout / account / topup widget, which mounts only when the user deliberately invokes an intent tool (`upgrade` / `topup` / `manage_account`). For custom graphical widgets, keep this skill for server + paywall wiring and add [references/mcp-apps-ui.md](references/mcp-apps-ui.md).
 
 ## Guardrails
 
-- Never expose `SOLVAPAY_SECRET_KEY` to client code, public env vars, or deploy-time plaintext.
-- Never wrap SolvaPay intent tools (`upgrade`, `topup`, `manage_account`, etc.) with `payable.mcp()`.
-- Never set `_meta.ui.resourceUri` on merchant payable tools.
+- Never expose `SOLVAPAY_SECRET_KEY` to client code, public env vars, or deploy-time plaintext. Upload via `npx wrangler secret put` and keep it in a gitignored `.env` only for local dev.
+- Never wrap SolvaPay intent tools (`upgrade`, `topup`, `manage_account`, `activate_plan`, `check_purchase`) with `payable.mcp()` — they are the paywall recovery path, not paid business logic.
+- Never set `_meta.ui.resourceUri` on merchant payable tools. Hosts MUST open the iframe on every advertised call (SEP-1865), which flashes an empty widget on silent successes.
 - Never return custom iframe/UI on paywall gates — text-only narration naming the recovery intent tool.
-- Always use `mode: 'json-stateless'` on stateless edge runtimes.
+- Always use `mode: 'json-stateless'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
+- Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
 - **Never edit `src/worker.ts` on deploy-existing tasks** — leave it byte-for-byte unchanged; add deploy scaffolding only. This applies even if the call shape looks stale, uses an older API, or is missing options — do NOT patch it. If you notice API drift, note it in the handoff as a follow-up item but do not touch the file.
 
 ## Gotchas
 
 - **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, the canonical template, or "stale API shape" patches. Run `npx wrangler whoami` as the first pre-flight command (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy. **Exception:** paywall-wiring tasks (e.g. "add SolvaPay paywall to my existing MCP server") explicitly require editing `src/worker.ts` — the deploy guardrail does not apply to those tasks.
 - `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
-- `ctx.registerPayable(name, config)` takes **exactly two arguments**.
-- Paid handlers use `c.respond(data, { text })` — never raw `content` arrays.
-- Run `describe.mjs` against **local spec files** — fetch URLs to `/tmp/` first.
-- Petstore v3 relative `servers[0]` emits `serverProbeError` — fix in `selections.json`.
-- `selections.json` must live **outside** the scaffold target dir.
-- Don't scaffold into an unrelated app repo root without confirming location.
-- Skill `scripts/*.mjs` are wrappers — see [scripts/README.md](scripts/README.md) for resolution order.
+- `ctx.registerPayable(name, config)` takes **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
+- Paid handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from paid handlers.
+- Run `node scripts/describe.mjs` against a **local spec file** — fetch URLs to `/tmp/spec-*.json` first; don't pass URLs directly.
+- Petstore v3's `servers[0]` is relative (`/api/v3`) — `describe.mjs` emits a `serverProbeError` advisory; fix in `selections.json` or surface to the user.
+- `selections.json` must live **outside** the scaffold target dir (e.g. `/tmp/selections-<uuid>.json`) — upstream API keys must not land in the project tree.
+- Don't scaffold into an unrelated app repo root without confirming where the MCP worker should live — it's its own deployable unit.
+- `scripts/describe.mjs` and `scripts/scaffold.mjs` in this skill are wrappers — see [scripts/README.md](scripts/README.md) for resolution order.
 
 ## Mandatory read order
 
@@ -53,6 +62,16 @@ Before writing tool code:
 4. **If intent-driven mode (OpenAPI):** also read [references/from-openapi/intent-driven.md](references/from-openapi/intent-driven.md) (defines G2/G3/G7 gate shapes and cluster patterns) **and** [references/from-openapi/scaffold.md](references/from-openapi/scaffold.md) (defines G6 gate and `selections.json` preview rules) before executing any gate.
 
 Do not write `registerPayable(...)`, `additionalTools`, or `src/tools/*` until all required files are loaded.
+
+**`tool-design.md` is non-negotiable** — it pins the two-argument `registerPayable` shape and `c.respond(data, { text })` contract. If you cannot recall those rules verbatim, stop and read it.
+
+## Confirmation level (G0 — ask once, applies to the whole flow)
+
+Before any other gate, ask the user how chatty you should be. See [references/hitl-conventions.md](references/hitl-conventions.md) for the structured-question contract and full gate index.
+
+> "How chatty should I be? `standard` (default) confirms each big decision; `auto` only confirms irreversible steps (scaffold, deploy, go-live); `chatty` reviews every intent and file."
+
+Once the user picks, remember it for the rest of the flow. Every downstream gate (`G1`–`G9`) decides whether to fire based on this level.
 
 ## Routing procedure
 
@@ -72,7 +91,18 @@ Ask once: *"OpenAPI/Swagger spec, or hand-written tools?"*
 | Hand-written / new | [references/from-scratch/guide.md](references/from-scratch/guide.md) |
 | Existing MCP server | [references/existing-server.md](references/existing-server.md) |
 
-Human CLI shortcut (terminal only): see human block at top of this file.
+| Situation | Path |
+| --- | --- |
+| Human at terminal, no spec | `npm create solvapay@latest <name> -- --type mcp` |
+| Human at terminal, has OpenAPI | `npm create solvapay@latest <name> -- --type mcp --openapi <url-or-path>` |
+| Agent, has spec | Agent path — `describe.mjs` + `scaffold.mjs` with hand-authored `selections.json` |
+| Agent, no spec | [references/from-scratch/guide.md](references/from-scratch/guide.md) — `--no-openapi` scaffold, then hand-author tools |
+
+### Inside an unrelated app repo
+
+If the cwd is inside a repo with its own purpose (Next.js app, backend, monorepo) **and** there is no paid-MCP server in scope, **stop and ask where the MCP server should live** before scaffolding. Reasonable defaults: sibling directory (`../my-app-mcp`) or monorepo `apps/` / `packages/` subdirectory. Do not silently scaffold into `./mcp/` without confirming.
+
+> **Dev mode (skill author / internal testing only).** Append `--dev` to CLI invocations when testing against api-dev: `npm create solvapay@latest <name> -- --type mcp --dev` and `npx -y solvapay@latest init --dev`. Never enable `--dev` for end users — production keys are rejected by api-dev.
 
 ### 3. Confirm host
 
@@ -144,6 +174,7 @@ G0–G9 gates: [references/hitl-conventions.md](references/hitl-conventions.md).
 ## Pointers
 
 - Tool contract: [references/tool-design.md](references/tool-design.md)
+- HITL gates: [references/hitl-conventions.md](references/hitl-conventions.md)
 - OpenAPI: [references/from-openapi/guide.md](references/from-openapi/guide.md)
 - From scratch: [references/from-scratch/guide.md](references/from-scratch/guide.md)
 - Existing server: [references/existing-server.md](references/existing-server.md)

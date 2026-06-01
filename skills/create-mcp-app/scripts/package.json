@@ -1,0 +1,20 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "Thin wrappers around the `create-solvapay` scaffolder scripts. Run from the skill directory:",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "create-solvapay": "^0.3.0-preview-c5e6434cfe6e61b18df3cfb871fd622f28b5a429"
+  }
+}

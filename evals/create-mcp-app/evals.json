@@ -153,6 +153,75 @@
         "Paid handler returns c.respond(data, { text }) — not raw MCP content arrays",
         "./petstore-mcp/src/worker.ts was not replaced with a greenfield scaffold default"
       ]
+    },
+    {
+      "id": 9,
+      "slug": "apikey-multi-one-to-one",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs` (set SCAFFOLDER_SCRIPTS_DIR or npm install create-solvapay if resolution fails). Task: generate an mcp server from the local OpenAPI spec at `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-multiheader.openapi.json` into `./acme-widgets-mcp`. one-to-one mode. this api uses two static credential headers (X-Acme-App-Key and X-Acme-App-Token) required together — use placeholder values.",
+      "expected_output": "A one-to-one scaffold whose selections.json uses upstreamAuth.kind 'apiKey-multi' with both header credentials. The generated .env carries a single UPSTREAM_API_HEADERS compact-JSON var; generated tool files spread it into request headers.",
+      "files": [],
+      "assertions": [
+        "The agent ran node scripts/describe.mjs against the spec (visible in transcript) and recognized that every operation requires TWO apiKey header schemes together (X-Acme-App-Key AND X-Acme-App-Token)",
+        "selections.json sets upstreamAuth.kind to 'apiKey-multi' with a headers array containing BOTH header names — NOT collapsed to a single { kind: 'apiKey', name, key }, and NOT kind: 'none'",
+        "The generated ./acme-widgets-mcp/.env contains UPSTREAM_API_HEADERS compact JSON keyed by both header names — and does NOT contain UPSTREAM_API_KEY",
+        "Each generated src/tools/*.ts file spreads UPSTREAM_API_HEADERS into request headers — NOT a single hardcoded header or invented per-header env var",
+        "selections.json is NOT found anywhere inside ./acme-widgets-mcp/",
+        "The agent ran node scripts/scaffold.mjs to generate the project (visible in transcript)"
+      ]
+    },
+    {
+      "id": 10,
+      "slug": "apikey-multi-intent-driven",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate an mcp server from `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-multiheader.openapi.json` into `./acme-widgets-mcp-intent`. intent-driven mode, then author intent-tool files. two static credential headers required together — use placeholders.",
+      "expected_output": "Intent-driven scaffold with upstreamAuth.kind 'apiKey-multi'. Agent hand-authors action-verb intent files spreading UPSTREAM_API_HEADERS per intent-driven-patterns.md.",
+      "files": [],
+      "assertions": [
+        "selections.json sets mode to 'intent-driven' and upstreamAuth.kind to 'apiKey-multi' with both header names",
+        "scaffold.mjs did NOT generate per-operation tool files; agent hand-authored action-verb intent files",
+        "Each authored intent tool spreads UPSTREAM_API_HEADERS into request headers",
+        "The generated ./acme-widgets-mcp-intent/.env contains UPSTREAM_API_HEADERS — not UPSTREAM_API_KEY",
+        "The agent read references/from-openapi/intent-driven-patterns.md (visible in transcript)",
+        "selections.json is NOT found anywhere inside ./acme-widgets-mcp-intent/"
+      ]
+    },
+    {
+      "id": 11,
+      "slug": "bearer-one-to-one",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate from `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-bearer.openapi.json` into `./acme-bearer-mcp`. one-to-one. HTTP Bearer token — placeholder value.",
+      "expected_output": "One-to-one scaffold with upstreamAuth.kind 'bearer'. Tools set Authorization: Bearer from env.UPSTREAM_API_KEY.",
+      "files": [],
+      "assertions": [
+        "selections.json sets upstreamAuth.kind to 'bearer' — NOT 'apiKey', NOT 'apiKey-multi', NOT 'none'",
+        "Each generated src/tools/*.ts file sets authorization: `Bearer ${env.UPSTREAM_API_KEY}`",
+        "The generated ./acme-bearer-mcp/.env contains UPSTREAM_API_KEY — not UPSTREAM_API_HEADERS",
+        "selections.json is NOT found anywhere inside ./acme-bearer-mcp/"
+      ]
+    },
+    {
+      "id": 12,
+      "slug": "apikey-one-to-one",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate from `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-apikey.openapi.json` into `./acme-apikey-mcp`. one-to-one. single api key header X-Acme-Api-Key — placeholder.",
+      "expected_output": "One-to-one scaffold with upstreamAuth.kind 'apiKey'. Tools set X-Acme-Api-Key from env.UPSTREAM_API_KEY.",
+      "files": [],
+      "assertions": [
+        "selections.json sets upstreamAuth.kind to 'apiKey' with in: 'header', name: 'X-Acme-Api-Key' — NOT 'apiKey-multi'",
+        "Each generated src/tools/*.ts file sets 'x-acme-api-key' from env.UPSTREAM_API_KEY",
+        "The generated ./acme-apikey-mcp/.env contains UPSTREAM_API_KEY",
+        "selections.json is NOT found anywhere inside ./acme-apikey-mcp/"
+      ]
+    },
+    {
+      "id": 13,
+      "slug": "oauth2-client-credentials-one-to-one",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate from `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-oauth2.openapi.json` into `./acme-oauth-mcp`. one-to-one. oauth2 client_credentials — placeholder client_id and client_secret.",
+      "expected_output": "One-to-one scaffold with upstreamAuth.kind 'oauth2-client-credentials'. Tools call getAccessToken(env) and set Bearer token.",
+      "files": [],
+      "assertions": [
+        "selections.json sets upstreamAuth.kind to 'oauth2-client-credentials' with tokenUrl, clientId, clientSecret",
+        "Each generated src/tools/*.ts file imports getAccessToken and sets authorization: `Bearer ${token}`",
+        "The generated ./acme-oauth-mcp/.env contains UPSTREAM_OAUTH_* vars — not UPSTREAM_API_KEY or UPSTREAM_API_HEADERS",
+        "selections.json is NOT found anywhere inside ./acme-oauth-mcp/"
+      ]
     }
   ]
 }

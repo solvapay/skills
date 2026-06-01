@@ -25,6 +25,27 @@ On first use against a fresh checkout, install scaffolder deps once:
 # or: ( cd solvapay-sdk/packages/create-solvapay/scripts/mcp && npm install )
 ```
 
+### Stable vs preview (`--dev`)
+
+When resolving via the local npm package (option 2), pick the dist-tag that
+matches the run:
+
+```bash
+# standard (stable) — what end users get
+npm install create-solvapay
+
+# --dev / internal testing — pulls the preview build, which carries
+# preview-only features the skill docs describe (e.g. apiKey-multi).
+npm install create-solvapay@preview
+```
+
+Installing stable (`@latest`) while running `--dev` is the trap that bites:
+`scaffold.mjs` rejects preview-only `upstreamAuth.kind` values (such as
+`apiKey-multi`) with ``upstreamAuth.kind` must be one of none, bearer, apiKey,
+oauth2-client-credentials``. `resolve-scaffolder.mjs` warns when it detects a
+stable build under a dev backend, but pinning `@preview` at install time avoids
+the mismatch entirely.
+
 ## Project-local scripts
 
 After scaffolding (`npm create solvapay@latest -- --type mcp`), these live in the **generated project**:
