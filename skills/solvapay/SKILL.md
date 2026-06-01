@@ -1,14 +1,14 @@
 ---
 name: solvapay
 description: >
-  Use this skill when the user is undecided about which SolvaPay integration to use —
-  capability questions ("what can SolvaPay do"), surface comparisons ("checkout vs SDK vs MCP"),
-  "where do I start" moments, or vague "add payments to my app/SaaS" without a named stack or
-  explicit task. Also trigger when surface names appear alongside decision language
-  ("checkout or SDK for my app?", "which solvapay do I need?", "not sure where to start").
-  Skip for execution tasks that already name a specific surface and action — "integrate SDK into
-  nextjs", "paywall my express API", "scaffold mcp from openapi" go directly to the surface skill
-  that owns them.
+  Use this skill for SolvaPay discovery and routing — only when the user is deciding which
+  integration to use, not implementing one. Trigger for: capability questions ("what can SolvaPay
+  do"), surface comparisons ("checkout vs SDK vs MCP"), "where do I start" uncertainty, or vague
+  "add payments to my app/SaaS" without a named tech stack. Skip when the user names a specific
+  technology or framework (Lovable, Express, Node.js, Next.js, Cloudflare Workers, OpenAPI)
+  alongside a concrete action — those queries should go directly to the dedicated surface skill
+  that owns that stack. This skill answers "which SolvaPay integration do I need?" not "how do I
+  implement it."
 metadata:
   version: "1.0.0"
 ---
@@ -16,6 +16,27 @@ metadata:
 # SolvaPay — Router
 
 Disambiguate vague SolvaPay intent and route to the surface skill that owns the work. Does **not** implement integrations — hand off and stop.
+
+## What SolvaPay does
+
+SolvaPay adds usage-based billing, paywalls, and hosted checkout to apps and AI tools. Answer a "what can SolvaPay do / which one do I need" question with this comparison, then route to the owning surface skill:
+
+| Surface | What you build | Pick when | Route to |
+| --- | --- | --- | --- |
+| Paid MCP | Per-call or subscription billing on a Cloudflare Workers MCP server | The product **is** MCP tools for AI agents (greenfield, OpenAPI→MCP, or paywalling an existing MCP server) | `solvapay/create-mcp-app` |
+| SDK paywall | Gate endpoints, meter usage, handle webhooks in your own code | You own an app/API backend and want billing **in code** (REST, Next.js, Express, any stack) | `solvapay/sdk-integration` |
+| Hosted checkout | Drop-in payment page + customer portal | You want a production website to sell access with **no custom billing code** | `solvapay/website-checkout` |
+| Lovable checkout | Paste-in Vite + Supabase edge checkout | You're prototyping in a **Lovable / Vite preview** and want checkout pasted in | `solvapay/lovable-checkout` |
+
+## Decision tree
+
+Walk these in order; the first "yes" wins:
+
+1. Is the thing being monetized an **MCP server / MCP tools for AI agents**? → `solvapay/create-mcp-app` (covers greenfield, OpenAPI→MCP, and adding a paywall to an existing MCP server).
+2. Otherwise, is there an **existing app or API backend** to bill from code (paywall, metering, webhooks)? → `solvapay/sdk-integration`.
+3. Otherwise, do they just want a **hosted payment page** for a production website (no billing code)? → `solvapay/website-checkout`.
+4. Is it specifically a **Lovable / Vite preview** app? → `solvapay/lovable-checkout`.
+5. None clearly fits → ask the [disambiguation question](#disambiguation-prompt).
 
 ## Guardrails
 
@@ -35,9 +56,9 @@ Disambiguate vague SolvaPay intent and route to the surface skill that owns the 
 
 ## Routing procedure
 
-1. Extract primary intent: MCP greenfield / MCP existing / SDK / web checkout / Lovable / ambiguous.
-2. If ambiguous → ask one [disambiguation question](#disambiguation-prompt).
-3. Match routing id using the [intent matrix](#intent-matrix) (lookup table, not the workflow itself).
+1. Walk the [decision tree](#decision-tree) to get a routing id (or hit step 5 → disambiguation).
+2. Cross-check the id against the [intent matrix](#intent-matrix) phrase-lookup; if the user's wording matches a different row, prefer the matrix and reconcile.
+3. If still ambiguous → ask one [disambiguation question](#disambiguation-prompt).
 4. Run the [verification loop](#verification-loop).
 5. Complete the [handoff template](#handoff-template) and stop.
 

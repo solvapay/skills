@@ -38,11 +38,11 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - Never return custom iframe/UI on paywall gates — text-only narration naming the recovery intent tool.
 - Always use `mode: 'json-stateless'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
 - Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
-- **Never edit `src/worker.ts` on deploy-existing tasks** — leave it byte-for-byte unchanged; add deploy scaffolding only. This applies even if the call shape looks stale, uses an older API, or is missing options — do NOT patch it. If you notice API drift, note it in the handoff as a follow-up item but do not touch the file.
+- **Deploy-existing = scaffolding only.** On "deploy my existing server" tasks, add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`) and never open or edit `src/worker.ts` — not for imports, CORS, `Env`, the canonical template, or "stale API shape" patches. Note any API drift in the handoff as a follow-up. **Exception:** paywall-wiring tasks ("add SolvaPay paywall to my existing MCP server") do edit `src/worker.ts` — see [references/existing-server.md](references/existing-server.md).
 
 ## Gotchas
 
-- **Existing-project deploy = scaffolding only, never touch `worker.ts`.** When the task is "deploy my existing server," add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`). **Do not open or edit `src/worker.ts`** — not for import fixes, CORS, `Env` interfaces, the canonical template, or "stale API shape" patches. Run `npx wrangler whoami` as the first pre-flight command (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain. Worker wiring belongs in [references/existing-server.md](references/existing-server.md), not deploy. **Exception:** paywall-wiring tasks (e.g. "add SolvaPay paywall to my existing MCP server") explicitly require editing `src/worker.ts` — the deploy guardrail does not apply to those tasks.
+- Deploy pre-flight: run `npx wrangler whoami` first (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain.
 - `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
 - `ctx.registerPayable(name, config)` takes **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
 - Paid handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from paid handlers.
@@ -59,94 +59,56 @@ Before writing tool code:
 1. This SKILL.md — routing, input mode, host.
 2. [references/tool-design.md](references/tool-design.md) — `registerPayable` shape, response contract.
 3. One input-mode guide: [references/from-openapi/guide.md](references/from-openapi/guide.md) **or** [references/from-scratch/guide.md](references/from-scratch/guide.md) **or** [references/existing-server.md](references/existing-server.md).
-4. **If intent-driven mode (OpenAPI):** also read [references/from-openapi/intent-driven.md](references/from-openapi/intent-driven.md) (defines G2/G3/G7 gate shapes and cluster patterns) **and** [references/from-openapi/scaffold.md](references/from-openapi/scaffold.md) (defines G6 gate and `selections.json` preview rules) before executing any gate.
+4. **If intent-driven mode (OpenAPI):** also read [references/from-openapi/intent-driven.md](references/from-openapi/intent-driven.md) (G2/G3/G7 gate shapes) **and** [references/from-openapi/scaffold.md](references/from-openapi/scaffold.md) (G6 gate, `selections.json` preview) before executing any gate.
 
 Do not write `registerPayable(...)`, `additionalTools`, or `src/tools/*` until all required files are loaded.
 
-**`tool-design.md` is non-negotiable** — it pins the two-argument `registerPayable` shape and `c.respond(data, { text })` contract. If you cannot recall those rules verbatim, stop and read it.
+## Confirmation level (G0 — ask once)
 
-## Confirmation level (G0 — ask once, applies to the whole flow)
-
-Before any other gate, ask the user how chatty you should be. See [references/hitl-conventions.md](references/hitl-conventions.md) for the structured-question contract and full gate index.
+Before any other gate, ask how chatty you should be. See [references/hitl-conventions.md](references/hitl-conventions.md).
 
 > "How chatty should I be? `standard` (default) confirms each big decision; `auto` only confirms irreversible steps (scaffold, deploy, go-live); `chatty` reviews every intent and file."
 
-Once the user picks, remember it for the rest of the flow. Every downstream gate (`G1`–`G9`) decides whether to fire based on this level.
+## Routing
 
-## Routing procedure
+**1. Existing paid-MCP project?** All of: `@solvapay/mcp` or `@solvapay/server` in `package.json`, `wrangler.jsonc`, and `src/worker.ts` with `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` → [references/from-scratch/scaffold-and-extend.md](references/from-scratch/scaffold-and-extend.md). Do not scaffold.
 
-### 1. Detect existing paid-MCP project
+**2. Greenfield — ask once:** *"OpenAPI/Swagger spec, or hand-written tools?"*
 
-All of: `@solvapay/mcp` or `@solvapay/server` in `package.json`, `wrangler.jsonc`, `src/worker.ts` with `createSolvaPayMcpFetch` / `createSolvaPayMcpServer`.
-
-If yes → [references/from-scratch/scaffold-and-extend.md](references/from-scratch/scaffold-and-extend.md); do not scaffold.
-
-### 2. Greenfield — pick input mode
-
-Ask once: *"OpenAPI/Swagger spec, or hand-written tools?"*
-
-| Answer | Guide |
-| --- | --- |
-| Has spec (agent) | [references/from-openapi/guide.md](references/from-openapi/guide.md) |
-| Hand-written / new | [references/from-scratch/guide.md](references/from-scratch/guide.md) |
-| Existing MCP server | [references/existing-server.md](references/existing-server.md) |
-
-| Situation | Path |
-| --- | --- |
-| Human at terminal, no spec | `npm create solvapay@latest <name> -- --type mcp` |
-| Human at terminal, has OpenAPI | `npm create solvapay@latest <name> -- --type mcp --openapi <url-or-path>` |
-| Agent, has spec | Agent path — `describe.mjs` + `scaffold.mjs` with hand-authored `selections.json` |
-| Agent, no spec | [references/from-scratch/guide.md](references/from-scratch/guide.md) — `--no-openapi` scaffold, then hand-author tools |
-
-### Inside an unrelated app repo
-
-If the cwd is inside a repo with its own purpose (Next.js app, backend, monorepo) **and** there is no paid-MCP server in scope, **stop and ask where the MCP server should live** before scaffolding. Reasonable defaults: sibling directory (`../my-app-mcp`) or monorepo `apps/` / `packages/` subdirectory. Do not silently scaffold into `./mcp/` without confirming.
-
-> **Dev mode (skill author / internal testing only).** Append `--dev` to CLI invocations when testing against api-dev: `npm create solvapay@latest <name> -- --type mcp --dev` and `npx -y solvapay@latest init --dev`. Never enable `--dev` for end users — production keys are rejected by api-dev.
-
-### 3. Confirm host
-
-Default Cloudflare → [references/hosting/cloudflare/README.md](references/hosting/cloudflare/README.md). Other hosts → [references/hosting/alternatives.md](references/hosting/alternatives.md).
-
-### 4. Credentials
-
-After scaffold → [references/solvapay-init.md](references/solvapay-init.md) (`npx -y solvapay@latest init`).
-
-## OpenAPI plan-validate-execute
-
-1. **Describe:** `node scripts/describe.mjs <spec>` → `openapi-described.json`
-2. **Plan:** Agent authors `selections.json` (intent clusters)
-3. **Validate:** `node scripts/validate-selections.mjs selections.json` — fix errors, re-validate until pass
-4. **Execute:** `node scripts/scaffold.mjs selections.json <target-dir>`
-5. Author tools per [references/tool-design.md](references/tool-design.md)
-6. **Verify:** upstream `verify.mjs` or mode-guide checklist → fix → repeat until pass
-7. **Test** → **Deploy** per mode guide (G8/G9 gates)
-
-## Multi-step map
-
-| Mode | Guide | Validator |
+| Answer | Guide | Validator |
 | --- | --- | --- |
-| OpenAPI | [references/from-openapi/guide.md](references/from-openapi/guide.md) | `validate-selections.mjs` → scaffold → verify |
-| From scratch | [references/from-scratch/guide.md](references/from-scratch/guide.md) | wrangler dev smoke |
-| Existing server | [references/existing-server.md](references/existing-server.md) | tool invocation smoke |
-| Deploy | [references/hosting/cloudflare/deploy-verify.md](references/hosting/cloudflare/deploy-verify.md) | curl + MCP inspector |
+| Has spec (agent) | [references/from-openapi/guide.md](references/from-openapi/guide.md) | `validate-selections.mjs` → scaffold → verify |
+| Hand-written / new | [references/from-scratch/guide.md](references/from-scratch/guide.md) | wrangler dev smoke |
+| Existing MCP server (add paywall) | [references/existing-server.md](references/existing-server.md) | tool invocation smoke |
 
-G0–G9 gates: [references/hitl-conventions.md](references/hitl-conventions.md).
+**Inside an unrelated app repo:** if cwd is a Next.js app, backend, or monorepo without a paid-MCP server in scope, **stop and ask where the MCP server should live** before scaffolding (sibling dir or `apps/` / `packages/` subdirectory).
+
+> **Dev mode (internal testing only).** Append `--dev` when testing against api-dev: `npm create solvapay@latest <name> -- --type mcp --dev` and `npx -y solvapay@latest init --dev`. Never for end users.
+
+**3. Host:** default Cloudflare → [references/hosting/cloudflare/README.md](references/hosting/cloudflare/README.md). Other hosts → [references/hosting/alternatives.md](references/hosting/alternatives.md). Optional custom MCP UI → [references/mcp-apps-ui.md](references/mcp-apps-ui.md).
+
+**4. Credentials:** after scaffold → [references/solvapay-init.md](references/solvapay-init.md) (`npx -y solvapay@latest init`).
+
+Human CLI shortcut (terminal only): see the human block at the top of this file.
+
+## OpenAPI flow & gates
+
+`describe.mjs` → author `selections.json` → `validate-selections.mjs` (loop until pass) → `scaffold.mjs <selections> <target-dir>` → author tools per [references/tool-design.md](references/tool-design.md) → verify → test → deploy. `SOLVAPAY_SECRET_KEY` is set by `solvapay init`, never in `selections.json`. Full G0–G9 HITL gates: [references/hitl-conventions.md](references/hitl-conventions.md).
 
 ## Scripts
 
 | Script | Action | Purpose |
 | --- | --- | --- |
 | `scripts/describe.mjs` | **Run** | Parse OpenAPI spec |
-| `scripts/scaffold.mjs` | **Run** | Generate worker from selections |
 | `scripts/validate-selections.mjs` | **Run** | Validate `selections.json` before scaffold |
+| `scripts/scaffold.mjs` | **Run** | Generate worker from selections |
 | `scripts/README.md` | **See** | Resolution order, upstream `--help` |
 
 ## Verification loop
 
-1. Run applicable validator (verify script, wrangler dev, or mode-guide checklist).
-2. On failure → read troubleshooting in mode guide → fix → re-run until pass.
-3. Only then complete handoff template.
+1. Run the mode's validator (verify script, `wrangler dev`, or guide checklist).
+2. On failure → mode-guide troubleshooting → fix → re-run until pass.
+3. Only then complete the handoff template.
 
 ## Handoff template
 
@@ -163,20 +125,9 @@ G0–G9 gates: [references/hitl-conventions.md](references/hitl-conventions.md).
 
 ## Task progress
 
-- [ ] Confirm scope (data-returning tools)
-- [ ] Read [references/tool-design.md](references/tool-design.md)
-- [ ] Run routing procedure (existing vs greenfield, input mode, host)
-- [ ] Complete mode guide (OpenAPI: plan-validate-execute selections)
+- [ ] Read [references/tool-design.md](references/tool-design.md) + matching mode guide
+- [ ] Route (existing vs greenfield, input mode, host)
+- [ ] Complete mode guide (OpenAPI: describe → validate → scaffold → author)
 - [ ] Run [references/solvapay-init.md](references/solvapay-init.md)
 - [ ] Run verification loop until pass
 - [ ] Complete handoff template
-
-## Pointers
-
-- Tool contract: [references/tool-design.md](references/tool-design.md)
-- HITL gates: [references/hitl-conventions.md](references/hitl-conventions.md)
-- OpenAPI: [references/from-openapi/guide.md](references/from-openapi/guide.md)
-- From scratch: [references/from-scratch/guide.md](references/from-scratch/guide.md)
-- Existing server: [references/existing-server.md](references/existing-server.md)
-- Cloudflare host: [references/hosting/cloudflare/README.md](references/hosting/cloudflare/README.md)
-- Custom MCP UI (optional): [references/mcp-apps-ui.md](references/mcp-apps-ui.md)

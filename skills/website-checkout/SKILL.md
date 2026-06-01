@@ -37,6 +37,12 @@ Hosted checkout + customer portal for web apps. Server creates checkout session;
 - JWT/session must reach server routes that create sessions (details: [references/nextjs.md](references/nextjs.md)).
 - Durable access after redirect often needs webhooks, not return URL alone (details: [references/nextjs.md](references/nextjs.md)).
 
+## Prerequisites
+
+Before stack-specific implementation, run `npx -y solvapay@latest init` to configure `SOLVAPAY_SECRET_KEY` and install base SDK packages.
+
+For advanced use cases (usage metering, Express/MCP paths, webhook-heavy flows), use `solvapay/sdk-integration`.
+
 ## Mandatory read order
 
 - **Next.js detected** → read [references/nextjs.md](references/nextjs.md) end-to-end before generating routes.
@@ -82,6 +88,11 @@ Hosted checkout + customer portal for web apps. Server creates checkout session;
         curl -i -X POST http://localhost:3000/api/create-checkout-session \
           -H "Content-Type: application/json" -d '{"productRef":"prd_..."}'
 ```
+
+## Docs discovery hints
+
+- Topics: `checkout sessions`, `customer sessions`, `nextjs guide`, `react guide`, `webhooks`, `test in sandbox`.
+- Retrieval hint: resolve topics via MCP search first, then `llms.txt`.
 
 ## Task progress
 

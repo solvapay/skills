@@ -7,7 +7,7 @@ No script — delegate to the SolvaPay CLI's browser-auth flow. This module wire
 | State | Use this module |
 | --- | --- |
 | Fresh scaffold, no `SOLVAPAY_SECRET_KEY` in `.env` yet | Yes — first-time setup. |
-| Switching from sandbox `sk_test_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
+| Switching from sandbox `sk_test_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
 
 ## Run
 
@@ -47,7 +47,7 @@ The CLI:
 - Populate `MCP_PUBLIC_BASE_URL`. Scaffold writes `http://localhost:8787`; `deploy.mjs` auto-resolves the live workers.dev URL on first deploy.
 - Populate `UPSTREAM_API_KEY`. Scaffold writes it from `selections.upstreamAuth.key`.
 - Create a product. If the account has none, init warns and points to Console at https://app.solvapay.com — direct the user there to create one first.
-- Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md)).
+- Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)).
 
 ## Default plan and auto-enrollment
 
@@ -68,7 +68,7 @@ If the agent authored `selections.plans` during curate, `scaffold.mjs` pre-fligh
 
 | Pass | `.env` value | Set on deployed worker via |
 | --- | --- | --- |
-| First setup (sandbox) | `sk_test_…` written by `solvapay init` | Auto-uploaded by `npm run deploy` on first deploy (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md)) |
+| First setup (sandbox) | `sk_test_…` written by `solvapay init` | Auto-uploaded by `npm run deploy` on first deploy (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)) |
 | Go-live | `sk_live_…` written manually by the user, replacing the sandbox value | `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then `npm run deploy` |
 
 Single worker, single secret slot. There is no `--env production`, no `.env.prod` — the template ships one environment by design.
@@ -83,7 +83,7 @@ Recommend separate keys per environment and per project, even when one merchant 
 
 ## Hand-off
 
-- First-time setup → from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md).
+- First-time setup → from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md).
 
 ## Reference
 
