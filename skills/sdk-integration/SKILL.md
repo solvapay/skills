@@ -1,110 +1,22 @@
 ---
 name: sdk-integration
 description: >
-  Integrate the SolvaPay TypeScript SDK into an existing app -- Next.js, React, Express,
-  Supabase Edge Functions, Deno, or an MCP server that already exists. Use when the user
-  says "integrate sdk", "protect api", "paywall my api", "usage events", "webhooks",
-  "add solvapay to existing mcp", "supabase edge functions", "npx solvapay init", or wants
-  account-management UI (CurrentPlanCard, LaunchCustomerPortalButton, usePaymentMethod).
-  Covers paywall enforcement, usage tracking, hosted checkout, customer portal, plan
-  activation / cancellation / reactivation, and webhook signature verification. Use the
-  `create-mcp-app` skill instead when scaffolding a brand-new paid MCP server.
+  Load when SolvaPay functionality needs to be coded into an app. Handles: billing UI
+  (buttons, plan status, React components) in React dashboards, web apps, or MCP server
+  UIs; paywalls, access gates, or usage limits on routes or handlers; SolvaPay fetch
+  handler or webhook setup; SDK integration across Next.js, React, Express, Supabase edge
+  functions, and MCP servers. Skip for greenfield MCP scaffolding, Lovable checkout, or
+  redirect-only checkout with no SDK code.
 metadata:
   version: "1.0.0"
+compatibility: >
+  Node.js >= 18 for npx solvapay init. Supports Next.js, React, Express, MCP (Workers/Edge/Deno),
+  Supabase Edge Functions. Supabase CLI when using edge path. Network required for init.
 ---
 
 # SDK Integration
 
-Add SolvaPay to an existing TypeScript / JavaScript app via the `@solvapay/*` packages.
-
-## Quick Start
-
-1. Detect stack from `package.json` (see [Stack Detection Rules](#stack-detection-rules)).
-2. Run `npx -y solvapay@latest init` to authenticate and install base packages (`@solvapay/server`, `@solvapay/core`, `@solvapay/auth`).
-3. Follow the matching stack reference:
-   - [references/nextjs.md](references/nextjs.md)
-   - [references/react.md](references/react.md)
-   - [references/express.md](references/express.md)
-   - [references/mcp-server.md](references/mcp-server.md) — fetch-first MCP server already in place (Cloudflare Workers, Supabase Edge, Deno)
-   - [references/supabase-edge.md](references/supabase-edge.md)
-4. Use [references/operations.md](references/operations.md) for API operations; [references/env-and-init.md](references/env-and-init.md) for env vars and init; [references/mcp-product-console.md](references/mcp-product-console.md) for MCP product setup; [references/WEBHOOKS.md](references/WEBHOOKS.md) for signature verification.
-
-## Stack Detection Rules
-
-Detect stack from `package.json`:
-
-- `next` dependency present → follow [references/nextjs.md](references/nextjs.md)
-- `react` present and `next` absent → follow [references/react.md](references/react.md) plus backend contract
-- `express` present → follow [references/express.md](references/express.md)
-- `@modelcontextprotocol/*` present → follow [references/mcp-server.md](references/mcp-server.md)
-- `supabase/functions/` directory exists OR `@supabase/supabase-js` present without `next`/`express` → follow [references/supabase-edge.md](references/supabase-edge.md)
-- Deno project without Node framework → follow [references/supabase-edge.md](references/supabase-edge.md)
-- If multiple match, ask which runtime is primary for paid operations.
-- If React + Supabase but unsure about backend: "Does the project already have a Next.js backend, or is the backend entirely on Supabase Edge Functions?"
-
-## When To Ask Clarifying Questions
-
-Ask one question if any of these are missing:
-
-- hosted checkout vs embedded payment intent preference
-- auth system (Supabase, custom JWT, session auth)
-- monetization model (purchase gate vs usage limits vs both)
-- target runtime for protected operations (edge vs node)
-
-## Implementation Order
-
-1. Run `npx -y solvapay@latest init` to authenticate and install base SDK packages.
-2. Confirm product exists with required plans in SolvaPay Console.
-3. Implement customer identity mapping from your auth layer.
-4. Add paywall / checkout flow.
-5. Add webhook handling for source-of-truth updates.
-6. Validate in sandbox before go-live.
-
-### Stage 1: Setup
-
-- Run `npx -y solvapay@latest init` to authenticate, set `SOLVAPAY_SECRET_KEY` in `.env`, add `.env` to `.gitignore`, and install base packages: `@solvapay/server`, `@solvapay/core`, `@solvapay/auth`.
-- Install additional stack-specific packages not covered by init (for example `@solvapay/next`, `@solvapay/react`, `@solvapay/react-supabase`).
-- Use manual package installation only as a fallback when CLI setup cannot run (for example CI images or restricted build environments).
-- Confirm server-side secret handling (`SOLVAPAY_SECRET_KEY` only on server).
-- Ensure product and plan references are available before coding UI gates.
-
-Topics: `typescript sdk intro`, `installation`, `quick start`, `core concepts`.
-
-### Stage 2: Auth and Customer Mapping
-
-- Map authenticated user identity to a stable SolvaPay customer reference.
-- For JWT/session auth, ensure customer identity is extracted in server middleware / handler.
-- Add customer sync / ensure step before checkout or limits checks.
-
-Topics: `custom auth`, `nextjs auth middleware`, `customer`.
-
-### Stage 3: Paywall and Checkout
-
-- Choose hosted checkout by default.
-- Use limits checks for metered flows and checkout session for upgrade path.
-- Return actionable errors (401/402) with upgrade guidance or checkout URL.
-- For free or credit-based plans, use `activatePlan` as an alternative to checkout.
-- For post-purchase lifecycle management, use `cancelRenewal` and `reactivateRenewal`.
-- For plan switching, call `activatePlan` with a different plan — the old purchase is automatically expired.
-
-Topics: `checkout sessions`, `customer sessions`, `limits`, `usage`, `purchase management`, `activate plan`.
-
-### Stage 4: Webhooks and Sync
-
-- Add webhook endpoint with signature verification.
-- Process purchase / payment events idempotently.
-- Keep local access state and billing state in sync.
-- See [references/WEBHOOKS.md](references/WEBHOOKS.md) for implementation patterns.
-
-Topics: `webhooks`, `verify signature`, `purchase events`, `payment events`.
-
-### Stage 5: Sandbox Verification
-
-- Validate one successful paid path.
-- Validate one failure path (unauthorized, limit exceeded, or declined payment).
-- Capture runbook notes for go-live (keys, endpoints, verification status).
-
-Topics: `test in sandbox`, `go live`, `testing`, `error handling`.
+Add SolvaPay to an existing TypeScript / JavaScript app via `@solvapay/*` packages.
 
 ## Guardrails
 
@@ -112,46 +24,107 @@ Topics: `test in sandbox`, `go live`, `testing`, `error handling`.
 - Never build custom card collection if hosted checkout satisfies requirements.
 - Always prefer official SolvaPay SDK helpers over ad-hoc raw HTTP calls.
 - Always confirm product and plan references exist before wiring UI.
-- Always keep paywall checks server-side or tool-handler-side (never browser-only).
-- Always include a failure-path test in sandbox before calling implementation complete.
-- Never rely on SDK repo examples as required source material.
+- Always keep paywall checks server-side or tool-handler-side.
+- Always emit a **runnable** sandbox verification artifact before handoff — a `curl` block or test script covering happy path (200) and failure path (402 with `checkoutUrl`). Prose summaries alone do not satisfy this guardrail.
 - Never treat UI unlock state as authoritative without server-side checks.
+
+## Gotchas
+
+- SDK 1.1 Next.js route wrappers return `Promise<NextResponse>` — update call sites (details: [references/nextjs.md](references/nextjs.md)).
+- Webhook signature verification needs the **raw request body**, not parsed JSON (details: [references/WEBHOOKS.md](references/WEBHOOKS.md)).
+- Deno import maps need trailing slashes on `@solvapay/` entries (details: [references/supabase-edge.md](references/supabase-edge.md)).
+- Virtual MCP UI tools ≠ `payable.mcp()` — different wiring paths (details: [references/mcp-server.md](references/mcp-server.md)).
+- Billing UI components do not grant access — server truth only.
+- Greenfield paid MCP scaffold → hand off to `solvapay/create-mcp-app`, not this skill.
+
+## Mandatory read order
+
+1. Stack guide from [Stack detection](#stack-detection) (read end-to-end before coding).
+2. [references/operations.md](references/operations.md) before authoring API calls.
+3. [references/WEBHOOKS.md](references/WEBHOOKS.md) when user mentions webhooks or post-checkout sync.
+4. [references/env-and-init.md](references/env-and-init.md) for init and env setup.
+
+## Stack detection
+
+From `package.json` and project layout:
+
+- `next` → [references/nextjs.md](references/nextjs.md)
+- `react` without `next` → [references/react.md](references/react.md)
+- `express` → [references/express.md](references/express.md)
+- `@modelcontextprotocol/*` → [references/mcp-server.md](references/mcp-server.md)
+- `supabase/functions/` or Supabase without Next/Express → [references/supabase-edge.md](references/supabase-edge.md)
+
+If multiple match, ask which runtime is primary.
+
+## Integration procedure
+
+1. Detect stack from `package.json`.
+2. Run `npx -y solvapay@latest init`.
+3. Read matching stack guide end-to-end.
+4. Read [references/operations.md](references/operations.md) before API calls.
+5. Wire paywall / checkout / usage per stack patterns.
+6. If webhooks needed → read [references/WEBHOOKS.md](references/WEBHOOKS.md) first.
+7. Run verification loop.
+
+## Env plan-validate-execute
+
+1. **Plan:** List required env vars (`SOLVAPAY_SECRET_KEY`, product refs, webhook secret).
+2. **Validate:** Run `node scripts/check-env.mjs` — no secrets in `NEXT_PUBLIC_*` / `VITE_*`; init completed.
+3. **Execute:** Implement routes.
+
+## Verification loop
+
+1. Run stack-specific dev flow.
+2. Happy-path purchase / paywall request.
+3. Failure path (limit exceeded or unauthorized).
+4. Verify logs + checkout URL / error message.
+5. **Emit a runnable verification artifact** — copy-pasteable `curl` commands or a test script in `outputs/` (not a prose summary). Include both:
+   - **Happy path:** authenticated + purchased → 200 from protected route.
+   - **Failure path:** no purchase or over limit → 402 with `checkoutUrl`.
+6. Fix and re-test until pass.
+
+## Handoff template
+
+```markdown
+## Integration handoff
+- **Stack:** [Next.js / Express / …]
+- **Auth model:** [Supabase JWT / session / …]
+- **Routes wired:** [list]
+- **Webhooks:** [yes/no + path]
+- **Sandbox:** [happy path + one failure path outcome]
+- **Verification commands:**
+
+        # Failure path (no purchase → 402 + checkoutUrl)
+        curl -i http://localhost:3000/api/premium/data -H "Authorization: Bearer $TOKEN"
+        # Happy path (after sandbox purchase → 200)
+        curl -i http://localhost:3000/api/premium/data -H "Authorization: Bearer $TOKEN"
+```
 
 ## When NOT to use this skill
 
-- Scaffolding a brand-new paid MCP server from OpenAPI or from scratch — use `create-mcp-app` instead.
-- Pasting hosted checkout into a Lovable app — use `lovable-checkout` instead.
-- Adding hosted checkout to a brand-new Next.js / React web app with no other SDK needs — `website-checkout` covers the minimal slice.
+- Greenfield paid MCP from OpenAPI/scratch → `solvapay/create-mcp-app`
+- Lovable paste-in checkout → `solvapay/lovable-checkout`
+- Minimal hosted checkout only on new web app → `solvapay/website-checkout`
 
-## Verification Loop
+## Scripts
 
-1. Run stack-specific dev flow.
-2. Execute one happy-path purchase / paywall request.
-3. Trigger one failure path (exceeded limit or unauthorized request).
-4. Verify logs + returned checkout URL / message.
-5. Fix and re-test before adding more features.
+| Script | Action | Purpose |
+| --- | --- | --- |
+| `scripts/check-env.mjs` | **Run** | Detect secret leaks in client/public env |
 
-## Troubleshooting Triggers
+## Task progress
 
-- 401 everywhere → auth extraction / middleware likely broken.
-- 402 never appears → limits / product / plan mapping likely incorrect.
-- Checkout succeeds but access unchanged → missing webhook or stale access cache.
-- Signature failures in webhook endpoint → wrong secret or raw body parsing issue.
+- [ ] Detect stack from package.json
+- [ ] Run `npx -y solvapay@latest init`
+- [ ] Read stack guide end-to-end
+- [ ] Read operations reference before API calls
+- [ ] Wire paywall / checkout / usage routes
+- [ ] If webhooks → read WEBHOOKS.md and implement handler
+- [ ] Run verification loop (happy + failure path) and emit runnable curl/test artifact
 
-## Handoff Output
+## References
 
-When this domain completes, provide:
-
-- selected stack and runtime
-- implemented operations (checkout, customer portal, limits, usage, webhooks)
-- environment variables used
-- verified test outcomes (happy path and failure path)
-
-## Task Progress
-
-- [ ] Detect stack and runtime
-- [ ] Wire SDK packages and env vars
-- [ ] Implement checkout / paywall flow
-- [ ] Add auth-aware customer mapping
-- [ ] Add webhook handling if needed
-- [ ] Verify with sandbox tests
+- Operations: [references/operations.md](references/operations.md)
+- Env / init: [references/env-and-init.md](references/env-and-init.md)
+- MCP product console (existing product only): [references/mcp-product-console.md](references/mcp-product-console.md)
+- Webhooks: [references/WEBHOOKS.md](references/WEBHOOKS.md)

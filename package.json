@@ -8,5 +8,8 @@
     "dev:link": "node scripts/dev-link.mjs link",
     "dev:unlink": "node scripts/dev-link.mjs unlink",
     "dev:status": "node scripts/dev-link.mjs status"
+  },
+  "dependencies": {
+    "create-solvapay": "^0.3.0-preview-b2a7a13676d9b4e8f4e134f75e9e5ecb2eb36cad"
   }
 }

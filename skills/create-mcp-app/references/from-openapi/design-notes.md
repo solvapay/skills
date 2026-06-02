@@ -4,7 +4,7 @@ Rationale for individual choices in the template + scaffold contract. Maintainer
 
 ## Why the arrow wrapper
 
-`src/worker.ts` uses `additionalTools: ctx => registerTools(ctx, env)` rather than `additionalTools: registerTools`. The SDK's `additionalTools` hook is called with `ctx` only — there's no way to surface the Workers `env` binding through it. The arrow wrapper closes over `env` from the outer `fetch` scope so generated tool handlers can read `env.UPSTREAM_API_KEY`. Adapted from [examples/cloudflare-workers-mcp/src/worker.ts](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/src/worker.ts) lines 80–109.
+`src/worker.ts` uses `additionalTools: ctx => registerTools(ctx, env)` rather than `additionalTools: registerTools`. The SDK's `additionalTools` hook is called with `ctx` only — there's no way to surface the Workers `env` binding through it. The arrow wrapper closes over `env` from the outer `fetch` scope so generated tool handlers can read `env.UPSTREAM_API_KEY`. Adapted from [examples/cloudflare-workers-mcp/src/worker.ts](https://github.com/solvapay/solvapay-sdk/blob/main/examples/cloudflare-workers-mcp/src/worker.ts) lines 80–109.
 
 ## `registerTools` signature is always `(ctx, env)`
 
@@ -24,7 +24,7 @@ Placeholders use straight string-replace, not template interpolation. This keeps
 
 ## Why one environment, not two
 
-The skill's `template/scripts/deploy.mjs` is a single-environment variant of [examples/cloudflare-workers-mcp/scripts/deploy.mjs](../../../../solvapay-sdk/examples/cloudflare-workers-mcp/scripts/deploy.mjs). The multi-env path in the source example exists for SolvaPay's own goldberg-demo and creates exactly the split-state the generated worker doesn't need. Go-live is a key swap (replace `sk_test_…` with `sk_live_…` in `.env`, re-run `wrangler secret put`, redeploy), not a separate environment.
+The skill's `template/scripts/deploy.mjs` is a single-environment variant of [examples/cloudflare-workers-mcp/scripts/deploy.mjs](https://github.com/solvapay/solvapay-sdk/blob/main/examples/cloudflare-workers-mcp/scripts/deploy.mjs). The multi-env path in the source example exists for SolvaPay's own goldberg-demo and creates exactly the split-state the generated worker doesn't need. Go-live is a key swap (replace `sk_test_…` with `sk_live_…` in `.env`, re-run `wrangler secret put`, redeploy), not a separate environment.
 
 ## `.env` + Worker Secret lifecycle in one place
 

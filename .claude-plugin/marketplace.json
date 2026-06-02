@@ -5,7 +5,7 @@
     "email": "support@solvapay.com"
   },
   "metadata": {
-    "description": "SolvaPay payment integration skills for Claude Code — use create-mcp-app to scaffold a production-ready MCP server with SolvaPay in seconds. Also supports Next.js, React, Express, Lovable, and more.",
+    "description": "SolvaPay payment integration skills for Claude Code — use solvapay/create-mcp-app to scaffold a production-ready MCP server with SolvaPay in seconds. Also supports Next.js, React, Express, Lovable, and more.",
     "version": "1.0.0"
   },
   "plugins": [

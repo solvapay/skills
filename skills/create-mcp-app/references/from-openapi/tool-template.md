@@ -105,9 +105,9 @@ The thrown `UpstreamError` is **not caught** in the generated handler — both c
 | --- | --- |
 | `scaffold.mjs` | `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`, `UPSTREAM_API_KEY` (only when `kind` is `bearer` or `apiKey`), `UPSTREAM_OAUTH_TOKEN_URL` / `UPSTREAM_OAUTH_CLIENT_ID` / `UPSTREAM_OAUTH_CLIENT_SECRET` plus optional `UPSTREAM_OAUTH_SCOPE` / `UPSTREAM_OAUTH_AUDIENCE` (only when `kind` is `oauth2-client-credentials`), `UPSTREAM_API_HEADERS` (compact JSON; only when `kind` is `apiKey-multi`) |
 | `npx -y solvapay@latest init` | `SOLVAPAY_SECRET_KEY` — appended via the CLI's append-safe writer, no clobber |
-| Agent | One-time edit to `MCP_PUBLIC_BASE_URL` for custom-domain deploys (see [deploy.md](deploy.md) step 2) |
+| Agent | One-time edit to `MCP_PUBLIC_BASE_URL` for custom-domain deploys (see [deploy.md](deploy.md) step 2); dev-mode wrapper seeds `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` when `scripts/scaffold.mjs --dev` is used |
 
-`SOLVAPAY_SECRET_KEY`, `UPSTREAM_API_KEY`, the `UPSTREAM_OAUTH_*` family, and `UPSTREAM_API_HEADERS` are all uploaded as Worker Secrets; see [deploy.md](deploy.md) for the lifecycle.
+`SOLVAPAY_SECRET_KEY`, `UPSTREAM_API_KEY`, the `UPSTREAM_OAUTH_*` family, and `UPSTREAM_API_HEADERS` are all uploaded as Worker Secrets; see [deploy.md](deploy.md) for the lifecycle. First deploy uploads missing secrets, but later `.env` edits do not refresh existing Worker secrets automatically — run `npx wrangler secret put <NAME>` for changed secrets before redeploy.
 
 ## Placeholders the skill substitutes
 
