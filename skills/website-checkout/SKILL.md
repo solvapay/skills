@@ -1,14 +1,13 @@
 ---
 name: website-checkout
 description: >
-  Use this skill when someone wants to add a subscription or one-time purchase to an existing
-  website — the server creates a SolvaPay checkout session, the user is redirected to SolvaPay's
-  hosted payment page, then lands back on the site with access unlocked. Also use for wiring the
-  return URL, building a subscribe/upgrade button, or giving paying customers a link to manage or
-  cancel their subscription via the hosted portal. Primarily for Next.js; plain React (no server
-  framework) is partially supported. Do not use for embedding plan cards or billing UI into a
-  dashboard, processing webhooks or metering API usage, Lovable or Vite+Supabase setups, or
-  wiring MCP tool paywalls.
+  Use when building a checkout or upgrade flow on an existing website: user clicks subscribe or
+  upgrade → server creates a SolvaPay session → browser redirects to SolvaPay's hosted payment
+  page → returns to your site with access unlocked. Also use for adding a customer portal so
+  subscribers can manage, upgrade, or cancel their plan after checkout. Covers Next.js fully;
+  React without a server framework is partial. Skip for: embedding plan cards or billing
+  dashboards, webhook processing, usage metering, Lovable or Vite+Supabase setups, or MCP tool
+  paywalls.
 metadata:
   version: "1.0.0"
 compatibility: >

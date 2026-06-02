@@ -1,21 +1,22 @@
 ---
 name: solvapay
 description: >
-  Use this skill for SolvaPay discovery and routing — only when the user is deciding which
-  integration to use, not implementing one. Trigger for: capability questions ("what can SolvaPay
-  do"), surface comparisons ("checkout vs SDK vs MCP"), "where do I start" uncertainty, or vague
-  "add payments to my app/SaaS" without a named tech stack. Skip when the user names a specific
-  technology or framework (Lovable, Express, Node.js, Next.js, Cloudflare Workers, OpenAPI)
-  alongside a concrete action — those queries should go directly to the dedicated surface skill
-  that owns that stack. This skill answers "which SolvaPay integration do I need?" not "how do I
-  implement it."
+  Use this skill when a user is choosing between SolvaPay surfaces rather than implementing one.
+  Load for: any query that pits two options against each other ("checkout or SDK?", "MCP vs
+  checkout?", "which one for my app?"), capability questions about SolvaPay, vague billing or
+  monetization intent with no specific surface chosen, or assigned SolvaPay work without clear
+  direction. Skip when the user has settled on exactly one surface and is asking to build it —
+  single-surface intent plus implementation context (tech stack, command, or action verb) routes
+  to that surface's dedicated skill instead.
 metadata:
   version: "1.0.0"
 ---
 
 # SolvaPay — Router
 
-Disambiguate vague SolvaPay intent and route to the surface skill that owns the work. Does **not** implement integrations — hand off and stop.
+Disambiguate vague SolvaPay intent and route to the surface skill that owns the work.
+
+**This skill's only job is routing.** Once you've identified the correct surface skill and emitted the [handoff template](#handoff-template), your turn is over — stop there. Do not read the target skill's SKILL.md. Do not implement any code, steps, or instructions. The user or the target skill will handle implementation. Outputting implementation details after the handoff (even as "helpful context") defeats the purpose of this router and duplicates work the surface skill is designed to do better.
 
 ## What SolvaPay does
 
@@ -114,8 +115,10 @@ Install if missing: `npx skills add solvapay/skills --skill <flat-name> -y` (e.g
 - **Routing id:** solvapay/<surface>
 - **Why:** [one sentence tied to user intent]
 - **Install if missing:** `npx skills add solvapay/skills --skill <flat-name> -y`
-- **Next:** Load target skill's SKILL.md; do not implement here
+- **Next:** Load solvapay/<surface> SKILL.md and follow its instructions.
 ```
+
+**After emitting this template, stop. Do not add implementation steps, code snippets, or instructions from the target skill. The handoff is the complete output of this skill.**
 
 ## Task progress
 
@@ -124,7 +127,7 @@ Install if missing: `npx skills add solvapay/skills --skill <flat-name> -y` (e.g
 - [ ] Match routing id from trimmed matrix
 - [ ] Run verification loop (confirm not a near-miss negative)
 - [ ] Install target skill if missing
-- [ ] Complete handoff template and stop
+- [ ] Emit handoff template and stop — do not add code or implementation steps after the handoff
 
 ## Dev mode (skill author / internal testing only)
 

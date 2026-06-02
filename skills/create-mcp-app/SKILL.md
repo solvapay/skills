@@ -1,14 +1,14 @@
 ---
 name: create-mcp-app
 description: >
-  Use this skill when building a brand-new paid MCP server — not wiring an existing one, but
-  scaffolding from scratch. Use for: npm create solvapay --type mcp, converting OpenAPI or Swagger
-  specs into monetized MCP tools, hand-writing paid tools from scratch, deploying a new paid MCP
-  worker to Cloudflare Workers (use this skill even when the user only says "deploy to cloudflare"
-  if the context is a new MCP server), greenfield MCP scaffolding, and auditing then re-scaffolding
-  an existing MCP codebase into a fresh paid worker template. Skip for adding a paywall or metering
-  to an already-running server without a full rebuild, and for web or Lovable checkout pages —
-  use sdk-integration or checkout skills instead.
+  Use when the user is building a brand-new paid MCP server from zero — no existing server in play.
+  The two entry points: (1) the user has an OpenAPI or Swagger spec they want converted into
+  monetized MCP tools, or (2) they want to write the tools by hand on a fresh SolvaPay-wired
+  scaffold. Also use for the `npm create solvapay` CLI command with `--type mcp`. This skill covers
+  the full greenfield journey: spec parsing, tool authoring, Cloudflare Workers deployment, and
+  SolvaPay paywall setup on a new codebase. Skip when the user already has a running MCP server
+  and wants to add a paywall without rebuilding — use the existing-server skill. Skip for web
+  checkout pages, Lovable flows, and SDK-only integrations.
 metadata:
   version: "1.0.0"
 compatibility: >
@@ -47,6 +47,7 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - `ctx.registerPayable(name, config)` takes **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
 - Paid handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from paid handlers.
 - Run `node scripts/describe.mjs` against a **local spec file** — fetch URLs to `/tmp/spec-*.json` first; don't pass URLs directly.
+- **Binary/multipart operations must be skipped.** After running `describe.mjs`, grep the original spec for `multipart/form-data`, `application/octet-stream`, `image/`, and `application/pdf` under `requestBody.content` and response `content`. For each matching operation (e.g. `uploadFile`, `uploadImage`), set `tier: "skip"` in `selections.json` — MCP tools return text, not file streams, so these can't be wrapped usefully.
 - Petstore v3's `servers[0]` is relative (`/api/v3`) — `describe.mjs` emits a `serverProbeError` advisory; fix in `selections.json` or surface to the user.
 - `selections.json` must live **outside** the scaffold target dir (e.g. `/tmp/selections-<uuid>.json`) — upstream API keys must not land in the project tree.
 - Don't scaffold into an unrelated app repo root without confirming where the MCP worker should live — it's its own deployable unit.

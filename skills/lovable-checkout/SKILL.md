@@ -1,12 +1,14 @@
 ---
 name: lovable-checkout
 description: >
-  Use this skill when someone needs SolvaPay checkout, billing, or a paywall in a Lovable app
-  (Vite + shadcn/ui + Supabase Edge). This is the right skill whether the request is brief
-  ("paywall on lovable fast") or detailed ("install @solvapay/react-supabase @preview and keep
-  secrets server-side"). Key signals: mentions Lovable or Vite+Supabase, wants to paste in
-  checkout, use the api-dev or @preview channel, or avoid VITE_ client-side env vars. Do not
-  use for production Next.js hosted checkout, non-Lovable backends, or MCP server setup.
+  Load when someone is adding SolvaPay to a Lovable app or Vite+Supabase project — especially when
+  they want to install @solvapay/react-supabase @preview packages, paste checkout code into Lovable
+  chat, wire Supabase edge function secrets, or use api-dev.solvapay.com. Also triggers for:
+  keeping SOLVAPAY_SECRET_KEY out of VITE_ env vars, setting up SolvaPayProvider, or getting a
+  paywall running on Lovable fast. This skill handles the full setup: @preview package install,
+  edge function templates, provider wiring, and sandbox testing. Skip for Next.js projects,
+  production solvapay.com deployments, MCP server setup, or general "which SolvaPay product"
+  questions.
 metadata:
   version: "1.0.0"
 compatibility: >
