@@ -5,19 +5,25 @@
  * Exit 0 on pass; stderr field errors on fail.
  */
 import { readFileSync } from 'node:fs'
+import { splitDevArgs } from './lib/dev-mode.mjs'
 
-const HELP = `Usage: node scripts/validate-selections.mjs <selections.json>
+const { args } = splitDevArgs(process.argv.slice(2))
+
+const HELP = `Usage: node scripts/validate-selections.mjs [--dev] <selections.json>
 
 Validates required fields per references/from-openapi/selections-schema.md
 before running scaffold.mjs.
+
+--dev is accepted for parity with describe.mjs and scaffold.mjs, but validation
+does not use environment-specific settings.
 `
 
-if (process.argv.includes('--help') || process.argv.includes('-h')) {
+if (args.includes('--help') || args.includes('-h')) {
   console.log(HELP.trim())
   process.exit(0)
 }
 
-const path = process.argv[2]
+const path = args[0]
 if (!path) {
   console.error('Error: missing selections.json path\n')
   console.error(HELP.trim())
@@ -39,6 +45,11 @@ if (!data.workerName || typeof data.workerName !== 'string') {
 }
 if (!data.mcpPublicBaseUrl || typeof data.mcpPublicBaseUrl !== 'string') {
   errors.push('mcpPublicBaseUrl: required string (e.g. http://localhost:8787)')
+}
+if (data.upstreamBaseUrl !== undefined) {
+  if (typeof data.upstreamBaseUrl !== 'string' || !/^https?:\/\//i.test(data.upstreamBaseUrl)) {
+    errors.push('upstreamBaseUrl: optional absolute URL (e.g. https://api.example.com)')
+  }
 }
 if (!data.upstreamAuth || typeof data.upstreamAuth !== 'object') {
   errors.push('upstreamAuth: required object with kind')

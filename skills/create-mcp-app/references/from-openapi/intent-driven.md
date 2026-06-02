@@ -61,7 +61,9 @@ const data = await upstreamFetchJson<Pet>(url, { ... })
 
 This gives `tsc --noEmit` enough signal to catch upstream field renames and gives you autocomplete on `data.…` while authoring. Re-run the command when the upstream spec evolves.
 
-If the spec doesn't define a 200 response schema for an operation, fall back to `unknown` (not `Record<string, unknown>`). For success-status fallback order (`200` → `201` → `204` → `unknown`), see [tool-template.md#success-status-fallback](tool-template.md#success-status-fallback).
+Check the actual success response code and schema before typing each handler. Create operations often return `201`, not `200`; delete operations may return `204` with an empty body. If the spec doesn't define a 200 response schema for an operation, fall back to `unknown` (not `Record<string, unknown>`). For success-status fallback order (`200` → `201` → `204` → `unknown`), see [tool-template.md#success-status-fallback](tool-template.md#success-status-fallback).
+
+If `describe.mjs` reports empty or relative `servers`, confirm the real upstream API base URL before authoring handlers. Centralize it in one helper or constant, then build endpoint paths from that helper so a wrong base URL is fixed once.
 
 ## Clustering heuristics
 
