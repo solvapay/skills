@@ -6,4 +6,4 @@ evals/**/iterations/
 evals/**/iteration-*/
 eval-workspaces/
 eval-results/
-skills/*-workspace/
+*-workspace/
