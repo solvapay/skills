@@ -19,6 +19,8 @@ Works against any reachable URL. For local dev, pass `http://localhost:8787`. No
 
 Run anonymous first — the `oauthProtectedResource`, `oauthAuthorizationServer`, and `toolsList` checks all pass without credentials (a 401 with a well-formed `WWW-Authenticate` challenge satisfies `toolsList`). The `merchantBootstrap` check is the only one that strictly needs a bearer token and is therefore the one that needs human-in-the-loop OAuth.
 
+Passing `verify.mjs` without `--credentials-file` proves the public MCP/OAuth contract, not the full paid path. In that mode `merchantBootstrap` is skipped, and `paywallGate` may also skip when the worker requires bearer auth and the tool catalog cannot be enumerated. Do not summarize that as "paywall verified"; say which checks passed and which skipped.
+
 > **`merchantBootstrap` requires a human at a browser.** `mcpjam oauth login` defaults to `--auth-mode interactive`, which opens a system browser and blocks until you click "Approve" on the SolvaPay consent screen. SolvaPay workers only advertise the `authorization_code` grant type, so neither `--auth-mode client_credentials` nor the headless flow can complete without that human click. Autonomous agents should run `verify.mjs` anonymous, accept `merchantBootstrap: { status: 'skipped' }`, and rely on `scripts/deploy.mjs`'s pre-deploy `GET /v1/sdk/merchant` preflight (no OAuth) to catch the merchant-not-found failure mode.
 
 To exercise the `merchantBootstrap` check (and `paywallGate` against auth-gated workers), install the [MCPJam CLI](https://www.npmjs.com/package/@mcpjam/cli) (one-time):
@@ -71,6 +73,15 @@ JSON on stdout. Exit code `0` when every check is `passed` or `skipped`, `1` whe
 }
 ```
 
+For agent handoff, translate the JSON into a short verification summary:
+
+```markdown
+- **Contract checks:** oauthProtectedResource passed; oauthAuthorizationServer passed; toolsList passed
+- **Paid gate status:** paywallGate passed / skipped / failed
+- **Merchant bootstrap:** passed / skipped; skipped means no human OAuth credentials file was used
+- **Upstream smoke:** test.mjs passed / skipped / failed; include whether intent tools were tested manually
+```
+
 ## What this script does NOT do
 
 - Authenticate. Calls go out anonymous; OAuth-protected operations either gate (paywall) or 401 (which we treat as "couldn't verify").
@@ -107,7 +118,7 @@ For testing against a real MCP host, deploying to a stable `*.workers.dev` URL (
 
 ### Upstream returns XML / HTML / non-JSON
 
-A tool call returning `isError: true` with text starting `Upstream <METHOD> <url> returned <status> <contentType>` almost always means the spec's `servers[0].url` doesn't serve the operation's path. Fix: re-run `describe.mjs`, check `serverProbeError` / `servers[0].url` in output, correct `selections.json` upstream base URL or ask user for the real API base. Hand-tuned tools can `catch` typed `UpstreamError` and branch on `err.status` / `err.contentType` / `err.bodySnippet`.
+A tool call returning `isError: true` with text starting `Upstream <METHOD> <url> returned <status> <contentType>` almost always means the spec's `servers[0].url` doesn't serve the operation's path. Fix: re-run `describe.mjs`, check `serverProbe` / `servers[0].url` in output, correct or confirm the upstream base URL, and inspect path-prefix outliers such as `/apifhir/...` among `/api/fhir/...` siblings. Hand-tuned tools can `catch` typed `UpstreamError` and branch on `err.status` / `err.contentType` / `err.bodySnippet`.
 
 ## Hand-off
 

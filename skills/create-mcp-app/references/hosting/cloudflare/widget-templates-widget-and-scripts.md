@@ -275,8 +275,9 @@ if (!NO_BANNER) setTimeout(() => { process.stdout.write('\n'); printBanner() }, 
 #
 # SOLVAPAY_SECRET_KEY is NOT re-uploaded on each deploy — it lives on
 # the Worker as a proper secret via `npx wrangler secret put SOLVAPAY_SECRET_KEY`
-# (run once; persists across deploys). Kept here so `wrangler dev`
-# can read it for local testing.
+# (run once; persists across deploys). If you later edit this value,
+# run `npx wrangler secret put SOLVAPAY_SECRET_KEY` again before redeploying.
+# Kept here so `wrangler dev` can read it for local testing.
 #
 # Copy this file to `.env` and fill in your real values. The copy is
 # gitignored; keep secrets out of git.
@@ -297,9 +298,9 @@ MCP_PUBLIC_BASE_URL=http://localhost:8787
 # SolvaPay API origin. Omit / leave blank to use production
 # (https://api.solvapay.com — this is what src/worker.ts falls back
 # to). Set explicitly if you need a different environment. The
-# recommended way to populate this for internal testing is to pass
-# `--dev` to `npm create solvapay@latest` / `npx -y solvapay@latest init`, which
-# writes the dev URL here for you.
+# recommended way to populate this for internal testing is to use preview
+# tooling and pass `--dev` to `npm create solvapay@preview` /
+# `npx -y solvapay@preview init`, which writes the dev URL here for you.
 # SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com
 ```
 

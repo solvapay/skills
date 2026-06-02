@@ -16,6 +16,19 @@ The skill auto-loads and routes to the appropriate state-based module below (`de
 
 **Do not use `npm create solvapay@latest` from an agent context.** The published CLI cannot author `src/tools/*.ts` because that step requires an LLM — it only ever emits one-to-one tools (one file per spec operation), which is rarely the right shape for a host LLM to navigate when the spec has more than a handful of operations.
 
+**Internal dev mode:** use the wrapper path with preview tooling, not the public stable CLI:
+
+```bash
+npm install create-solvapay@preview
+( cd scripts && npm install )
+node scripts/describe.mjs --dev /tmp/spec-<uuid>.json
+node scripts/scaffold.mjs --dev /tmp/spec-<uuid>.json /path/to/target \
+  --selections /tmp/selections-<uuid>.json
+npx -y solvapay@preview init --dev
+```
+
+The wrappers strip `--dev` before calling upstream scripts, set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` for preview/stable mismatch detection, and seed that value into the generated `.env` after scaffold. Never use `--dev` for end-user projects.
+
 ## Human shortcut (terminal users only)
 
 For humans at a terminal who already have a spec and explicitly want one-to-one tools, the published scaffolder runs the whole flow in one command:
@@ -50,8 +63,9 @@ This flow uses **numbered, named gates** so the user picks confirmation level on
 | G7 — post-scaffold file summary | chatty only                            | [intent-driven.md](intent-driven.md)           |
 | G8 — deploy confirm             | standard, chatty (auto passes `--yes`) | [deploy.md](deploy.md)                         |
 | G9 — go-live key swap           | always (overrides auto)                | [deploy.md](deploy.md) Go-live                 |
+| G10 — product / metering confirm | always after init                      | [../solvapay-init.md](../solvapay-init.md)     |
 
-Irreversible gates (G5 auth key, G6 scaffold, G8 deploy, G9 go-live) always fire even at `auto`. Cosmetic gates (G2 cluster naming, G3 per-intent design, G4 tier picks, G7 file summary) collapse at `auto`.
+Irreversible gates (G5 auth key, G6 scaffold, G8 deploy, G9 go-live) always fire even at `auto`. Billing gates (G10 product / metering confirmation) also always fire because scaffold validates `plans[]` but does not create or attach plans. Cosmetic gates (G2 cluster naming, G3 per-intent design, G4 tier picks, G7 file summary) collapse at `auto`.
 
 ## State-based routing
 
@@ -75,13 +89,14 @@ describe → curate → scaffold → solvapay-init → deploy → verify → tes
 
 ## One-time setup
 
-**Scaffolder scripts** (`describe.mjs`, `scaffold.mjs`) live inside the published `create-solvapay` package (`packages/create-solvapay/scripts/mcp/` in the solvapay-sdk monorepo). They share a single runtime dep (`@apidevtools/swagger-parser`) which the CLI installs lazily on first use — no manual `npm install` step required.
-
-For agents working directly against the package in a local checkout, install the helper deps once:
+**Agent bootstrap:** front-load both dependencies so the first `describe.mjs` run succeeds:
 
 ```bash
-( cd solvapay-sdk/packages/create-solvapay/scripts/mcp && npm install )
+npm install create-solvapay
+( cd scripts && npm install )
 ```
+
+For internal dev mode, replace the first command with `npm install create-solvapay@preview` and pass `--dev` to the wrappers. If you point `SCAFFOLDER_SCRIPTS_DIR` at a local checkout instead, install that checkout's helper deps once: `( cd "$SCAFFOLDER_SCRIPTS_DIR" && npm install )`.
 
 **Scaffolded project scripts** (`verify.mjs`, `test.mjs`) ship inside the generated project. Run them from the project root with `node scripts/<name>.mjs`. `verify.mjs` has no extra deps; `test.mjs` needs `( cd scripts && npm install )` once inside the project (see [test.md](test.md)).
 
@@ -89,11 +104,11 @@ For agents working directly against the package in a local checkout, install the
 
 ## What you gather during curate (between `describe.mjs` and writing `selections.json`)
 
-0. **Mode (Gate G1, always fires)** — after `describe.mjs` returns, count the operations and surface G1 per [describe.md](describe.md) hand-off. The two options are **intent-driven** (cluster N operations into a few semantic tools; recommended when an LLM is in the loop) and **one-to-one** (one tool file per operation; useful when the API surface IS the user-facing model). If intent-driven, set `"mode": "intent-driven"` in `selections.json`, skip step 1, and route to [intent-driven.md](intent-driven.md) right after `scaffold.mjs` finishes — author `src/tools/<intent>.ts` files directly. If one-to-one, set `"mode": "one-to-one"` (or omit; `scaffold.mjs` defaults to one-to-one) and continue.
+0. **Mode (Gate G1, always fires)** — after `describe.mjs` returns, count the operations and surface G1 per [describe.md](describe.md) hand-off. The two options are **intent-driven** (cluster N operations into a few semantic tools; recommended when an LLM is in the loop) and **one-to-one** (one tool file per operation; useful when the API surface IS the user-facing model). If intent-driven, set `"mode": "intent-driven"`, skip step 1, and route to [intent-driven.md](intent-driven.md) for **G2 cluster approval before writing `selections.json` or running scaffold**. After scaffold finishes, return to [intent-driven.md](intent-driven.md) to author `src/tools/<intent>.ts` files. If one-to-one, set `"mode": "one-to-one"` (or omit; `scaffold.mjs` defaults to one-to-one) and continue.
 1. **Tier overrides (Gate G4, fires at standard + chatty, one-to-one only)** — start from `describe.mjs`'s `suggestedTier` and surface G4 as a batched table per [describe.md](describe.md). Mutating operations default to `paid`; if the user wants to ship paid-only later, mark them `skip` for now.
 
    **Read-only-first when the API is unfamiliar.** If you're wrapping an upstream you've never integrated before, ship the read-only / idempotent operations first (mostly `GET` / `HEAD`) and `tier: "skip"` the mutating ones. Get auth, errors, and the verifier checks green against the safe surface before exposing `POST` / `PUT` / `PATCH` / `DELETE` to the LLM. Add the mutating operations in a follow-up once their semantics and pricing are explicitly approved. Skip this rule when the product's core value *is* a write/action workflow (e.g. "send transactional email", "create invoice") — but still keep `annotations: { destructiveHint: true }` on those tools and confirm the destructive scope with the user before scaffolding.
-2. **`solvapayProductRef`** — optional in `selections.json`. Omit it during curate; `npx -y solvapay@latest init` lists the account's products and asks the user to pick one (or auto-picks when there's only one / when `--yes` is set). Only the prereq survives: the user must have at least one product before running init. If they have none yet, ask the user to create a product in SolvaPay Console (https://app.solvapay.com), then resume at init.
+2. **`solvapayProductRef`** — optional in `selections.json`, but explicit is safest. If the user knows the intended product, include that `prd_...` so init verifies the exact ref. If omitted, `npx -y solvapay@latest init` lists products and asks the user to pick one (or auto-picks when there's only one / when `--yes` is set). After init, always read back `SOLVAPAY_PRODUCT_REF` from `.env` and confirm it belongs to this MCP before deploy. If they have no product yet, ask the user to create one in SolvaPay Console (https://app.solvapay.com), then resume at init.
 3. **`upstreamAuth` shape + key (Gate G5, always fires)** — pick from `describe.mjs.securitySchemes` and surface G5 per [describe.md](describe.md) to confirm `kind` and collect the secret. Even at `auto`, G5 fires because the user must supply the secret. Shape options:
    - `http-bearer` → `{ kind: 'bearer', key: '<user supplies>' }`
    - `apiKey-header` (single) → `{ kind: 'apiKey', in: 'header', name: '<from spec>', key: '<user supplies>' }`
@@ -106,6 +121,8 @@ For agents working directly against the package in a local checkout, install the
 Then write `selections.json` to a non-project path (`/tmp/selections-<uuid>.json`) and pass it via `--selections` to `scaffold.mjs`.
 
 `SOLVAPAY_SECRET_KEY` is **not** in `selections.json` — `npx -y solvapay@latest init` populates it after scaffold.
+
+`plans[]`, when authored, is a declaration and validation input only. Scaffold validates plan shapes but does not create or attach plans. For metered products, create or verify the usage-based plan outside scaffold and record that result in the handoff.
 
 ## Inputs the modules accept
 
@@ -128,6 +145,10 @@ If none of those resolve, view-source on the docs page and look for the `url:` f
 ### Picking a spec
 
 Pick a spec whose `servers[0]` (or, for Swagger 2.0, `host` + `basePath`) actually hosts the paths the spec declares. Generic example specs (e.g. the `learn.openapis.org` petstore) point at `petstore.swagger.io/v2` for marketing copy, but the real server there uses different paths (`/pet` singular, not `/pets` plural) and tools call out to a 404. `describe.mjs` probes `servers[0]` automatically and surfaces a `serverProbeMismatch` advisory when the spec doesn't match — verify before writing `selections.json`. For the petstore demo specifically, prefer `https://petstore.swagger.io/v2/swagger.json` (the spec that matches the running server). Full probe behavior: [describe.md#server-probe](describe.md#server-probe).
+
+If `servers` is empty or only relative (for example `/api/v3`), stop and confirm the real upstream base URL before scaffold. In one-to-one mode the generated tools derive their API base from the spec, so an empty or relative server usually creates broken upstream calls. In intent-driven mode, hard-code the confirmed base URL in the authored upstream helper and mention the manual choice in the handoff.
+
+Also scan path prefixes for outliers before scaffold. A path such as `/apifhir/...` among many `/api/fhir/...` siblings is usually a spec typo; skip or correct the affected operation before it becomes a generated 404.
 
 ## What's intentionally out of scope (v1)
 

@@ -44,7 +44,7 @@ if (!data.upstreamAuth || typeof data.upstreamAuth !== 'object') {
   errors.push('upstreamAuth: required object with kind')
 } else {
   const k = data.upstreamAuth.kind
-  if (!['none', 'bearer', 'apiKey', 'oauth2-client-credentials'].includes(k)) {
+  if (!['none', 'bearer', 'apiKey', 'oauth2-client-credentials', 'apiKey-multi'].includes(k)) {
     errors.push(`upstreamAuth.kind: invalid "${k}"`)
   }
   if (k === 'bearer' && !data.upstreamAuth.key) {
@@ -52,6 +52,31 @@ if (!data.upstreamAuth || typeof data.upstreamAuth !== 'object') {
   }
   if (k === 'apiKey' && (!data.upstreamAuth.name || !data.upstreamAuth.key)) {
     errors.push('upstreamAuth.name and key: required for apiKey')
+  }
+  if (k === 'apiKey-multi') {
+    const headers = data.upstreamAuth.headers
+    if (!Array.isArray(headers) || headers.length < 2) {
+      errors.push('upstreamAuth.headers: required array of at least two entries for apiKey-multi')
+    } else {
+      const seen = new Set()
+      for (const header of headers) {
+        const name = header?.name
+        const value = header?.value
+        if (!name || !value) {
+          errors.push('upstreamAuth.headers: each entry needs name and value')
+          continue
+        }
+        const key = name.toLowerCase()
+        if (seen.has(key)) errors.push(`upstreamAuth.headers: duplicate header "${name}"`)
+        seen.add(key)
+      }
+    }
+  }
+  if (
+    k === 'oauth2-client-credentials' &&
+    (!data.upstreamAuth.tokenUrl || !data.upstreamAuth.clientId || !data.upstreamAuth.clientSecret)
+  ) {
+    errors.push('upstreamAuth tokenUrl, clientId, and clientSecret: required for oauth2-client-credentials')
   }
 }
 

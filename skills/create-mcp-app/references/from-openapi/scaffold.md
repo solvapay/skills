@@ -48,8 +48,9 @@ Per [../hitl-conventions.md#redaction](../hitl-conventions.md#redaction), before
 
 - `upstreamAuth.key` (when `kind` is `bearer` or `apiKey`)
 - `upstreamAuth.clientSecret` (when `kind` is `oauth2-client-credentials`)
+- `upstreamAuth.headers[].value` (when `kind` is `apiKey-multi`)
 
-Leave everything else verbatim — `upstreamAuth.kind`, `tokenUrl`, `clientId`, `name`, `in`, `scope`, `audience`, `mode`, `workerName`, `mcpPublicBaseUrl`, and the full `operations` / `solvapayProductRef` payload. The user needs to see exactly what `scaffold.mjs` will consume.
+Leave everything else verbatim — `upstreamAuth.kind`, `tokenUrl`, `clientId`, `name`, `in`, `scope`, `audience`, `headers[].name`, `mode`, `workerName`, `mcpPublicBaseUrl`, and the full `operations` / `solvapayProductRef` payload. The user needs to see exactly what `scaffold.mjs` will consume.
 
 Render the redacted JSON as a fenced ```jsonc``` block above the options.
 
@@ -148,6 +149,17 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
    **Does not write `SOLVAPAY_SECRET_KEY`** — that's [../solvapay-init.md](../solvapay-init.md).
 7. Ensures `.gitignore` covers `.env`.
 8. Prints a JSON summary on stdout: mode used, files written, operations generated (empty in intent-driven mode), secrets seeded, and reminders. In intent-driven mode the reminders include a pointer to `intent-driven.md`.
+
+## Generated docs expectations
+
+Before handoff, skim the generated README and `.env.example` for mode/auth accuracy:
+
+- **Intent-driven mode** — generated docs must not claim every tool maps one-to-one to an OpenAPI operation. The scaffold only writes the skeleton and an empty aggregator; the agent-authored `src/tools/<intent>.ts` files are the tool contract.
+- **One-to-one mode** — one generated tool per selected operation is accurate, but skipped operations and unsupported auth remediations should be called out.
+- **`apiKey-multi` auth** — docs should name `UPSTREAM_API_HEADERS` (compact JSON keyed by header name) instead of only `UPSTREAM_API_KEY`.
+- **Secret refresh** — docs should say first deploy uploads missing Worker secrets, but later `.env` edits require explicit `npx wrangler secret put <NAME>` before redeploy.
+
+If the package template source is available locally, fix it there. If not, patch the generated README in the project and list the upstream template change as a follow-up.
 
 ## What it refuses to do
 

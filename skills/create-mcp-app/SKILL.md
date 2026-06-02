@@ -22,7 +22,7 @@ SolvaPay-monetized MCP server on Cloudflare Workers. OpenAPI auto-generation or 
 
 > **Human at a terminal?** `npm create solvapay@latest <name> -- --type mcp` (use `@latest`). Ships from-openapi (one-to-one) and from-scratch modes, runs install + `solvapay init` in one pass.
 >
-> **Agent?** `scripts/describe.mjs` + `scripts/scaffold.mjs` per [references/from-openapi/guide.md](references/from-openapi/guide.md). Intent-driven clustering and hand-tuned narration require an LLM — the CLI cannot author `src/tools/*.ts`.
+> **Agent?** `scripts/describe.mjs` + `scripts/scaffold.mjs` per [references/from-openapi/guide.md](references/from-openapi/guide.md). Intent-driven clustering and hand-tuned narration require an LLM — the CLI cannot author `src/tools/*.ts`. Internal dev runs use the same agent path with `--dev` and `create-solvapay@preview`.
 
 ## Scope
 
@@ -38,6 +38,8 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - Never return custom iframe/UI on paywall gates — text-only narration naming the recovery intent tool.
 - Always use `mode: 'json-stateless'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
 - Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
+- Always confirm the resolved `SOLVAPAY_PRODUCT_REF` after `solvapay init`; under `--yes` / non-TTY, never treat an auto-picked product as final until the user confirms it belongs to this MCP.
+- If the requested business model is usage-based or metered, verify that the selected product has the intended usage-based plan before handoff. `selections.plans[]` is validated during scaffold but is not created by scaffold.
 - **Deploy-existing = scaffolding only.** On "deploy my existing server" tasks, add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`) and never open or edit `src/worker.ts` — not for imports, CORS, `Env`, the canonical template, or "stale API shape" patches. Note any API drift in the handoff as a follow-up. **Exception:** paywall-wiring tasks ("add SolvaPay paywall to my existing MCP server") do edit `src/worker.ts` — see [references/existing-server.md](references/existing-server.md).
 
 ## Gotchas
@@ -48,7 +50,7 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - Paid handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from paid handlers.
 - Run `node scripts/describe.mjs` against a **local spec file** — fetch URLs to `/tmp/spec-*.json` first; don't pass URLs directly.
 - **Binary/multipart operations must be skipped.** After running `describe.mjs`, grep the original spec for `multipart/form-data`, `application/octet-stream`, `image/`, and `application/pdf` under `requestBody.content` and response `content`. For each matching operation (e.g. `uploadFile`, `uploadImage`), set `tier: "skip"` in `selections.json` — MCP tools return text, not file streams, so these can't be wrapped usefully.
-- Petstore v3's `servers[0]` is relative (`/api/v3`) — `describe.mjs` emits a `serverProbeError` advisory; fix in `selections.json` or surface to the user.
+- Empty or relative OpenAPI `servers` must be resolved before scaffold. Confirm the upstream base URL with the user, and watch for path-prefix outliers (e.g. `/apifhir/...` among `/api/fhir/...`) before generating tools.
 - `selections.json` must live **outside** the scaffold target dir (e.g. `/tmp/selections-<uuid>.json`) — upstream API keys must not land in the project tree.
 - Don't scaffold into an unrelated app repo root without confirming where the MCP worker should live — it's its own deployable unit.
 - `scripts/describe.mjs` and `scripts/scaffold.mjs` in this skill are wrappers — see [scripts/README.md](scripts/README.md) for resolution order.
@@ -84,7 +86,7 @@ Before any other gate, ask how chatty you should be. See [references/hitl-conven
 
 **Inside an unrelated app repo:** if cwd is a Next.js app, backend, or monorepo without a paid-MCP server in scope, **stop and ask where the MCP server should live** before scaffolding (sibling dir or `apps/` / `packages/` subdirectory).
 
-> **Dev mode (internal testing only).** Append `--dev` when testing against api-dev: `npm create solvapay@latest <name> -- --type mcp --dev` and `npx -y solvapay@latest init --dev`. Never for end users.
+> **Dev mode (internal testing only).** Use preview tooling and append `--dev` when testing against api-dev: `npm create solvapay@preview <name> -- --type mcp --dev`, `node scripts/describe.mjs --dev ...`, `node scripts/scaffold.mjs --dev ...`, and `npx -y solvapay@preview init --dev`. Never for end users.
 
 **3. Host:** default Cloudflare → [references/hosting/cloudflare/README.md](references/hosting/cloudflare/README.md). Other hosts → [references/hosting/alternatives.md](references/hosting/alternatives.md). Optional custom MCP UI → [references/mcp-apps-ui.md](references/mcp-apps-ui.md).
 
@@ -94,7 +96,7 @@ Human CLI shortcut (terminal only): see the human block at the top of this file.
 
 ## OpenAPI flow & gates
 
-`describe.mjs` → author `selections.json` → `validate-selections.mjs` (loop until pass) → `scaffold.mjs <selections> <target-dir>` → author tools per [references/tool-design.md](references/tool-design.md) → verify → test → deploy. `SOLVAPAY_SECRET_KEY` is set by `solvapay init`, never in `selections.json`. Full G0–G9 HITL gates: [references/hitl-conventions.md](references/hitl-conventions.md).
+`describe.mjs` → author `selections.json` → `validate-selections.mjs` (loop until pass) → `scaffold.mjs <selections> <target-dir>` → author tools per [references/tool-design.md](references/tool-design.md) → `solvapay init` → confirm product/plan → verify → test → deploy. `SOLVAPAY_SECRET_KEY` is set by `solvapay init`, never in `selections.json`. Full G0–G9 HITL gates: [references/hitl-conventions.md](references/hitl-conventions.md).
 
 ## Scripts
 
@@ -120,7 +122,10 @@ Human CLI shortcut (terminal only): see the human block at the top of this file.
 - **Worker URL:** [url]
 - **Tools authored:** [list]
 - **Gates cleared:** G0–G[n]
-- **Sandbox:** [success path + gate path verified]
+- **Product ref:** [prd_... + how it was confirmed]
+- **Plan / metering status:** [free default / usage-based plan verified / needs user action]
+- **Sandbox:** [success path + gate path verified; note skipped checks explicitly]
+- **Paid-path verification:** [paywallGate / merchantBootstrap / upstream smoke: passed, skipped, or not run]
 - **Known gaps:** [if any]
 ```
 

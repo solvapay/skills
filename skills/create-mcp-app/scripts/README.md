@@ -10,6 +10,27 @@ node scripts/validate-selections.mjs /tmp/selections.json
 
 All skill scripts support `--help`. Upstream scaffolder scripts (`describe.mjs`, `scaffold.mjs`) also support `--help` when resolved.
 
+## Agent bootstrap
+
+Run this once in the skill directory before the OpenAPI flow:
+
+```bash
+npm install create-solvapay
+( cd scripts && npm install )
+```
+
+For internal dev-mode testing against `https://api-dev.solvapay.com`, use preview tooling and pass `--dev` to the wrappers:
+
+```bash
+npm install create-solvapay@preview
+( cd scripts && npm install )
+node scripts/describe.mjs --dev path/to/openapi.json
+node scripts/scaffold.mjs --dev path/to/openapi.json ./target --selections /tmp/selections.json
+npx -y solvapay@preview init --dev
+```
+
+The wrappers strip `--dev` before invoking upstream scripts, set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` for the run, and `scaffold.mjs --dev` writes that value into the generated `.env` after a successful scaffold.
+
 ## Resolution order
 
 Wrappers resolve `create-solvapay/scripts/mcp/` via:
@@ -43,8 +64,9 @@ Installing stable (`@latest`) while running `--dev` is the trap that bites:
 `scaffold.mjs` rejects preview-only `upstreamAuth.kind` values (such as
 `apiKey-multi`) with ``upstreamAuth.kind` must be one of none, bearer, apiKey,
 oauth2-client-credentials``. `resolve-scaffolder.mjs` warns when it detects a
-stable build under a dev backend, but pinning `@preview` at install time avoids
-the mismatch entirely.
+stable build under a dev backend, and the wrappers now provide that dev signal
+when `--dev` is passed. Pinning `@preview` at install time avoids the mismatch
+entirely.
 
 ## Project-local scripts
 
