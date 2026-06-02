@@ -12,18 +12,17 @@ All skill scripts support `--help`. Upstream scaffolder scripts (`describe.mjs`,
 
 ## Agent bootstrap
 
-Run this once in the skill directory before the OpenAPI flow:
+Run this once in the skill directory before the OpenAPI flow if you are not
+using `SCAFFOLDER_SCRIPTS_DIR` or a sibling `solvapay-sdk` checkout:
 
 ```bash
 npm install create-solvapay
-( cd scripts && npm install )
 ```
 
 For internal dev-mode testing against `https://api-dev.solvapay.com`, use preview tooling and pass `--dev` to the wrappers:
 
 ```bash
 npm install create-solvapay@preview
-( cd scripts && npm install )
 node scripts/describe.mjs --dev path/to/openapi.json
 node scripts/scaffold.mjs --dev path/to/openapi.json ./target --selections /tmp/selections.json
 npx -y solvapay@preview init --dev
@@ -39,7 +38,9 @@ Wrappers resolve `create-solvapay/scripts/mcp/` via:
 2. Local `create-solvapay` npm package (`npm install create-solvapay`)
 3. Sibling monorepo checkout at `../../../solvapay-sdk/packages/create-solvapay/scripts/mcp`
 
-On first use against a fresh checkout, install scaffolder deps once:
+The skill wrappers have no local runtime dependencies. When resolving through
+`SCAFFOLDER_SCRIPTS_DIR` or the sibling monorepo checkout, install that
+scaffolder directory's deps once:
 
 ```bash
 ( cd "$SCAFFOLDER_SCRIPTS_DIR" && npm install )

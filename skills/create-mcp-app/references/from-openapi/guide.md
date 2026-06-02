@@ -20,7 +20,6 @@ The skill auto-loads and routes to the appropriate state-based module below (`de
 
 ```bash
 npm install create-solvapay@preview
-( cd scripts && npm install )
 node scripts/describe.mjs --dev /tmp/spec-<uuid>.json
 node scripts/scaffold.mjs --dev /tmp/spec-<uuid>.json /path/to/target \
   --selections /tmp/selections-<uuid>.json
@@ -89,11 +88,12 @@ describe → curate → scaffold → solvapay-init → deploy → verify → tes
 
 ## One-time setup
 
-**Agent bootstrap:** front-load both dependencies so the first `describe.mjs` run succeeds:
+**Agent bootstrap:** make the upstream scaffolder scripts resolvable before the
+first `describe.mjs` run. If you are not using `SCAFFOLDER_SCRIPTS_DIR` or a
+sibling `solvapay-sdk` checkout, install the package in the skill directory:
 
 ```bash
 npm install create-solvapay
-( cd scripts && npm install )
 ```
 
 For internal dev mode, replace the first command with `npm install create-solvapay@preview` and pass `--dev` to the wrappers. If you point `SCAFFOLDER_SCRIPTS_DIR` at a local checkout instead, install that checkout's helper deps once: `( cd "$SCAFFOLDER_SCRIPTS_DIR" && npm install )`.

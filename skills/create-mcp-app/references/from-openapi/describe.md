@@ -10,10 +10,12 @@ Read-only first step. Run this whenever you (or the user) want to know what the 
 
 ## Run
 
-One-time setup (per skill checkout): install the single runtime dep `@apidevtools/swagger-parser`.
+Before the first run, make sure the wrapper can resolve `create-solvapay/scripts/mcp`.
+Use one of:
 
 ```bash
-( cd scripts && npm install )
+npm install create-solvapay
+# or set SCAFFOLDER_SCRIPTS_DIR to a local create-solvapay/scripts/mcp checkout
 ```
 
 Then:
