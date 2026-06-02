@@ -116,7 +116,8 @@ The redacted preview is render-time only — the file written to `/tmp/selection
 
 ## Run
 
-Assumes you already ran the one-time `( cd scripts && npm install )` from [describe.md](describe.md).
+Assumes the wrapper can already resolve `create-solvapay/scripts/mcp` per
+[describe.md](describe.md).
 
 ```bash
 node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \

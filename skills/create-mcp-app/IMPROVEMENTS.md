@@ -57,12 +57,16 @@ function warnIfStableUnderDev(mcpDir) {
 
 #### F5. Two consecutive install failures before the flow can start
 - **Owner:** skill-doc (+ optional skill-script)
+- **Status:** Resolved by keeping the skill wrappers dependency-free and documenting
+  `create-solvapay` as an explicit resolver install only.
 - **Symptom:** The first `describe.mjs` invocation failed twice in a row on missing dependencies before any real work could begin.
 - **Evidence:**
   1. `node scripts/describe.mjs …` → `Error: Could not find create-solvapay scaffolder scripts (describe.mjs / scaffold.mjs).` Required `npm install create-solvapay@preview` in the skill root.
   2. Re-run → ``Error: `@apidevtools/swagger-parser` is not installed.`` Required `npm install` inside `scripts/`.
   These are mentioned as scattered "one-time setup" notes in [references/from-openapi/describe.md](references/from-openapi/describe.md) and [scripts/README.md](scripts/README.md), but the main flow does not front-load them, so an agent hits two failures first.
-- **Proposed fix:** add a single **dev-aware bootstrap/preflight** step at the top of the OpenAPI flow that installs both dependencies in one pass — choosing `create-solvapay@preview` when in dev mode and `@latest` otherwise — so the first `describe.mjs` run succeeds. Optionally have the wrappers auto-install on first use with a clear log line.
+- **Fix:** the wrappers no longer declare or require local dependencies. Agents either set
+  `SCAFFOLDER_SCRIPTS_DIR`, rely on a sibling `solvapay-sdk` checkout, or explicitly
+  install `create-solvapay` / `create-solvapay@preview` in the skill directory.
 
 #### F6. `solvapay init` spinner floods agent context
 - **Owner:** CLI-dependency (+ skill-doc)
