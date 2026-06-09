@@ -1,6 +1,6 @@
 # Cloudflare Workers — Config templates
 
-Project config files for a SolvaPay MCP Worker scaffold. Copy each block into the matching path relative to the project root from [setup.md](setup.md).
+Project config files for a SolvaPay MCP Worker scaffold. Copy each block into the matching path relative to the project root from the [Cloudflare deploy guide](README.md) (Step 2).
 
 Widget, scripts, and env templates: [widget-templates-widget-and-scripts.md](widget-templates-widget-and-scripts.md)
 

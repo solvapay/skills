@@ -1,46 +1,45 @@
 ---
 name: solvapay
 description: >
-  Router and disambiguation entry point for the SolvaPay skill family. Use when the user
-  asks "add solvapay to my project", "where do I start with solvapay", "what can solvapay
-  do", or any ambiguous request that spans multiple SolvaPay surfaces. Owns the shared
-  documentation-discovery preference and cross-skill guardrails; routes the agent to one
-  of the four sibling SolvaPay skills based on intent.
+  Use this skill when a user is choosing between SolvaPay surfaces rather than implementing one.
+  Load for: any query that pits two options against each other ("checkout or SDK?", "MCP vs
+  checkout?", "which one for my app?"), capability questions about SolvaPay, vague billing or
+  monetization intent with no specific surface chosen, or assigned SolvaPay work without clear
+  direction. Skip when the user has settled on exactly one surface and is asking to build it —
+  single-surface intent plus implementation context (tech stack, command, or action verb) routes
+  to that surface's dedicated skill instead.
 metadata:
   version: "1.0.0"
-compatibility: >
-  Only useful when bundled with at least one sibling skill - relative links assume
-  create-mcp-app, sdk-integration, website-checkout, or lovable-checkout live as siblings.
 ---
 
 # SolvaPay — Router
 
-Disambiguate vague SolvaPay intent and route to the surface skill that owns the work. This skill exists to catch top-level prompts ("add solvapay to my app") and to host the shared docs-discovery preference and cross-skill guardrails so the surface skills don't duplicate them.
+Disambiguate vague SolvaPay intent and route to the surface skill that owns the work.
 
-## Quick Start
+**This skill's only job is routing.** Once you've identified the correct surface skill and emitted the [handoff template](#handoff-template), your turn is over — stop there. Do not read the target skill's SKILL.md. Do not implement any code, steps, or instructions. The user or the target skill will handle implementation. Outputting implementation details after the handoff (even as "helpful context") defeats the purpose of this router and duplicates work the surface skill is designed to do better.
 
-1. Identify the primary user intent from request keywords.
-2. If intent is ambiguous, ask one disambiguation question (see prompt below).
-3. Route to the matching surface skill:
-   - [../create-mcp-app/SKILL.md](../create-mcp-app/SKILL.md) — create or scaffold a paid MCP app on Cloudflare Workers (OpenAPI or hand-written)
-   - [../sdk-integration/SKILL.md](../sdk-integration/SKILL.md) — TypeScript SDK paywall, checkout, usage, webhooks in existing apps
-   - [../website-checkout/SKILL.md](../website-checkout/SKILL.md) — hosted checkout and customer portal for web apps
-   - [../lovable-checkout/SKILL.md](../lovable-checkout/SKILL.md) — paste-in preview-only guide for Lovable (Vite + shadcn/ui + Supabase Edge)
-4. Follow the surface skill's `SKILL.md` to completion.
+## What SolvaPay does
 
-> Installed only this router? The `../<sibling>/...` links will not resolve. Install all five skills together with `npx skills add solvapay/skills --all -y` (recommended) or pull just the one you need with `--skill <name>`.
+SolvaPay adds usage-based billing, paywalls, and hosted checkout to apps and AI tools. Answer a "what can SolvaPay do / which one do I need" question with this comparison, then route to the owning surface skill:
 
-## Documentation Sources
+| Surface | What you build | Pick when | Route to |
+| --- | --- | --- | --- |
+| Paid MCP | Per-call or subscription billing on a Cloudflare Workers MCP server | The product **is** MCP tools for AI agents (greenfield, OpenAPI→MCP, or paywalling an existing MCP server) | `solvapay/create-mcp-app` |
+| SDK paywall | Gate endpoints, meter usage, handle webhooks in your own code | You own an app/API backend and want billing **in code** (REST, Next.js, Express, any stack) | `solvapay/sdk-integration` |
+| Hosted checkout | Drop-in payment page + customer portal | You want a production website to sell access with **no custom billing code** | `solvapay/website-checkout` |
+| Lovable checkout | Paste-in Vite + Supabase edge checkout | You're prototyping in a **Lovable / Vite preview** and want checkout pasted in | `solvapay/lovable-checkout` |
 
-All surface skills use this preference order:
+## Decision tree
 
-1. SolvaPay Docs MCP server (preferred): https://docs.solvapay.com/mcp
-2. Docs index fallback: https://docs.solvapay.com/llms.txt
-3. Direct docs page fetch on docs.solvapay.com
+Walk these in order; the first "yes" wins:
 
-If the MCP server is unavailable, suggest it as a friendly optional improvement. Continue without blocking.
+1. Is the thing being monetized an **MCP server / MCP tools for AI agents**? → `solvapay/create-mcp-app` (covers greenfield, OpenAPI→MCP, and adding a paywall to an existing MCP server).
+2. Otherwise, is there an **existing app or API backend** to bill from code (paywall, metering, webhooks)? → `solvapay/sdk-integration`.
+3. Otherwise, do they just want a **hosted payment page** for a production website (no billing code)? → `solvapay/website-checkout`.
+4. Is it specifically a **Lovable / Vite preview** app? → `solvapay/lovable-checkout`.
+5. None clearly fits → ask the [disambiguation question](#disambiguation-prompt).
 
-## Shared Guardrails
+## Guardrails
 
 - Never expose `SOLVAPAY_SECRET_KEY` to client code or public env vars.
 - Never build custom card collection if hosted checkout satisfies requirements.
@@ -49,58 +48,87 @@ If the MCP server is unavailable, suggest it as a friendly optional improvement.
 
 ## Gotchas
 
-- Installing only this router (`--skill solvapay`) breaks `../sibling/...` links — use `npx skills add solvapay/skills --all -y`.
-- "Paywall my API" or "paywall web app" without MCP context routes to `sdk-integration`, not `create-mcp-app`.
-- "Scaffold mcp" / greenfield MCP worker routes to `create-mcp-app`, not `sdk-integration`.
-- Hosted no-code MCP monetization requests are deprecated — ask which code-based surface the user wants; default to `create-mcp-app`.
+- Valid as a standalone install — routes by **skill id** (`solvapay/<surface>`), not filesystem paths.
+- "Paywall my API" or "paywall web app" without MCP context → `solvapay/sdk-integration`, not `solvapay/create-mcp-app`.
+- "Scaffold mcp" / greenfield MCP worker → `solvapay/create-mcp-app`, not `solvapay/sdk-integration`.
+- Hosted no-code MCP monetization is deprecated — ask which code-based surface; default `solvapay/create-mcp-app`.
 - Surface skill descriptions own specific keywords; this router owns ambiguous top-of-funnel prompts only.
+- "Customer portal" or billing UI inside an MCP host app → `solvapay/sdk-integration`, not `solvapay/website-checkout`.
 
-## Intent Matrix
+## Routing procedure
+
+1. Walk the [decision tree](#decision-tree) to get a routing id (or hit step 5 → disambiguation).
+2. Cross-check the id against the [intent matrix](#intent-matrix) phrase-lookup; if the user's wording matches a different row, prefer the matrix and reconcile.
+3. If still ambiguous → ask one [disambiguation question](#disambiguation-prompt).
+4. Run the [verification loop](#verification-loop).
+5. Complete the [handoff template](#handoff-template) and stop.
+
+Docs discovery (shared by all surface skills): SolvaPay Docs MCP → https://docs.solvapay.com/llms.txt → direct page fetch.
+
+## Intent matrix
+
+Ambiguous / top-of-funnel triggers only. Stack-specific keywords belong on surface skill descriptions.
 
 | User intent | Trigger examples | Route to |
 | --- | --- | --- |
-| Create / scaffold a paid MCP app | "create mcp app", "scaffold mcp", "new mcp server", "greenfield mcp", "openapi to mcp", "wrap rest api as mcp", "generate mcp from swagger", "build mcp app", "npm create solvapay", "from scratch mcp worker", "cloudflare workers mcp from scratch", "paid mcp", "monetize mcp", "paywall mcp", "mcp with payments", "mcp billing", "intent-driven mcp", "data mcp server", "intelligence mcp" | [../create-mcp-app/SKILL.md](../create-mcp-app/SKILL.md) |
-| Add paywall to an existing MCP server | "add solvapay to my mcp", "integrate into existing mcp", "integrate solvapay into existing mcp", "paywall my mcp tools", "monetize my mcp tools" (no scaffold / greenfield intent) | [../create-mcp-app/references/existing-server.md](../create-mcp-app/references/existing-server.md) or [../sdk-integration/references/mcp-server.md](../sdk-integration/references/mcp-server.md) depending on whether they need the full worker template |
-| SDK integration | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "express", "MCP Server code integration", "nextjs sdk", "npx solvapay init", "cli", "init project", "cancel renewal", "reactivate", "activate plan", "switch plan", "supabase edge functions", "deno", "edge runtime backend", "lovable backend" | [../sdk-integration/SKILL.md](../sdk-integration/SKILL.md) |
-| MCP server on edge runtime (existing server) | "createSolvaPayMcpFetch", "fetch-first mcp", "@solvapay/mcp/fetch", "mcp on the edge", "wrangler mcp", "supabase edge mcp", "deno mcp server" — when the user already has a server and wants SDK wiring only | [../sdk-integration/references/mcp-server.md](../sdk-integration/references/mcp-server.md) |
-| New MCP server on edge runtime (greenfield) | "cloudflare workers mcp", "new cloudflare workers mcp", "scaffold cloudflare mcp worker" — when they want a new Workers project from scratch | [../create-mcp-app/SKILL.md](../create-mcp-app/SKILL.md) |
-| MCP checkout app / embedded MCP UI | "mcp checkout app", "mcp app", "CurrentPlanCard", "LaunchCustomerPortalButton", "usePaymentMethod", "createMcpAppAdapter", "embedded checkout in mcp host", "basic-host checkout", "ChatGPT mcp app" | [../sdk-integration/references/mcp-server.md](../sdk-integration/references/mcp-server.md) (server) + [../sdk-integration/references/react.md](../sdk-integration/references/react.md) (client) |
-| Account management UI | "customer portal button", "current plan card", "update card", "cancel plan", "payment method preview", "render mirrored card", "self-serve billing ui" | [../sdk-integration/references/react.md](../sdk-integration/references/react.md) |
-| Web app checkout | "add checkout to website", "hosted checkout", "customer portal", "nextjs checkout" | [../website-checkout/SKILL.md](../website-checkout/SKILL.md) |
-| Lovable checkout (preview) | "lovable", "vite checkout", "shadcn checkout", "supabase edge checkout", "solvapay in lovable", "paste this into lovable", "@preview" | [../lovable-checkout/SKILL.md](../lovable-checkout/SKILL.md) |
+| Vague onboarding | "add solvapay", "where do I start", "what can solvapay do", "monetize something" | Ask disambiguation, then route |
+| Greenfield paid MCP | "create mcp app", "scaffold mcp", "new mcp server", "openapi to mcp", "npm create solvapay", "paid mcp", "monetize mcp" | `solvapay/create-mcp-app` |
+| Existing MCP + audit | "add solvapay to my mcp", "paywall my mcp tools" (needs worker template) | `solvapay/create-mcp-app` |
+| Existing app / API paywall | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "npx solvapay init" | `solvapay/sdk-integration` |
+| Web hosted checkout | "add checkout to website", "hosted checkout", "sell access on my site" | `solvapay/website-checkout` |
+| Lovable preview checkout | "lovable", "paste into lovable", "vite checkout", "supabase edge checkout", "@preview" | `solvapay/lovable-checkout` |
 
-## Negative Routing Examples
+## Negative routing examples
 
-- "Migrate old billing data", "analytics reporting", "general Stripe setup only" -> do not auto-route; ask clarification.
-- "Monetize mcp server no-code" or "hosted MCP monetization" -> the hosted-proxy product is deprecated. Ask the user to clarify; default to `../create-mcp-app/SKILL.md` per the vocabulary rule.
-- "Paywall my API" / "paywall web app" without MCP context -> route to `../sdk-integration/`, NOT `../create-mcp-app/`. Paywalled MCP and paywalled REST/web are different surfaces.
-- "Create a new paid MCP server from OpenAPI / scratch" / "scaffold mcp" without existing-server context -> route to `../create-mcp-app/`, NOT `../sdk-integration/`.
-- "Build MCP app UI" without SDK/paywall details -> clarify before routing.
-- "Fix one broken endpoint" with no product context -> ask whether this is SDK integration or onboarding issue.
+- "Migrate old billing data", "general Stripe setup only" → ask clarification; do not auto-route.
+- "Monetize mcp server no-code" → deprecated; ask clarification; default `solvapay/create-mcp-app`.
+- Greenfield MCP from OpenAPI/scratch → `solvapay/create-mcp-app`, NOT `solvapay/sdk-integration`.
+- Paywall web/API without MCP → `solvapay/sdk-integration`, NOT `solvapay/create-mcp-app`.
 
-## Disambiguation Prompt
+## Disambiguation prompt
 
-Use this if needed:
+"Do you want to (1) build a paid MCP server (OpenAPI or hand-written tools), (2) integrate the TypeScript SDK into an existing app, (3) set up hosted checkout for a production web app, or (4) paste checkout into a Lovable preview app?"
 
-"Do you want to (1) build a paid MCP server (from OpenAPI spec or hand-written tools), (2) integrate the TypeScript SDK into a non-MCP app, or (3) set up hosted checkout for a web app?"
+Default if still ambiguous: greenfield MCP → `solvapay/create-mcp-app`; otherwise → `solvapay/sdk-integration`.
 
-Default if still ambiguous after one question:
-- If request is creating/scaffolding a paid MCP worker (greenfield), route to `../create-mcp-app/SKILL.md`.
-- If request is MCP-focused and code-based but not clearly greenfield, route to `../create-mcp-app/SKILL.md` (the umbrella asks input-mode follow-up).
-- Otherwise, route to `../sdk-integration/SKILL.md`.
+## Surface skills
+
+| Skill id | Owns |
+| --- | --- |
+| `solvapay/create-mcp-app` | Greenfield paid MCP on Cloudflare Workers |
+| `solvapay/sdk-integration` | SDK paywall, checkout, usage, webhooks in existing apps |
+| `solvapay/website-checkout` | Hosted checkout + portal for production web apps |
+| `solvapay/lovable-checkout` | Paste-in preview checkout for Lovable |
+
+Install if missing: `npx skills add solvapay/skills --skill <flat-name> -y` (e.g. `create-mcp-app` for `solvapay/create-mcp-app`).
+
+## Verification loop
+
+1. Confirm routing id matches one intent-matrix row.
+2. Confirm the prompt is not a near-miss negative (see [evals/README.md](../../evals/README.md) boundary table).
+3. If mismatch → re-route or ask one clarifying question; do not hand off until pass.
+
+## Handoff template
+
+```markdown
+## Routing handoff
+- **Routing id:** solvapay/<surface>
+- **Why:** [one sentence tied to user intent]
+- **Install if missing:** `npx skills add solvapay/skills --skill <flat-name> -y`
+- **Next:** Load solvapay/<surface> SKILL.md and follow its instructions.
+```
+
+**After emitting this template, stop. Do not add implementation steps, code snippets, or instructions from the target skill. The handoff is the complete output of this skill.**
+
+## Task progress
+
+- [ ] Extract primary intent (MCP / SDK / web checkout / Lovable / ambiguous)
+- [ ] If ambiguous → ask disambiguation question (include Lovable option)
+- [ ] Match routing id from trimmed matrix
+- [ ] Run verification loop (confirm not a near-miss negative)
+- [ ] Install target skill if missing
+- [ ] Emit handoff template and stop — do not add code or implementation steps after the handoff
 
 ## Dev mode (skill author / internal testing only)
 
-If — and only if — the user explicitly says they're testing this skill against the SolvaPay dev backend, append `--dev` to every published-CLI invocation:
-
-- `npm create solvapay@latest <name> -- --type mcp --dev`
-- `npx -y solvapay@latest init --dev`
-
-The flag writes `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` into `.env` and routes browser-auth, `wrangler dev`, the deploy preflight, and the deployed worker to the dev backend in one pass. Never enable `--dev` for end users — production secret keys are rejected by `api-dev`.
-
-## Task Progress
-
-- [ ] Identify primary intent
-- [ ] Route to the correct surface skill
-- [ ] If needed, ask one disambiguation question
-- [ ] Hand off to the surface skill
+If the user explicitly tests against the SolvaPay dev backend, append `--dev` to CLI invocations (`npm create solvapay@latest`, `npx solvapay@latest init`). Never enable for end users.

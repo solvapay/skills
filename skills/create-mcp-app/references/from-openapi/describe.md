@@ -10,10 +10,12 @@ Read-only first step. Run this whenever you (or the user) want to know what the 
 
 ## Run
 
-One-time setup (per skill checkout): install the single runtime dep `@apidevtools/swagger-parser`.
+Before the first run, make sure the wrapper can resolve `create-solvapay/scripts/mcp`.
+Use one of:
 
 ```bash
-( cd scripts && npm install )
+npm install create-solvapay
+# or set SCAFFOLDER_SCRIPTS_DIR to a local create-solvapay/scripts/mcp checkout
 ```
 
 Then:
@@ -123,6 +125,10 @@ The `serverProbe.status` field summarises the result:
 | `skipped` | `--no-probe` flag was passed, or the spec declares no servers | Verify the upstream yourself before scaffolding. |
 
 The probe doesn't fail scaffolding — `scaffold.mjs` is happy to generate tools whose upstream URL is wrong. The point of the probe is to catch the trap *before* the agent writes `selections.json` and the user spends time deploying a worker whose first tool call returns `Unexpected token '<', "<?xml vers"...`.
+
+If `servers` is empty, missing, or relative, treat the probe result as a blocking advisory until the user confirms the real upstream base URL. For one-to-one mode, the generated tools derive their API base from the spec; for intent-driven mode, the agent must encode the confirmed base URL in the authored upstream helper.
+
+Also inspect path prefixes before scaffold. A path that breaks the dominant prefix pattern, such as `/apifhir/...` among many `/api/fhir/...` siblings, is usually a spec typo. Ask whether to skip, correct, or explicitly keep that operation before it becomes a generated tool.
 
 Pass `--no-probe` to skip the live calls entirely — useful for private upstreams reachable only via VPN, or when running `describe.mjs` in CI without network egress.
 

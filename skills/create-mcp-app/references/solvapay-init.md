@@ -7,7 +7,7 @@ No script — delegate to the SolvaPay CLI's browser-auth flow. This module wire
 | State | Use this module |
 | --- | --- |
 | Fresh scaffold, no `SOLVAPAY_SECRET_KEY` in `.env` yet | Yes — first-time setup. |
-| Switching from sandbox `sk_test_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
+| Switching from sandbox `sk_test_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
 
 ## Run
 
@@ -26,6 +26,8 @@ npx -y solvapay@preview init --dev
 
 The `@latest` suffix re-resolves the registry every run (so cached CLIs never lag behind); `-y` auto-confirms the npx install prompt (required for non-interactive / agent execution). Under `--dev`, use `@preview` instead of `@latest` — it tracks the same preview build as `create-solvapay@preview`, keeping the CLI and scaffolder in lockstep.
 
+For agent runs, expect this command to pause for a human browser-auth click. Run it in a background terminal or otherwise avoid streaming the auth spinner into the chat transcript; treat a quiet wait for browser approval as expected, not as a hang.
+
 The CLI:
 
 - Opens a browser, signs the user in (or creates an account), exchanges for a sandbox `sk_test_…`.
@@ -38,16 +40,26 @@ The CLI:
     - **0 products** — warns with a Console URL and skips the step.
     - **1 product** — `Use "<name>" (prd_xxx)? [Y/n]`.
     - **2+ products** — numbered list (cap 10), `Pick a product [1-N] (default 1)`.
-  - Under `--yes` or non-TTY, auto-picks the newest product and logs which ref was chosen.
+  - Under `--yes` or non-TTY, may auto-pick a product and log which ref was chosen. Treat that as provisional until G10 confirms it.
   - Writes the chosen ref to `.env`.
 - Installs / verifies `@solvapay/server` and `@solvapay/core` (the template's `package.json` already declares both, so this is mostly a verify step).
+
+## Gate G10 — product / metering confirmation
+
+After init, read the resulting `SOLVAPAY_PRODUCT_REF` from `.env` and confirm it is the product intended for this MCP server. This gate is mandatory at every confirmation level, and especially when init ran under `--yes` or non-TTY, because unattended product selection can otherwise bind a new MCP to an unrelated account product.
+
+For non-TTY / `--yes` runs, prefer seeding the product before init via `selections.solvapayProductRef` or an existing `.env` value. If no product ref is known, pause and ask for the intended `prd_...` rather than treating an auto-picked product as final.
+
+If the user already knows the intended product, seed it before init (via `selections.solvapayProductRef` or an existing `.env` value) so the CLI verifies that exact ref instead of selecting for you. If the CLI picked an unrelated smoke/test product, replace `SOLVAPAY_PRODUCT_REF` with the intended `prd_...` and rerun init or the product verification before deploy.
+
+For usage-based or metered products, also verify the selected product has the plan the MCP is supposed to sell. `selections.plans[]` is documentation plus scaffold validation; scaffold does **not** create plans in SolvaPay. Create or verify the free default / usage-based plan in Console or via the SDK before handoff, and record the status in the MCP app handoff as `usage-based plan verified` or `needs user action`.
 
 ## What the CLI does NOT do
 
 - Populate `MCP_PUBLIC_BASE_URL`. Scaffold writes `http://localhost:8787`; `deploy.mjs` auto-resolves the live workers.dev URL on first deploy.
-- Populate `UPSTREAM_API_KEY`. Scaffold writes it from `selections.upstreamAuth.key`.
-- Create a product. If the account has none, init warns and points to Console at https://app.solvapay.com — direct the user there to create one first.
-- Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md)).
+- Populate upstream credentials. Scaffold writes `UPSTREAM_API_KEY`, `UPSTREAM_API_HEADERS`, or the `UPSTREAM_OAUTH_*` family from `selections.upstreamAuth`.
+- Create products or plans. If the account has no product, init warns and points to Console at https://app.solvapay.com. If the selected product needs a usage-based metering plan, create or verify that plan outside scaffold before handoff.
+- Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)).
 
 ## Default plan and auto-enrollment
 
@@ -68,7 +80,7 @@ If the agent authored `selections.plans` during curate, `scaffold.mjs` pre-fligh
 
 | Pass | `.env` value | Set on deployed worker via |
 | --- | --- | --- |
-| First setup (sandbox) | `sk_test_…` written by `solvapay init` | Auto-uploaded by `npm run deploy` on first deploy (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md)) |
+| First setup (sandbox) | `sk_test_…` written by `solvapay init` | Auto-uploaded by `npm run deploy` on first deploy (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)) |
 | Go-live | `sk_live_…` written manually by the user, replacing the sandbox value | `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then `npm run deploy` |
 
 Single worker, single secret slot. There is no `--env production`, no `.env.prod` — the template ships one environment by design.
@@ -83,9 +95,9 @@ Recommend separate keys per environment and per project, even when one merchant 
 
 ## Hand-off
 
-- First-time setup → from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/deploy-verify.md](hosting/cloudflare/deploy-verify.md).
+- First-time setup → from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md).
 
 ## Reference
 
-- [packages/cli/src/commands/init.ts](../../../../../solvapay-sdk/packages/cli/src/commands/init.ts) — the browser-auth flow and `.env` write.
-- [packages/cli/README.md](../../../../../solvapay-sdk/packages/cli/README.md) — public CLI docs.
+- [packages/cli/src/commands/init.ts](https://github.com/solvapay/solvapay-sdk/blob/main/packages/cli/src/commands/init.ts) — the browser-auth flow and `.env` write.
+- [packages/cli/README.md](https://github.com/solvapay/solvapay-sdk/blob/main/packages/cli/README.md) — public CLI docs.

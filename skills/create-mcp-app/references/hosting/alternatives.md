@@ -13,11 +13,11 @@ Decision matrix for deploying a SolvaPay MCP server on a runtime other than Clou
 | Runtime | SDK subpath | Factory | Route to |
 | --- | --- | --- | --- |
 | Cloudflare Workers | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [cloudflare/](cloudflare/) (recommended, full inline templates) |
-| Supabase Edge Functions | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [`sdk-integration/references/supabase-edge.md`](../../../sdk-integration/references/supabase-edge.md) |
+| Supabase Edge Functions | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [supabase-edge-mcp.md](supabase-edge-mcp.md) |
 | Deno | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Deno docs: https://docs.deno.com/runtime/fundamentals/http_server/ |
 | Bun | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Bun docs: https://bun.sh/docs/api/http |
 | Node + Express | `@solvapay/mcp` + `@solvapay/mcp/express` | `createSolvaPayMcpServer` + `createMcpOAuthBridge` | See Node + Express below |
-| Framework-neutral / custom transport | `@solvapay/mcp` | `createSolvaPayMcpServer` | [`sdk-integration/references/mcp-server.md`](../../../sdk-integration/references/mcp-server.md) |
+| Framework-neutral / custom transport | `@solvapay/mcp` | `createSolvaPayMcpServer` | [mcp-server-wiring.md](../mcp-server-wiring.md) |
 
 ## Shared wiring
 
@@ -27,13 +27,13 @@ The factory call shape is identical across fetch-first runtimes. The only things
 2. How the widget HTML is loaded (inlined string via Wrangler Text rule on Workers; `Deno.readTextFile` on Deno/Supabase Edge; `fs.readFileSync` at build time on Node).
 3. How the handler is mounted (`export default { fetch }` on Workers; `Deno.serve(handler)` on Deno; `Bun.serve({ fetch: handler })` on Bun).
 
-Everything else — `createSolvaPay`, `createSolvaPayMcpFetch`, paywall wrapping, OAuth bridge, intent tools, widget resource — works the same way. See [`sdk-integration/references/mcp-server.md`](../../../sdk-integration/references/mcp-server.md) for the runtime-neutral reference.
+Everything else — `createSolvaPay`, `createSolvaPayMcpFetch`, paywall wrapping, OAuth bridge, intent tools, widget resource — works the same way. See [mcp-server-wiring.md](../mcp-server-wiring.md) for the runtime-neutral reference.
 
 ## Runtime notes
 
 ### Supabase Edge Functions
 
-Deno-based. Use `@solvapay/mcp/fetch`. The `readHtml` callback reads a bundled widget HTML file via `Deno.readTextFile`. Full guide: [`sdk-integration/references/supabase-edge.md`](../../../sdk-integration/references/supabase-edge.md).
+Deno-based. Use `@solvapay/mcp/fetch`. The `readHtml` callback reads a bundled widget HTML file via `Deno.readTextFile`. Full guide: [supabase-edge-mcp.md](supabase-edge-mcp.md).
 
 ### Deno
 
@@ -83,11 +83,13 @@ Bun HTTP docs: https://bun.sh/docs/api/http.
 
 No `createSolvaPayMcpExpress` turnkey factory exists yet. Use `createSolvaPayMcpServer` (framework-neutral) + `StreamableHTTPServerTransport` (from `@modelcontextprotocol/sdk`) + `createMcpOAuthBridge` (from `@solvapay/mcp/express`).
 
+> **Import subpaths — do not use bare `@solvapay`:** `createSolvaPayMcpServer` comes from `@solvapay/mcp` (not bare `@solvapay`, which is not a valid package). `createMcpOAuthBridge` comes from `@solvapay/mcp/express`. These are two separate subpaths of the same package.
+
 ```ts
 import express from 'express'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import { createSolvaPay } from '@solvapay/server'
-import { createSolvaPayMcpServer } from '@solvapay/mcp'
+import { createSolvaPayMcpServer } from '@solvapay/mcp'       // NOT '@solvapay' (bare)
 import { createMcpOAuthBridge } from '@solvapay/mcp/express'
 
 const solvaPay = createSolvaPay({ apiKey: process.env.SOLVAPAY_SECRET_KEY! })
@@ -126,7 +128,7 @@ Required deps: `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`,
 
 ### Framework-neutral
 
-If you have a custom HTTP framework or need to mount the MCP server on a non-standard transport (stdio, WebSocket, SSE), use `createSolvaPayMcpServer` from `@solvapay/mcp`. It returns an `McpServer` instance pre-loaded with the SolvaPay tool surface; you mount it on whatever transport you already have. Full reference: [`sdk-integration/references/mcp-server.md`](../../../sdk-integration/references/mcp-server.md).
+If you have a custom HTTP framework or need to mount the MCP server on a non-standard transport (stdio, WebSocket, SSE), use `createSolvaPayMcpServer` from `@solvapay/mcp`. It returns an `McpServer` instance pre-loaded with the SolvaPay tool surface; you mount it on whatever transport you already have. Full reference: [mcp-server-wiring.md](../mcp-server-wiring.md).
 
 ## Session mode by runtime
 

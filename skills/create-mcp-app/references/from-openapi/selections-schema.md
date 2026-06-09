@@ -63,7 +63,7 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | Field | Source | Notes |
 | --- | --- | --- |
 | `workerName` | Agent suggests, user confirms | Kebab-case, no spaces. Used as Wrangler `name`. |
-| `solvapayProductRef` | **Optional** | Omit during curate — `npx -y solvapay@latest init` lists account products and prompts (or auto-picks). Include only when you want a specific ref written at scaffold time. If the user has no product yet, ask them to create one in SolvaPay Console (https://app.solvapay.com) before init. |
+| `solvapayProductRef` | **Optional, but explicit when known** | Include the intended `prd_...` when the user knows it so `npx -y solvapay@latest init` verifies that exact product. If omitted, init lists products and prompts (or auto-picks under `--yes` / non-TTY); always confirm the resulting `.env` value before deploy. If the user has no product yet, ask them to create one in SolvaPay Console (https://app.solvapay.com) before init. |
 | `mcpPublicBaseUrl` | Agent default + deploy auto-resolve | Use `http://localhost:8787` initially. `deploy.mjs` auto-resolves the live `*.workers.dev` URL on first deploy when still a placeholder. For custom domains, set explicitly before deploy (see [deploy.md](deploy.md) step 2). |
 | `mode` | **Optional**, agent asks user once after `describe.mjs` (recommends `'intent-driven'` when running inside the skill) | `'one-to-one'` (default) for faithful per-op mapping; `'intent-driven'` for agent-authored clusters. See [intent-driven.md](intent-driven.md). The standalone `npx -y create-solvapay@latest -- --type mcp` CLI always writes `'one-to-one'`. |
 | `upstreamAuth.kind` | Agent reads from `describe.mjs` security schemes, then confirms with user | One of `none` / `bearer` / `apiKey` / `oauth2-client-credentials` / `apiKey-multi`. |
@@ -74,7 +74,7 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | `upstreamAuth.clientId` / `clientSecret` | **User-supplied** | OAuth client credentials. Both treated as secrets. |
 | `upstreamAuth.scope` / `audience` | **Optional, user-supplied** | `scope` is a space-delimited list (defaults to empty); `audience` is only required by some providers (Auth0). |
 | `operations[].tier` | Agent default (from `describe.mjs.suggestedTier`) + user override | Per-operation override happens during curate. Only used in `one-to-one` mode. |
-| `plans[]` | **Optional**, agent proposes when curating pricing | Document-only during scaffold — `scaffold.mjs` validates but does not POST plans. Use for MCP products that need a free recurring default (`price: 0`, `freeUnits > 0`, `default: true`). See [Default plan and auto-enrollment](#default-plan-and-auto-enrollment). |
+| `plans[]` | **Optional**, agent proposes when curating pricing | Document-only during scaffold — `scaffold.mjs` validates but does not POST plans. Use for MCP products that need a free recurring default (`price: 0`, `freeUnits > 0`, `default: true`) or a usage-based metering plan, then create/verify the actual plan outside scaffold before handoff. See [Default plan and auto-enrollment](#default-plan-and-auto-enrollment). |
 | `solvapaySecretKey` | **Intentionally absent** | `solvapay-init` writes it directly to `.env`. Not part of this file ever. |
 
 ## Default plan and auto-enrollment
@@ -202,5 +202,5 @@ Generic over N headers and header names — works for `AppKey` + `AppToken`, a t
 ## What's intentionally NOT in this schema
 
 - `solvapaySecretKey` — `npx -y solvapay@latest init` writes it directly to `.env`. Never include it here.
-- `apiBaseUrl` for the upstream — derived from the OpenAPI document's `servers[0].url` at scaffold time.
-- `selectionsForRotation` — there is no rotation flow that goes through scaffold. Rotation is handled by re-running [../solvapay-init.md](../solvapay-init.md) + [deploy.md](deploy.md).
+- `apiBaseUrl` for the upstream — derived from the OpenAPI document's `servers[0].url` at scaffold time. If `servers` is empty or relative, confirm the real upstream base URL before scaffold rather than trying to encode it here.
+- `selectionsForRotation` — there is no rotation flow that goes through scaffold. Rotation is handled by editing `.env`, refreshing changed Worker secrets with `npx wrangler secret put <NAME>`, and redeploying per [deploy.md](deploy.md).

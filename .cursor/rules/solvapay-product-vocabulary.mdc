@@ -18,8 +18,8 @@ Do not mention the following SolvaPay product names in plans, skills, docs, mark
 
 ## What to suggest instead
 
-When a user's intent matches what a deprecated product used to cover (e.g. hosted / no-code MCP monetization for MCP Pay), do not invent replacement vocabulary. Ask the user which surface they want to route to. Default to the code-based path (`create-mcp-app` skill, `create-solvapay` package, SDK integration) if they don't specify.
+When a user's intent matches what a deprecated product used to cover (e.g. hosted / no-code MCP monetization for MCP Pay), do not invent replacement vocabulary. Ask the user which surface they want to route to. Default to the code-based path (`solvapay/create-mcp-app` skill, `create-solvapay` package, SDK integration) if they don't specify.
 
 ## Canonical name
 
-The current canonical name for the code-based paid-MCP skill is `create-mcp-app`. The npm scaffolder is `create-solvapay` (`npm create solvapay -- --type mcp`). Older drafts referenced `create-paid-mcp-app`, `mcp-app`, or split the surface into `openapi-to-mcp` and `building-mcp-app` — all of those are historical and the consolidated skill at `skills/solvapay/create-mcp-app/` is the only correct destination.
+The current canonical skill id for the code-based paid-MCP path is `solvapay/create-mcp-app` (directory `skills/create-mcp-app/`). The npm scaffolder is `create-solvapay` (`npm create solvapay -- --type mcp`). Older drafts referenced `create-paid-mcp-app`, `mcp-app`, or split the surface into `openapi-to-mcp` and `building-mcp-app` — all of those are historical.

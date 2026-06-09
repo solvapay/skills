@@ -242,7 +242,9 @@ In a multi-skill family, the router owns ambiguous / top-of-funnel triggers. Sur
 
 **Trigger eval queries**
 
-Maintain ~20 labeled queries (8–10 should-trigger, 8–10 should-not-trigger). Include near-miss negatives. Split train (~60%) / validation (~40%) when optimizing descriptions. Run each query multiple times; target trigger rate thresholds (e.g. 0.5).
+Maintain 16–20 labeled queries (8–10 should-trigger, 8–10 should-not-trigger, balanced counts). Include near-miss negatives. Split train (~60%) / validation (~40%) when optimizing descriptions. Run each query multiple times; target trigger rate thresholds (e.g. 0.5).
+
+In this repo, specs live at **`evals/<skill>/trigger-queries.json`** — see [`evals/README.md`](../evals/README.md).
 
 ---
 
@@ -255,22 +257,20 @@ Test whether the skill works reliably ([evaluating skills](https://agentskills.i
 - Realistic **prompt**
 - Human-readable **expected output**
 - Optional **input files**
-- **Assertions** (add after first run — verifiable, not vague)
+- **`slug`** for workspace directory names
+- **Assertions** (verifiable, not vague)
 
-Store in `evals/evals.json` inside the skill, or in a repo-level workspace if eval payload bloats the skill.
+Store in `evals/evals.json` inside the skill, or at **repo root** `evals/<skill>/evals.json` when the eval payload should not ship with the installed skill (this repo’s default).
 
 **Workspace layout**
 
 ```
-skill-name/
-├── SKILL.md
-└── evals/evals.json
-skill-name-workspace/
-└── iteration-1/
-    ├── eval-<case>/
-    │   ├── with_skill/outputs|timing.json|grading.json
-    │   └── without_skill/...
-    └── benchmark.json
+evals/<skill>/evals.json          # committed spec (this repo)
+eval-workspaces/<skill>/iteration-1/
+└── eval-<slug>/
+    ├── with_skill/outputs|timing.json|grading.json
+    └── without_skill/...
+└── benchmark.json
 ```
 
 **Run pattern**
