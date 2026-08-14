@@ -9,7 +9,7 @@ alwaysApply: true
 
 Do not mention the following SolvaPay product names in plans, skills, docs, marketing copy, code comments, anchor articles, trademark lists, roadmaps, or any user-facing artifact:
 
-- **MCP Pay** -- product discontinued. Do not propose features, upsell paths, routing, or any new mentions.
+- **MCP Pay** -- retired product name. The live product is **Managed MCP**. Do not propose features, upsell paths, routing, or any new mentions of the old name.
 
 ## When you encounter existing mentions
 
@@ -18,7 +18,11 @@ Do not mention the following SolvaPay product names in plans, skills, docs, mark
 
 ## What to suggest instead
 
-When a user's intent matches what a deprecated product used to cover (e.g. hosted / no-code MCP monetization for MCP Pay), do not invent replacement vocabulary. Ask the user which surface they want to route to. Default to the code-based path (`solvapay/create-mcp-app` skill, `create-solvapay` package, SDK integration) if they don't specify.
+When a user's intent matches no-code MCP monetization (paste a server URL, gate tools without code, console setup), route to **Managed MCP** — the provider console path with docs at `/no-code-mcp/overview` and `/no-code-mcp/quick-start`. When they want to write MCP paywall code (greenfield worker, OpenAPI→MCP, SDK wiring), route to the code-based path (`solvapay/create-mcp-app` skill, `create-solvapay` package, or `solvapay/sdk-integration`).
+
+## Canonical product type names
+
+The no-code MCP product type is **Managed MCP** (never Hosted MCP, No-code, or MCP Pay). The code-based type is **SDK**. The canonical product field is `isManagedMcp`; `isMcpPay` remains a deprecated wire alias (accepted on input, emitted on output) for compatibility. Customer-facing surfaces say **MCP server** — the provider's integration method is not the customer's concern.
 
 ## Canonical name
 

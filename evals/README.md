@@ -45,7 +45,7 @@ Guides: [optimizing descriptions](https://agentskills.io/skill-creation/optimizi
 | REST/web paywall, usage, webhooks, account UI | `solvapay/sdk-integration` | `create-mcp-app`, checkout-only skills |
 | Web hosted checkout + return URL | `solvapay/website-checkout` | Full SDK path, Lovable stack, greenfield MCP |
 | Lovable paste-in (`@preview`, Supabase edge) | `solvapay/lovable-checkout` | Production Next.js website-checkout |
-| Hosted / no-code MCP monetization (deprecated) | Router clarifies; surfaces should **not** auto-trigger | Do not use "MCP Pay" in eval copy — say "hosted / no-code MCP monetization" |
+| Managed MCP (no code, paste server URL) | `solvapay` router → Managed MCP exit | `create-mcp-app`, `sdk-integration` (unless API bootstrap on existing product) |
 
 ## Output evals (`evals.json`)
 

@@ -26,14 +26,14 @@
     },
     {
       "id": 3,
-      "slug": "router-deprecated-hosted-mcp",
+      "slug": "router-managed-mcp",
       "prompt": "monetize my mcp server with a hosted no-code proxy — just paste the server url and gate tools without code",
-      "expected_output": "Agent clarifies deprecated hosted-proxy path, does not recommend MCP Pay, and steers toward code-based surfaces (default solvapay/create-mcp-app if user insists on MCP).",
+      "expected_output": "Agent routes to Managed MCP (console path), names the surface, points at provider console and docs (/no-code-mcp/overview or quick-start), and does not scaffold code or hand off to solvapay/create-mcp-app.",
       "files": [],
       "assertions": [
-        "Agent does not mention MCP Pay or a managed no-code proxy product by name",
-        "Agent asks for clarification or routes to a code-based skill id",
-        "If a default is stated, it is solvapay/create-mcp-app or sdk-integration — not a deprecated proxy SKU"
+        "Agent names Managed MCP as the surface (not MCP Pay, Hosted MCP, or a deprecated proxy SKU)",
+        "Agent points at the provider console and/or no-code-mcp docs — not solvapay/create-mcp-app",
+        "Agent does not mention MCP Pay or start scaffolding a Cloudflare Workers MCP server"
       ]
     }
   ]
