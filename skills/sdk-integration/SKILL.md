@@ -126,5 +126,5 @@ If multiple match, ask which runtime is primary.
 
 - Operations: [references/operations.md](references/operations.md)
 - Env / init: [references/env-and-init.md](references/env-and-init.md)
-- MCP product console (existing product only): [references/mcp-product-console.md](references/mcp-product-console.md)
+- Managed MCP product console (existing product only): [references/mcp-product-console.md](references/mcp-product-console.md)
 - Webhooks: [references/WEBHOOKS.md](references/WEBHOOKS.md)

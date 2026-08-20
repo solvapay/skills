@@ -1,6 +1,6 @@
-# MCP Product Console (existing product only)
+# Managed MCP product console (existing product only)
 
-Use when the user already has a hosted MCP product and needs to bootstrap or reconfigure plans via API — **not** for greenfield MCP worker scaffold.
+Use when the user already has a Managed MCP product and needs to bootstrap or reconfigure plans via API — **not** for greenfield MCP worker scaffold.
 
 Greenfield paid MCP server → hand off to `solvapay/create-mcp-app`.
 
@@ -27,7 +27,7 @@ Request shape:
 
 Response includes `product.reference`, `mcpServer.mcpProxyUrl`, `planMap`.
 
-Docs topic: `bootstrap mcp product`, `create hosted mcp product`.
+Docs topic: `bootstrap mcp product`, `create a Managed MCP product`.
 
 ## Configure MCP plans
 
