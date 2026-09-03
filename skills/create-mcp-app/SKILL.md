@@ -28,14 +28,14 @@ SolvaPay-monetized MCP server on Cloudflare Workers. OpenAPI auto-generation or 
 
 This skill covers **any MCP server whose tools return text or `structuredContent`** — data, intelligence and analytics, search and retrieval, integrations with external APIs, actions and workflows, computations, content generation. Domain-agnostic.
 
-The only UI this skill ships is SolvaPay's built-in checkout / account / topup widget, which mounts only when the user deliberately invokes an intent tool (`upgrade` / `topup` / `manage_account`). For custom graphical widgets, keep this skill for server + paywall wiring and add [references/mcp-apps-ui.md](references/mcp-apps-ui.md).
+The only UI this skill ships is SolvaPay's built-in checkout / account / topup widget, which mounts only when the user deliberately invokes the `account` viewer (slash prompts `/upgrade`, `/manage_account`, `/topup` remap onto it with the matching `view`). For custom graphical widgets, keep this skill for server + paywall wiring and add [references/mcp-apps-ui.md](references/mcp-apps-ui.md).
 
 ## Guardrails
 
 - Never expose `SOLVAPAY_SECRET_KEY` to client code, public env vars, or deploy-time plaintext. Upload via `npx wrangler secret put` and keep it in a gitignored `.env` only for local dev.
-- Never wrap SolvaPay intent tools (`upgrade`, `topup`, `manage_account`, `activate_plan`, `check_purchase`) with `payable.mcp()` — they are the paywall recovery path, not paid business logic.
+- Never wrap SolvaPay intent tools (`account`, `activate_plan`, `check_purchase`) with `payable.mcp()` — they are the paywall recovery path, not paid business logic.
 - Never set `_meta.ui.resourceUri` on merchant payable tools. Hosts MUST open the iframe on every advertised call (SEP-1865), which flashes an empty widget on silent successes.
-- Never return custom iframe/UI on paywall gates — text-only narration naming the recovery intent tool.
+- Never return custom iframe/UI on paywall gates — text-only narration naming `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known).
 - Always use `mode: 'json-stateless'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
 - Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
 - Always confirm the resolved `SOLVAPAY_PRODUCT_REF` after `solvapay init`; under `--yes` / non-TTY, never treat an auto-picked product as final until the user confirms it belongs to this MCP.

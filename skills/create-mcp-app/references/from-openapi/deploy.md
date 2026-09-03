@@ -121,7 +121,8 @@ Without `--credentials-file`, `verify.mjs` still runs every other check and repo
 ```bash
 mcpjam tools call \
   --url <deployed-url>/mcp \
-  --tool-name manage_account \
+  --tool-name account \
+  --args '{"view":"account","mode":"text"}' \
   --credentials-file /tmp/creds.json \
   --quiet --format json
 ```

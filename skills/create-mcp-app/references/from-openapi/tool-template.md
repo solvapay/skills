@@ -126,5 +126,5 @@ Hosted by `createSolvaPayMcpFetch`:
 
 - `/.well-known/oauth-protected-resource` returns `{ resource, authorization_servers, scopes_supported? }`.
 - `/.well-known/oauth-authorization-server` returns `{ issuer, authorization_endpoint, token_endpoint, registration_endpoint? }`.
-- `tools/list` includes the four intent tools (`upgrade`, `topup`, `activate_plan`, `manage_account`) plus generated tools. UI-only tools are hidden from text-only hosts via `hideToolsByAudience: ['ui']`.
+- `tools/list` includes the two intent tools (`account`, `activate_plan`) plus generated tools. UI-only tools are hidden from text-only hosts via `hideToolsByAudience: ['ui']`.
 - Paywall gate response: text-only narration in `content[0].text` naming the recovery intent tool; `structuredContent.gate` for programmatic consumers; no `_meta.ui` on the gate.

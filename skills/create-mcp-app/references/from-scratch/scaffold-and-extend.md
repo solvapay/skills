@@ -88,7 +88,7 @@ Before writing any tool code, read [../tool-design.md](../tool-design.md). It co
      ctx.registerPayable('get_item', {
        title: 'Get item',
        description:
-         'Returns the requested item. 1 credit per call; when the customer is out of balance, returns a text-only purchase-required narration naming the `upgrade` or `topup` recovery tool.',
+         'Returns the requested item. 1 credit per call; when the customer is out of balance, returns a text-only purchase-required narration naming the `account` viewer with the appropriate `view`.',
        schema: { id: z.string().min(1) },
        annotations: { readOnlyHint: true, idempotentHint: true },
        handler: async ({ id }, c) => {

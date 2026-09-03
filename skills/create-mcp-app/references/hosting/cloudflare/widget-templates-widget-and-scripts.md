@@ -21,7 +21,7 @@ Continues from [widget-templates-config.md](widget-templates-config.md). Copy ea
  * worker.ts).
  *
  * This widget renders only when the user deliberately invokes a
- * SolvaPay intent tool (`upgrade` / `topup` / `manage_account`).
+ * SolvaPay billing viewer (`account` with optional `view`).
  * Merchant payable tools do not mount an iframe — their gate
  * responses are text-only narrations.
  */

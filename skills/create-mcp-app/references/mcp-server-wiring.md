@@ -39,7 +39,7 @@ This guide is for SDK-based MCP server integrations where you self-host the serv
 
 ## Factory setup (recommended)
 
-For new MCP servers, prefer the batteries-included factories from `@solvapay/mcp`. They wire up the full SolvaPay tool surface (check_purchase, create_checkout_session, activate_plan, upgrade, topup, manage_account, plus your paywalled business tools), register the OAuth bridge, and emit the text-only paywall response format — in a single call.
+For new MCP servers, prefer the batteries-included factories from `@solvapay/mcp`. They wire up the full SolvaPay tool surface (`account`, `activate_plan`, transport tools such as `create_hosted_session` and `create_payment_intent`, plus your paywalled business tools), register the OAuth bridge, and emit the text-only paywall response format — in a single call.
 
 Three runtime-specific factories are exposed via subpaths:
 
@@ -77,7 +77,7 @@ export default { fetch: handler } // Cloudflare Worker export
 
 Key behaviors baked in:
 
-- **Text-only paywall.** When `payable.mcp(…)` detects an over-limit call, the response is a plain-text `Purchase required` narration that routes the host model to the correct recovery intent (`upgrade` / `topup` / `activate_plan`) via the SolvaPay tool surface. No `McpPaywallView` / structured UI payload.
+- **Text-only paywall.** When `payable.mcp(…)` detects an over-limit call, the response is a plain-text `Purchase required` narration that routes the host model to `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known) via the SolvaPay tool surface. No `McpPaywallView` / structured UI payload.
 - **CSP auto-injection.** `createSolvaPayMcpFetch` sets `_meta.ui.csp.frameDomains` to include `solvaPay.apiBaseUrl` automatically so MCP App widgets hosted on compliant clients can embed Stripe Elements without extra config.
 - **OAuth bridge.** `/oauth/{register,authorize,token,revoke}` + `/.well-known/{oauth-protected-resource,oauth-authorization-server,openid-configuration}` routes are mounted for free.
 
@@ -148,8 +148,8 @@ Virtual tools provide self-service account management. They are **not** paywall-
 | Tool | Description |
 | --- | --- |
 | `get_user_info` | Returns user profile and purchase status |
-| `upgrade` | Returns available plans and checkout URLs |
-| `manage_account` | Returns a secure customer portal link |
+| `account` | Billing viewer — checkout, account, or top-up (`view` param) |
+| `activate_plan` | Activate a plan by `planRef` |
 
 ### Create and merge
 
@@ -179,7 +179,7 @@ const allHandlers = {
 }
 ```
 
-To exclude specific virtual tools, pass `exclude: ['manage_account']` in the options.
+To exclude specific virtual tools, pass `exclude: ['account']` in the options.
 
 ## OAuth bridge setup
 
@@ -271,5 +271,5 @@ WWW-Authenticate: Bearer resource_metadata="<MCP_PUBLIC_BASE_URL>/.well-known/oa
 - [ ] `GET /.well-known/oauth-authorization-server` returns endpoints pointing to SolvaPay
 - [ ] Protected tool denies over-limit calls with a paywall error containing a checkout URL
 - [ ] Protected tool allows authenticated, in-limit calls and returns business logic result
-- [ ] Virtual tools (`get_user_info`, `upgrade`, `manage_account`) respond without paywall
+- [ ] Virtual tools (`get_user_info`, `account`, `activate_plan`) respond without paywall
 - [ ] Virtual tool handlers are NOT wrapped with `payable.mcp()`

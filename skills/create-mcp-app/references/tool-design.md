@@ -38,18 +38,16 @@ Every paid business tool pairs with the built-in recovery intents, which ship fo
 
 | Intent tool | Purpose |
 | --- | --- |
-| `upgrade` | Plan change or initial purchase. Mounts the checkout widget. |
-| `topup` | Add credits to a usage-based plan. Mounts the topup widget. |
-| `activate_plan` | Activate a free or included plan without checkout. |
-| `manage_account` | Open the customer portal: cancel, switch plan, update card. |
+| `account` | Read-only billing viewer. Pass optional `view: 'checkout' \| 'account' \| 'topup'`; omit `view` and the server picks. Mounts the checkout, account, or top-up widget. Slash prompts `/upgrade`, `/manage_account`, and `/topup` remap onto this tool with the matching `view`. |
+| `activate_plan` | Activate a specific plan by `planRef`. Mutator only — no bootstrap payload, no `_meta.ui.resourceUri`. To list plans, call `account` with `view: "checkout"`. |
 
-`registerPayable` writes the gate narration for you; it names the correct recovery tool based on the customer's state (no balance -> `topup` or `upgrade`; no active plan -> `activate_plan` or `upgrade`). You don't compose the narration yourself.
+`registerPayable` writes the gate narration for you; it names `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known) based on the customer's state. You don't compose the narration yourself.
 
 ## `_meta.ui.resourceUri` rule
 
 Never set `_meta.ui.resourceUri` on merchant payable tools. Per SEP-1865, hosts MUST open the iframe on every call when a tool advertises this — which flashes an empty widget on every silent success. `registerPayable` deliberately does not accept `resourceUri`; don't work around it by calling the lower-level `registerPayableTool` with it either.
 
-`_meta.ui.resourceUri` lives only on the three SolvaPay intent tools (`upgrade`, `manage_account`, `topup`), where calling them is the user's explicit intent to open the UI.
+`_meta.ui.resourceUri` lives only on the `account` viewer descriptor, where calling it is the user's explicit intent to open the UI. `` `activate_plan` `` is a mutator only — no `resourceUri`.
 
 ## Artifact rendering on success
 
@@ -100,7 +98,7 @@ The narration in `content[0].text` plays the same role as the `text` field in `c
 
 ## Hide transport tools from text hosts
 
-`createSolvaPayMcp*({ hideToolsByAudience: ['ui'] })` drops UI-only virtual tools (`create_checkout_session`, `process_payment`, …) from `tools/list` so text-only hosts don't reason about iframe transport tools meant for the embedded widget. Always set this unless you have a specific reason not to.
+`createSolvaPayMcp*({ hideToolsByAudience: ['ui'] })` drops UI-only virtual tools (`create_hosted_session`, `process_payment`, …) from `tools/list` so text-only hosts don't reason about iframe transport tools meant for the embedded widget. Always set this unless you have a specific reason not to.
 
 ## Annotations
 
@@ -156,7 +154,7 @@ export function registerMyTools(ctx: AdditionalToolsContext): void {
   registerPayable('get_item', {
     title: 'Get item',
     description:
-      'Returns the requested item. 1 credit per call; when the customer is out of balance, returns a text-only purchase-required narration naming the `upgrade` or `topup` recovery tool — the widget iframe does not auto-open.',
+      'Returns the requested item. 1 credit per call; when the customer is out of balance, returns a text-only purchase-required narration naming the `account` viewer with the appropriate `view` — the widget iframe does not auto-open.',
     schema: { id: z.string().min(1) },
     annotations: { readOnlyHint: true, idempotentHint: true },
     handler: async ({ id }, ctx) => {
@@ -188,10 +186,10 @@ For Cloudflare Workers, the full server template is in [hosting/cloudflare/](hos
 
 ## Anti-patterns
 
-- Do not wrap `upgrade` / `topup` / `manage_account` / `activate_plan` / `check_purchase` with `payable.mcp()`. They are recovery tools, not paid business logic.
+- Do not wrap `account` / `activate_plan` / `check_purchase` with `payable.mcp()`. They are recovery tools, not paid business logic.
 - Do not hand-roll a paywall response. `registerPayable` emits the correct text-only gate narration — adding your own `_meta.ui.*` / `McpPaywallView` / custom iframe defeats the non-intrusive contract.
 - Do not return data from a gated call by running the handler first and then checking balance. `registerPayable` runs the gate check before your handler — don't re-order it.
-- Do not depend on the widget mounting "somewhere automatically" for merchant tools. The widget is only for the three intent tools; merchant tools always return data.
+- Do not depend on the widget mounting "somewhere automatically" for merchant tools. The widget mounts only on deliberate `account` viewer calls; merchant tools always return data.
 - Do not skip annotations. `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint` are required, not optional.
 
 ### Wrong / right — three high-cost patterns
@@ -228,9 +226,10 @@ if (!hasBalance(customer)) {
 }
 
 // RIGHT — let registerPayable own the gate. It emits text-only narration in
-// content[0].text naming the recovery intent (`upgrade` / `topup` /
-// `activate_plan`); structuredContent carries the gate payload for programmatic
-// consumers; the widget mounts only on a deliberate recovery-tool call.
+// content[0].text naming `account` with the appropriate `view` (or
+// `activate_plan` when a planRef is known); structuredContent carries the gate
+// payload for programmatic consumers; the widget mounts only on a deliberate
+// recovery-tool call.
 ctx.registerPayable('get_item', {
   /* ... */
   handler: async ({ id }, c) => c.respond(await loadItem(id), { text: `Item ${id}.` }),

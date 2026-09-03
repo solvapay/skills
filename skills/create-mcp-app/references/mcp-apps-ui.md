@@ -7,7 +7,7 @@ Add custom React UI inside MCP host sandboxes (Claude Desktop, ChatGPT Apps, MCP
 - The host supports MCP Apps / iframe UI.
 - You need graphical widgets for **your own** tools beyond SolvaPay's built-in checkout / account / topup widget.
 
-Do **not** set `_meta.ui.resourceUri` on merchant payable tools — see [tool-design.md](tool-design.md). The built-in widget mounts only on deliberate intent-tool calls (`upgrade`, `topup`, `manage_account`).
+Do **not** set `_meta.ui.resourceUri` on merchant payable tools — see [tool-design.md](tool-design.md). The built-in widget mounts only on deliberate `account` viewer calls.
 
 ## Server (unchanged)
 
