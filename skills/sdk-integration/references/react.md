@@ -48,7 +48,7 @@ Drop these into any authenticated view to render a complete self-service billing
 
 - **`<CurrentPlanCard />`** — renders the active plan, next-billing line, mirrored card brand/last4, and inline **Update card** / **Cancel plan** actions. Returns `null` when there is no active purchase.
 - **`<LaunchCustomerPortalButton />`** — opens the hosted customer portal in a new tab. Pre-fetches `createCustomerSession` on hover so the portal link is ready on click.
-- **`usePaymentMethod()`** — `{ paymentMethod, loading, refetch }` where `paymentMethod` is `{ kind: 'card', brand, last4, expMonth, expYear } | { kind: 'none' }`. The card brand/last4 are mirrored onto the Customer by the `payment_intent.succeeded` webhook, so this hook is free to poll and needs no Stripe round-trip.
+- **`usePaymentMethod()`** — `{ paymentMethod, loading, refetch }` where `paymentMethod` is `{ kind: 'card', brand, last4, expMonth, expYear, reusable } | { kind: 'none' }`. The card brand/last4 are mirrored onto the Customer by the `payment_intent.succeeded` webhook, so this hook is free to poll and needs no Stripe round-trip. `reusable` distinguishes a chargeable saved card from a card that is only on file — check it before offering an off-session action such as auto-recharge.
 - **`useMerchant()`** — `{ merchant, loading }` where `merchant` is the result of `GET /v1/sdk/merchant` (`name`, `iconUrl`, `logoUrl`, `termsUrl`, `privacyUrl`). Use in checkout and mandate copy.
 
 ## Activation + PAYG semantics

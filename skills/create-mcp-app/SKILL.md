@@ -33,7 +33,7 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 ## Guardrails
 
 - Never expose `SOLVAPAY_SECRET_KEY` to client code, public env vars, or deploy-time plaintext. Upload via `npx wrangler secret put` and keep it in a gitignored `.env` only for local dev.
-- Never wrap SolvaPay intent tools (`account`, `activate_plan`, `check_purchase`) with `payable.mcp()` — they are the paywall recovery path, not paid business logic.
+- Never wrap SolvaPay intent tools (`account`, `activate_plan`) or the UI transport tools with `payable.mcp()` — they are the paywall recovery path, not paid business logic.
 - Never set `_meta.ui.resourceUri` on merchant payable tools. Hosts MUST open the iframe on every advertised call (SEP-1865), which flashes an empty widget on silent successes.
 - Never return custom iframe/UI on paywall gates — text-only narration naming `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known).
 - Always use `mode: 'json-stateless'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
