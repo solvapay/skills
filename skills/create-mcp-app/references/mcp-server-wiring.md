@@ -47,10 +47,14 @@ Three runtime-specific factories are exposed via subpaths:
 - `@solvapay/mcp/fetch` — `createSolvaPayMcpFetch` — single `(req: Request) => Promise<Response>` handler for Cloudflare Workers, Deno, Supabase Edge Functions, Bun. Also exposes `createOAuthFetchRouter` if you want to assemble the bridge yourself.
 - `@solvapay/mcp/express` — Express middleware variant.
 
+Register paid tools through the `additionalTools` hook — the factory has no `tools` array. `registerPayable` applies the paywall, so you never wrap the handler yourself.
+
 ```typescript
 // src/server.ts (Cloudflare Worker / Deno / Supabase Edge / Bun)
 import { createSolvaPayMcpFetch } from '@solvapay/mcp/fetch'
 import { createSolvaPay } from '@solvapay/server'
+import { z } from 'zod'
+import mcpAppHtml from './assets/mcp-app.html'
 
 const solvaPay = createSolvaPay({ apiKey: process.env.SOLVAPAY_SECRET_KEY! })
 
@@ -58,26 +62,32 @@ const handler = createSolvaPayMcpFetch({
   solvaPay,
   productRef: process.env.SOLVAPAY_PRODUCT_REF!,
   publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
-  tools: [
-    {
-      name: 'predict_price_chart',
+  resourceUri: 'ui://my-app/mcp-app.html',
+  // Edge-safe alternative to `htmlPath`; one of the two is required.
+  readHtml: async () => mcpAppHtml,
+  responseMode: 'json',
+  additionalTools: ({ registerPayable }) => {
+    registerPayable('predict_price_chart', {
       description: 'Return a seeded price chart for a ticker.',
-      inputSchema: { type: 'object', properties: { ticker: { type: 'string' } } },
-      // Wrap the handler with `payable.mcp(...)` to enforce the paywall.
-      handler: solvaPay.payable({ product: process.env.SOLVAPAY_PRODUCT_REF! }).mcp(predictPriceChart),
-    },
-  ],
-  // Optional: hide certain tools from certain audiences (LLM / user / agent).
-  hideToolsByAudience: { user: ['internal_admin_tool'] },
+      schema: { ticker: z.string().min(1) },
+      annotations: { readOnlyHint: true, idempotentHint: true },
+      handler: async ({ ticker }, ctx) => ctx.respond(await predictPriceChart(ticker)),
+    })
+  },
+  // Keep UI-only transport tools out of the LLM's `tools/list`.
+  hideToolsByAudience: ['ui'],
 })
 
 export default { fetch: handler } // Cloudflare Worker export
 // or: Deno.serve(handler)
 ```
 
+`hideToolsByAudience` takes an array of audiences (or `{ audiences, bypassWhen }`), not a map of audience to tool names.
+
 Key behaviors baked in:
 
-- **Text-only paywall.** When `payable.mcp(…)` detects an over-limit call, the response is a plain-text `Purchase required` narration that routes the host model to `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known) via the SolvaPay tool surface. No `McpPaywallView` / structured UI payload.
+- **Text-only paywall.** When the paywall pre-check blocks a call, the response is a plain-text narration that routes the host model to `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known), alongside a pasteable `https` checkout URL. The machine-readable gate rides on `structuredContent`. No `McpPaywallView` / iframe payload.
+- **Usage metering and idempotency.** `registerPayable` records the usage event itself, stamps the tool name on it, and reuses the paywall's request id as the `idempotencyKey` so a retried call books once.
 - **CSP auto-injection.** `createSolvaPayMcpFetch` sets `_meta.ui.csp.frameDomains` to include `solvaPay.apiBaseUrl` automatically so MCP App widgets hosted on compliant clients can embed Stripe Elements without extra config.
 - **OAuth bridge.** `/oauth/{register,authorize,token,revoke}` + `/.well-known/{oauth-protected-resource,oauth-authorization-server,openid-configuration}` routes are mounted for free.
 

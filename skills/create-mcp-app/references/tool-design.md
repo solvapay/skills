@@ -186,7 +186,7 @@ For Cloudflare Workers, the full server template is in [hosting/cloudflare/](hos
 
 ## Anti-patterns
 
-- Do not wrap `account` / `activate_plan` / `check_purchase` with `payable.mcp()`. They are recovery tools, not paid business logic.
+- Do not wrap `account` / `activate_plan` with `payable.mcp()`. They are recovery tools, not paid business logic.
 - Do not hand-roll a paywall response. `registerPayable` emits the correct text-only gate narration — adding your own `_meta.ui.*` / `McpPaywallView` / custom iframe defeats the non-intrusive contract.
 - Do not return data from a gated call by running the handler first and then checking balance. `registerPayable` runs the gate check before your handler — don't re-order it.
 - Do not depend on the widget mounting "somewhere automatically" for merchant tools. The widget mounts only on deliberate `account` viewer calls; merchant tools always return data.
