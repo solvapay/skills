@@ -7,7 +7,7 @@ Add custom React UI inside MCP host sandboxes (Claude Desktop, ChatGPT Apps, MCP
 - The host supports MCP Apps / iframe UI.
 - You need graphical widgets for **your own** tools beyond SolvaPay's built-in checkout / account / topup widget.
 
-Do **not** set `_meta.ui.resourceUri` on merchant payable tools — see [tool-design.md](tool-design.md). The built-in widget mounts only on deliberate intent-tool calls (`upgrade`, `topup`, `manage_account`).
+Do **not** set `_meta.ui.resourceUri` on merchant payable tools — see [tool-design.md](tool-design.md). The built-in widget mounts only on deliberate `account` viewer calls.
 
 ## Server (unchanged)
 
@@ -31,14 +31,49 @@ import { createMcpAppAdapter } from '@solvapay/react/mcp'
 
 `createMcpAppAdapter` wires the host postMessage transport so checkout and account calls reach your server without browser `fetch` to SolvaPay APIs.
 
+The adapter has no tool per hook. Purchase, merchant, product, plans, payment method, balance, usage, and limits all arrive on the `account` viewer's bootstrap payload and seed the provider caches, so hooks resolve on first paint. The adapter only calls a tool to write, or to fetch history (`get_history`), which is not on bootstrap.
+
+## Display modes
+
+Advertise what your surface can handle when constructing the app, and let the host drive:
+
+```tsx
+import { SOLVAPAY_MCP_APP_CAPABILITIES } from '@solvapay/react/mcp'
+
+const app = new App(
+  { name: 'SolvaPay checkout', version: '1.0.0' },
+  { availableDisplayModes: [...SOLVAPAY_MCP_APP_CAPABILITIES.availableDisplayModes] },
+)
+```
+
+- Advertises `inline` + `fullscreen` only — never `pip`.
+- The host owns the expand affordance. Never call `app.requestDisplayMode`.
+- `<McpApp>` reads `displayMode` and applies `safeAreaInsets` as root padding itself — do not also set padding on `#root`.
+- Read the state yourself with `useDisplayMode()` or `readDisplayModeState(hostContext)` when hand-rolling a shell.
+
+## Outbound links (guardrail)
+
+Never render a bare `<a target="_blank">` and never call `window.open()` directly. Claude's iframe sandbox omits `allow-popups`, so both are dropped silently — the control looks alive and does nothing.
+
+- Anchors → `useExternalLinkClick()` as `onClick`, keeping the real `href`.
+- Post-`await` flows → `useOpenExternal()`.
+- `<McpApp>` mounts the opener; a hand-rolled shell mounts `<ExternalLinkProvider>`.
+
 ## Account management components
 
 Drop into authenticated MCP app views:
 
 - **`<CurrentPlanCard />`** — active plan, billing line, mirrored card, Update card / Cancel plan.
 - **`<LaunchCustomerPortalButton />`** — hosted customer portal (pre-fetches session on hover).
-- **`usePaymentMethod()`** — `{ kind: 'card', brand, last4, ... } | { kind: 'none' }`.
+- **`usePaymentMethod()`** — `{ kind: 'card', brand, last4, reusable, ... } | { kind: 'none' }`. Check `reusable` before offering an off-session action such as auto-recharge.
 - **`useMerchant()`** — merchant branding for checkout copy.
+- **`<McpPayingAs />`** — buyer identity, rendered inside the payment form. The MCP surfaces have no sidebar.
+
+Removed with the sidebar layout — do not import: `McpSellerDetailsCard`, `McpCustomerDetailsCard`, `McpAccountView.hideDetailCards`, `McpLimitReached`, `CloseButton`.
+
+## Theming
+
+The widget blends into the host canvas. It reads the MCP Apps spec tokens the host publishes (`--color-*`, `--font-*`, `--border-radius-*`) and uses `--solvapay-*` only for branding extras. Stripe's Payment Element is themed from those same live CSS variables, so do not hand-write a Stripe `appearance` object.
 
 ## Backend requirement
 
@@ -52,4 +87,6 @@ The MCP server must expose SolvaPay tool surface + OAuth; the React bundle runs 
 
 - [ ] Provider initializes without secrets in client bundle
 - [ ] `config.transport` set via `createMcpAppAdapter`
+- [ ] `new App(...)` advertises `SOLVAPAY_MCP_APP_CAPABILITIES.availableDisplayModes`
+- [ ] Every outbound link routes through `useExternalLinkClick` / `useOpenExternal` — no bare `window.open`
 - [ ] Intent tools mount built-in widget; custom tool UI uses separate resource URIs per host docs

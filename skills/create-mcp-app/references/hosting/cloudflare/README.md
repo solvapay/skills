@@ -139,11 +139,11 @@ curl https://<your-host>/.well-known/oauth-authorization-server
 
 In the SolvaPay sandbox, exhaust a test customer's balance by calling one of your paid tools repeatedly until gated. Confirm the gated response shape:
 
-- `content[0].text` is a plain-text `Purchase required` narration naming the correct recovery tool (`upgrade` / `topup` / `activate_plan`).
+- `content[0].text` is a plain-text `Purchase required` narration naming `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known).
 - `structuredContent` carries a `gate` payload with `checkoutUrl`.
 - **No iframe mounts** on the gate.
 
-Then invoke the named recovery tool (e.g. `upgrade`) from the MCP client and confirm the widget mounts. This verifies the non-intrusive gate contract end-to-end.
+Then invoke the named recovery tool (e.g. `account` with `view: "checkout"`) from the MCP client and confirm the widget mounts. This verifies the non-intrusive gate contract end-to-end.
 
 ## Troubleshooting
 
@@ -169,12 +169,12 @@ You removed `mode: 'json-stateless'`. Put it back; Workers isolates don't pin se
 
 ### Widget flashes empty on every silent tool success
 
-You set `_meta.ui.resourceUri` on a merchant payable tool. Remove it; `resourceUri` belongs only on the three SolvaPay intent tools, which `createSolvaPayMcpFetch` registers for you.
+You set `_meta.ui.resourceUri` on a merchant payable tool. Remove it; `resourceUri` belongs only on the `account` viewer descriptor, which `createSolvaPayMcpFetch` registers for you.
 
 ### Gate returns a structured UI payload instead of text
 
 You hand-rolled a paywall response or wrapped a virtual tool with `payable.mcp()`. Use `registerPayable` and let it emit the text-only narration.
 
-### Widget doesn't mount when I call `upgrade`
+### Widget doesn't mount when I call `account`
 
-Verify the MCP host supports iframe resources (Claude Desktop, ChatGPT Apps, MCP Inspector do; pure terminal clients don't). On unsupported hosts the intent tool returns the bootstrap payload in `structuredContent` for programmatic use.
+Verify the MCP host supports iframe resources (Claude Desktop, ChatGPT Apps, MCP Inspector do; pure terminal clients don't). On unsupported hosts the `account` viewer returns the bootstrap payload in `structuredContent` for programmatic use.

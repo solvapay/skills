@@ -195,7 +195,7 @@ Pure-read intents (rename or fan-out across only `GET` ops) can use `ctx.server.
 
 "Intent" in this guide means *user-goal-shaped tool that clusters OpenAPI ops* — a design choice you make per intent file.
 
-"Intent" in [../tool-design.md](../tool-design.md) means *SolvaPay's built-in recovery tools* (`upgrade`, `topup`, `manage_account`, `activate_plan`). Don't wrap those with `registerPayable`.
+"Intent" in [../tool-design.md](../tool-design.md) means *SolvaPay's built-in recovery tools* (`account`, `activate_plan`). Don't wrap those with `registerPayable`.
 
 After authoring your intent tools, read `tool-design.md` for narration polish, annotation guidance, and the silent / nudge / gate response-mode model — all of which apply to intent tools the same as 1:1 tools.
 

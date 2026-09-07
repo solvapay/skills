@@ -119,7 +119,7 @@ For each existing tool, decide:
 - **Is it read-only?** Default `{ readOnlyHint: true, openWorldHint: true }` is usually correct. Add `idempotentHint: true` for pure queries.
 - **Is it state-mutating?** Set `readOnlyHint: false`, `destructiveHint: true`.
 - **Is it UI-only?** Add it to `hideToolsByAudience: ['ui']` so text-only hosts don't see it.
-- **Is it a replacement for SolvaPay's recovery flows?** If you have a custom `upgrade` / `topup` / `manage_account`, remove it — the SolvaPay factory ships these for free.
+- **Is it a replacement for SolvaPay's recovery flows?** If you have custom billing viewer or activation tools, remove them — the SolvaPay factory ships `account` and `activate_plan` for free.
 
 Apply the response-mode contract from [tool-design.md](tool-design.md): tools return `ctx.respond(payload, { text: narration })` on success, and `registerPayable` emits the text-only gate narration on exhaustion automatically. Do not hand-roll a paywall response.
 
@@ -134,7 +134,7 @@ The widget itself is runtime-agnostic. Use the inline templates from [hosting/cl
 - `src/assets.d.ts` — the `*.html` module declaration
 - `vite.config.ts` — the widget build pipeline
 
-Adapt the asset-loading pattern (Wrangler Text module rule on Workers) to your runtime — on Node, import the HTML as a string at build time; on Supabase Edge, bundle the HTML and read it with `Deno.readTextFile`. The widget renders only when the user deliberately invokes an intent tool; it is not a gate surface.
+Adapt the asset-loading pattern (Wrangler Text module rule on Workers) to your runtime — on Node, import the HTML as a string at build time; on Supabase Edge, bundle the HTML and read it with `Deno.readTextFile`. The widget renders only when the user deliberately invokes the `account` viewer; it is not a gate surface.
 
 If you don't want an embedded widget, skip this section entirely — the text-only paywall narration is fully functional on text-only hosts (CLI, terminal-based MCP clients).
 
@@ -144,7 +144,7 @@ Use the checklist from [mcp-server-wiring.md](mcp-server-wiring.md), plus:
 
 - Existing paid tools return data on success via `ctx.respond(payload, { text: narration })`.
 - Existing paid tools return a text-only gate narration (no iframe) when the customer is out of balance.
-- Intent tools (`upgrade`, `topup`, `manage_account`) mount the widget when deliberately invoked.
+- Intent tools (`account`, `activate_plan`) mount the widget when deliberately invoked (`account` only — `activate_plan` is mutator-only).
 - Any pre-existing paywall / rate-limit / quota logic has been removed (`registerPayable` is the sole gating mechanism).
 - `hideToolsByAudience: ['ui']` is set if any host in your traffic is text-only.
 
