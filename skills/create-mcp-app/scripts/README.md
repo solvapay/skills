@@ -3,6 +3,8 @@
 Thin wrappers around the `create-solvapay` scaffolder scripts. Run from the skill directory:
 
 ```bash
+node scripts/check-toolchain.mjs --language python
+node scripts/scaffold-app.mjs ./my-mcp --language python --tool-name generate_haiku
 node scripts/describe.mjs path/to/openapi.json
 node scripts/scaffold.mjs path/to/openapi.json ./target --selections /tmp/selections.json
 node scripts/validate-selections.mjs /tmp/selections.json
@@ -30,13 +32,16 @@ npx -y solvapay@preview init --dev
 
 The wrappers strip `--dev` before invoking upstream scripts, set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` for the run, and `scaffold.mjs --dev` writes that value into the generated `.env` after a successful scaffold.
 
+`scaffold-app.mjs` also accepts `--api-base <url>`. That flag does not replace `--dev`: a checkout lane still needs `--dev` (or the gate forces it) for path deps. `--api-base` is forwarded to `create-solvapay` so init and `.env` hit the named origin instead of api-dev.
+
 ## Resolution order
 
 Wrappers resolve `create-solvapay/scripts/mcp/` via:
 
 1. `SCAFFOLDER_SCRIPTS_DIR` environment variable
 2. Local `create-solvapay` npm package (`npm install create-solvapay`)
-3. Sibling monorepo checkout at `../../../solvapay-sdk/packages/create-solvapay/scripts/mcp`
+3. `SOLVAPAY_SDK_ROOT` (fails loudly when set but not a checkout)
+4. Sibling monorepo checkout at `../../../solvapay-sdk/tools/create-solvapay/scripts/mcp`
 
 The skill wrappers have no local runtime dependencies. When resolving through
 `SCAFFOLDER_SCRIPTS_DIR` or the sibling monorepo checkout, install that
@@ -44,7 +49,7 @@ scaffolder directory's deps once:
 
 ```bash
 ( cd "$SCAFFOLDER_SCRIPTS_DIR" && npm install )
-# or: ( cd solvapay-sdk/packages/create-solvapay/scripts/mcp && npm install )
+# or: ( cd solvapay-sdk/tools/create-solvapay/scripts/mcp && npm install )
 ```
 
 ### Stable vs preview (`--dev`)
@@ -83,5 +88,5 @@ node scripts/test.mjs https://my-worker.example.com --spec path/to/openapi.json
 ## Source of truth
 
 - **Published package**: `npm create solvapay@latest <name> -- --type mcp`
-- **SDK source**: `solvapay-sdk/packages/create-solvapay/scripts/mcp/`
+- **SDK source**: `solvapay-sdk/tools/create-solvapay/scripts/mcp/`
 - **Contracts**: [../references/from-openapi/describe.md](../references/from-openapi/describe.md), [../references/from-openapi/scaffold.md](../references/from-openapi/scaffold.md)

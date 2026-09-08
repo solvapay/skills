@@ -7,3 +7,5 @@ evals/**/iteration-*/
 eval-workspaces/
 eval-results/
 *-workspace/
+tests/.env.local
+tests/workspaces/

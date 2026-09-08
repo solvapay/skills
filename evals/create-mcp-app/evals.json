@@ -222,6 +222,75 @@
         "The generated ./acme-oauth-mcp/.env contains UPSTREAM_OAUTH_* vars — not UPSTREAM_API_KEY or UPSTREAM_API_HEADERS",
         "selections.json is NOT found anywhere inside ./acme-oauth-mcp/"
       ]
+    },
+    {
+      "id": 14,
+      "slug": "from-scratch-python",
+      "prompt": "Task: scaffold a brand new paid mcp server in Python (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Python from-scratch scaffold. Agent reads references/languages/python.md only, clears the toolchain gate, uses register_payable_tool.",
+      "files": [],
+      "assertions": [
+        "The agent ran `scripts/check-toolchain.mjs --language python` or `scripts/scaffold-app.mjs` with `--language python` (or `npm create solvapay` with `--language python --no-openapi`)",
+        "The agent read references/languages/python.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/ruby.md, references/languages/go.md, or references/languages/rust.md",
+        "Paid tool registration uses register_payable_tool(server, name, solvapay=, product=, handler=)",
+        "The handler returns ctx.respond(data, {\"text\": narration})"
+      ]
+    },
+    {
+      "id": 15,
+      "slug": "from-scratch-ruby",
+      "prompt": "Task: scaffold a brand new paid mcp server in Ruby (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Ruby from-scratch scaffold. Agent reads references/languages/ruby.md only, clears the toolchain gate, uses engine.register_payable.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language ruby` (or create-solvapay --language ruby --no-openapi)",
+        "The agent read references/languages/ruby.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/python.md, references/languages/go.md, or references/languages/rust.md",
+        "Paid tool registration uses engine.register_payable(name, product:, handler:)",
+        "The handler returns ctx.respond(data)"
+      ]
+    },
+    {
+      "id": 16,
+      "slug": "from-scratch-go",
+      "prompt": "Task: monetize a new Go MCP server from scratch (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Go from-scratch scaffold. Agent reads references/languages/go.md only, clears the toolchain gate, uses RegisterPayable.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language go` (or create-solvapay --language go --no-openapi)",
+        "The agent read references/languages/go.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/python.md, references/languages/ruby.md, or references/languages/rust.md",
+        "Paid tool registration uses srv.RegisterPayable(name, solvapaymcp.Options{...})",
+        "The handler returns rc.Respond(data, map[string]any{\"text\": ...})"
+      ]
+    },
+    {
+      "id": 17,
+      "slug": "from-scratch-rust",
+      "prompt": "Task: scaffold a brand new paid Rust MCP server (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Rust from-scratch scaffold. Agent reads references/languages/rust.md only, clears the toolchain gate, uses register_payable.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language rust` (or create-solvapay --language rust --no-openapi)",
+        "The agent read references/languages/rust.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/python.md, references/languages/ruby.md, or references/languages/go.md",
+        "Paid tool registration uses server.register_payable(PayableTool{...}, handler, None)",
+        "The handler returns ctx.respond(json!(data), Some(json!({\"text\": ...})))"
+      ]
+    },
+    {
+      "id": 18,
+      "slug": "from-scratch-ts-language-file",
+      "prompt": "Task: scaffold a brand new paid TypeScript mcp server (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "TypeScript from-scratch scaffold. Agent reads references/languages/ts.md only — not python/ruby/go/rust.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language ts` (or create-solvapay --language ts --no-openapi)",
+        "The agent read references/languages/ts.md (visible in transcript)",
+        "The agent did NOT open references/languages/python.md, references/languages/ruby.md, references/languages/go.md, or references/languages/rust.md",
+        "Paid tool uses ctx.registerPayable(name, { schema, handler }) and c.respond(data, { text })"
+      ]
     }
   ]
 }

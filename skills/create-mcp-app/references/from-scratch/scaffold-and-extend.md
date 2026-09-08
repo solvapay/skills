@@ -1,6 +1,6 @@
 # Scaffold and extend a hand-written paid MCP server
 
-This guide picks up **after** the scaffolder finishes. It covers orienting on what `npm create solvapay@latest -- --type mcp --no-openapi` produced, replacing the placeholder paid tool, adding more paid tools by hand, and handing off to deploy.
+This guide picks up **after** the scaffolder finishes. File layout, registration, and respond calls come from **exactly one** [../languages/](../languages/) file (the id you scaffolded with). The snippets below are TypeScript-shaped because that is the row with per-file tools; other languages edit the single tools module named in their language file.
 
 ## When to read this
 
@@ -15,9 +15,8 @@ This guide picks up **after** the scaffolder finishes. It covers orienting on wh
 If you haven't scaffolded yet:
 
 ```bash
-npm create solvapay@latest my-mcp -- --type mcp --no-openapi
-# or: pnpm create solvapay@latest my-mcp -- --type mcp --no-openapi
-# or: yarn create solvapay@latest my-mcp -- --type mcp --no-openapi
+npm create solvapay@latest my-mcp -- --type mcp --language <id> --no-openapi
+# or: node scripts/scaffold-app.mjs ./my-mcp --language <id> --tool-name generate_haiku
 ```
 
 The scaffolder asks for a project name + a tool name (default `helloTool`), then drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.

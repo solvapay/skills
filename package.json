@@ -5,6 +5,8 @@
   "description": "SolvaPay agent skills for paid MCP apps, SDK integration, hosted checkout, and Lovable paste-in checkout.",
   "scripts": {
     "validate": "find skills -name SKILL.md | while read -r f; do npx -y skills-reference validate \"$(dirname \"$f\")\" || exit 1; done",
+    "test:e2e": "node tests/run.mjs",
+    "test:e2e:all": "node tests/run.mjs --all",
     "dev:link": "node scripts/dev-link.mjs link",
     "dev:unlink": "node scripts/dev-link.mjs unlink",
     "dev:status": "node scripts/dev-link.mjs status"

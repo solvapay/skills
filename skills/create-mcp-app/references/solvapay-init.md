@@ -15,13 +15,17 @@ From inside the freshly scaffolded directory:
 
 ```bash
 cd /path/to/petstore-mcp
-npx -y solvapay@latest init
+npx -y solvapay@latest init --language <id>
 
 # Internal testing only — target the SolvaPay dev backend. Use the
 # @preview dist-tag (not @latest) so the CLI matches the preview tooling
 # dev mode expects. Writes SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com
 # to .env so the worker, wrangler dev, and the deploy preflight all hit api-dev.
-npx -y solvapay@preview init --dev
+npx -y solvapay@preview init --language <id> --dev
+
+# Checkout path deps against a local platform stack — --api-base wins
+# over --dev for the origin, and is persisted to .env.
+npx -y solvapay@preview init --language <id> --dev --api-base http://localhost:3010
 ```
 
 The `@latest` suffix re-resolves the registry every run (so cached CLIs never lag behind); `-y` auto-confirms the npx install prompt (required for non-interactive / agent execution). Under `--dev`, use `@preview` instead of `@latest` — it tracks the same preview build as `create-solvapay@preview`, keeping the CLI and scaffolder in lockstep.

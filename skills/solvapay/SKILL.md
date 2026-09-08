@@ -24,7 +24,7 @@ SolvaPay adds usage-based billing, paywalls, and hosted checkout to apps and AI 
 
 | Surface | What you build | Pick when | Route to |
 | --- | --- | --- | --- |
-| Paid MCP | Per-call or subscription billing on a Cloudflare Workers MCP server | The product **is** MCP tools for AI agents and you want to **write code** (greenfield, OpenAPI→MCP, or paywalling an existing MCP server) | `solvapay/create-mcp-app` |
+| Paid MCP | Per-call or subscription billing on an MCP server (TypeScript, Python, Ruby, Go, or Rust) | The product **is** MCP tools for AI agents and you want to **write code** (greenfield, OpenAPI→MCP on TypeScript, or paywalling an existing MCP server) | `solvapay/create-mcp-app` |
 | Managed MCP | SolvaPay-managed auth, paywall, and proxying for an MCP server you host | You want to monetize an MCP server **without code** — paste your server URL, configure plans in the console | [Managed MCP exit](#managed-mcp-exit) |
 | SDK paywall | Gate endpoints, meter usage, handle webhooks in your own code | You own an app/API backend and want billing **in code** (REST, Next.js, Express, any stack) | `solvapay/sdk-integration` |
 | Hosted checkout | Drop-in payment page + customer portal | You want a production website to sell access with **no custom billing code** | `solvapay/website-checkout` |
@@ -100,7 +100,7 @@ Default if still ambiguous: greenfield MCP in code → `solvapay/create-mcp-app`
 
 | Skill id | Owns |
 | --- | --- |
-| `solvapay/create-mcp-app` | Greenfield paid MCP on Cloudflare Workers |
+| `solvapay/create-mcp-app` | Greenfield paid MCP (ts / python / ruby / go / rust) |
 | `solvapay/sdk-integration` | SDK paywall, checkout, usage, webhooks in existing apps |
 | `solvapay/website-checkout` | Hosted checkout + portal for production web apps |
 | `solvapay/lovable-checkout` | Paste-in preview checkout for Lovable |
