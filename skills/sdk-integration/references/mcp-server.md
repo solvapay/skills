@@ -49,7 +49,7 @@ Three runtime-specific factories are exposed via subpaths:
 - `@solvapay/mcp/fetch` — `createSolvaPayMcpFetch` — single `(req: Request) => Promise<Response>` handler for Cloudflare Workers, Deno, Supabase Edge Functions, Bun. Also exposes `createOAuthFetchRouter` if you want to assemble the bridge yourself.
 - `@solvapay/mcp/express` — Express middleware variant.
 
-Register your paid tools through the `additionalTools` hook — the factory has no `tools` array. `registerPayable` applies the paywall, so you never wrap the handler yourself.
+Register your paid tools through the `additionalTools` hook — the factory has no `tools` array. `registerPayable` applies the paywall, so you never wrap the handler yourself. Destructure `{ registerPayable, registerFree }` when you also ship a capped preview.
 
 ```typescript
 // src/server.ts (Cloudflare Worker / Deno / Supabase Edge / Bun)
@@ -68,7 +68,14 @@ const handler = createSolvaPayMcpFetch({
   // Edge-safe alternative to `htmlPath`; one of the two is required.
   readHtml: async () => mcpAppHtml,
   responseMode: 'json',
-  additionalTools: ({ registerPayable }) => {
+  additionalTools: ({ registerPayable, registerFree }) => {
+    registerFree('preview_price_chart', {
+      description: 'Seeded price-chart preview.',
+      schema: { ticker: z.string().min(1) },
+      annotations: { readOnlyHint: true, idempotentHint: true },
+      limit: { meter: 'free-previews', cap: 5, scope: 'rolling_window', windowDays: 30 },
+      handler: async ({ ticker }, ctx) => ctx.respond(await previewPriceChart(ticker)),
+    })
     registerPayable('predict_price_chart', {
       description: 'Return a seeded price chart for a ticker.',
       schema: { ticker: z.string().min(1) },
