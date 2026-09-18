@@ -46,8 +46,10 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 
 - Deploy pre-flight: run `npx wrangler whoami` first (not just `wrangler login`) to confirm auth and print the `*.workers.dev` subdomain.
 - `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
-- `ctx.registerPayable(name, config)` takes **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
-- Paid handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from paid handlers.
+- `ctx.registerPayable(name, config)` and `ctx.registerFree(name, config)` take **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
+- Paid and free-capped handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from those handlers. Unlimited-free tools (`ctx.server.registerTool`) hand-roll the envelope.
+- `registerFree` **requires identity**. Unidentified callers fail with `identity_required` — there is no anonymous bucket. Unlimited-free (`registerTool`) is the only kind that skips auth.
+- `free-capped` / `registerFree` require the scaffolder and `@solvapay/mcp` release that ships them. End users: `create-solvapay@latest` and `solvapay@latest` once published. Internal testing: `create-solvapay@preview` / `solvapay@preview` until that release is `@latest`.
 - Run `node scripts/describe.mjs` against a **local spec file** — fetch URLs to `/tmp/spec-*.json` first; don't pass URLs directly.
 - **Binary/multipart operations must be skipped.** After running `describe.mjs`, grep the original spec for `multipart/form-data`, `application/octet-stream`, `image/`, and `application/pdf` under `requestBody.content` and response `content`. For each matching operation (e.g. `uploadFile`, `uploadImage`), set `tier: "skip"` in `selections.json` — MCP tools return text, not file streams, so these can't be wrapped usefully.
 - Empty or relative OpenAPI `servers` must be resolved before scaffold. Confirm the upstream base URL with the user, and watch for path-prefix outliers (e.g. `/apifhir/...` among `/api/fhir/...`) before generating tools.
@@ -60,11 +62,11 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 Before writing tool code:
 
 1. This SKILL.md — routing, input mode, host.
-2. [references/tool-design.md](references/tool-design.md) — `registerPayable` shape, response contract.
+2. [references/tool-design.md](references/tool-design.md) — `registerPayable` / `registerFree` shape, response contract.
 3. One input-mode guide: [references/from-openapi/guide.md](references/from-openapi/guide.md) **or** [references/from-scratch/guide.md](references/from-scratch/guide.md) **or** [references/existing-server.md](references/existing-server.md).
 4. **If intent-driven mode (OpenAPI):** also read [references/from-openapi/intent-driven.md](references/from-openapi/intent-driven.md) (G2/G3/G7 gate shapes) **and** [references/from-openapi/scaffold.md](references/from-openapi/scaffold.md) (G6 gate, `selections.json` preview) before executing any gate.
 
-Do not write `registerPayable(...)`, `additionalTools`, or `src/tools/*` until all required files are loaded.
+Do not write `registerPayable(...)`, `registerFree(...)`, `additionalTools`, or `src/tools/*` until all required files are loaded.
 
 ## Confirmation level (G0 — ask once)
 

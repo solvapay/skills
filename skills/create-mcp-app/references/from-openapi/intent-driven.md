@@ -189,7 +189,7 @@ On `G7:edit`, accept changes ("don't author `pet_dashboard.ts` yet — defer to 
 
 `registerPayable`'s gate runs once *before* the handler. So an action-pattern intent with `case 'create' | 'update' | 'delete'` only deducts one credit per call regardless of which branch runs.
 
-Pure-read intents (rename or fan-out across only `GET` ops) can use `ctx.server.registerTool` — same shape as one-to-one mode's free tools.
+Pure-read intents (rename or fan-out across only `GET` ops) default to unlimited-free via `ctx.server.registerTool` — same shape as one-to-one mode's `free` tools. Upgrade to `ctx.registerFree` when the user wants a per-customer cap that converts to a paid plan; identity is required, and `c.respond` is available on that handler (unlike `registerTool`). `describe.mjs` will not suggest this — you upgrade.
 
 ## Relationship to `tool-design.md`
 

@@ -116,12 +116,14 @@ That reference is the source of truth for the low-level API; this guide adds the
 For each existing tool, decide:
 
 - **Is it paid?** If yes, re-register via `registerPayable(...)` (inside `additionalTools`) or wrap with `solvaPay.payable({product}).mcp(handler)`. Remove any custom rate-limit / quota logic — `registerPayable` handles gating and usage tracking.
+- **Is it free with a per-customer cap?** Re-register via `registerFree(...)` with a `limit` block (`meter` matching `/^free-[a-z0-9-]+$/`, `cap`, `scope`). This is the replacement for a hand-rolled rate limiter on an otherwise-free tool. Identity is required — unidentified callers fail with `identity_required`.
+- **Is it unlimited and public?** Keep `ctx.server.registerTool` (no identity, no counting, no gate). Do not use this for a capped preview.
 - **Is it read-only?** Default `{ readOnlyHint: true, openWorldHint: true }` is usually correct. Add `idempotentHint: true` for pure queries.
 - **Is it state-mutating?** Set `readOnlyHint: false`, `destructiveHint: true`.
 - **Is it UI-only?** Add it to `hideToolsByAudience: ['ui']` so text-only hosts don't see it.
 - **Is it a replacement for SolvaPay's recovery flows?** If you have custom billing viewer or activation tools, remove them — the SolvaPay factory ships `account` and `activate_plan` for free.
 
-Apply the response-mode contract from [tool-design.md](tool-design.md): tools return `ctx.respond(payload, { text: narration })` on success, and `registerPayable` emits the text-only gate narration on exhaustion automatically. Do not hand-roll a paywall response.
+Apply the response-mode contract from [tool-design.md](tool-design.md): paid and free-capped tools return `ctx.respond(payload, { text: narration })` on success, and the factory emits the text-only gate narration on exhaustion automatically. Do not hand-roll a paywall response.
 
 ## Optional: embed the SolvaPay widget
 
@@ -144,8 +146,9 @@ Use the checklist from [mcp-server-wiring.md](mcp-server-wiring.md), plus:
 
 - Existing paid tools return data on success via `ctx.respond(payload, { text: narration })`.
 - Existing paid tools return a text-only gate narration (no iframe) when the customer is out of balance.
+- Existing free-capped tools (`registerFree`) return data under the cap and a `limit_reached` gate after it. Unidentified callers fail with `identity_required`.
 - Intent tools (`account`, `activate_plan`) mount the widget when deliberately invoked (`account` only — `activate_plan` is mutator-only).
-- Any pre-existing paywall / rate-limit / quota logic has been removed (`registerPayable` is the sole gating mechanism).
+- Any pre-existing paywall / rate-limit / quota logic has been removed (`registerPayable` / `registerFree` is the gating mechanism).
 - `hideToolsByAudience: ['ui']` is set if any host in your traffic is text-only.
 
 ## Task progress
@@ -154,7 +157,7 @@ Use the checklist from [mcp-server-wiring.md](mcp-server-wiring.md), plus:
 - [ ] Read [tool-design.md](tool-design.md)
 - [ ] Pick the right `@solvapay/mcp` subpath
 - [ ] Install deps and follow [mcp-server-wiring.md](mcp-server-wiring.md)
-- [ ] Re-register paid tools via `registerPayable` / `payable.mcp`; remove custom gating
+- [ ] Re-register paid tools via `registerPayable` / `payable.mcp`; free-capped via `registerFree`; remove custom gating
 - [ ] Wire `hideToolsByAudience: ['ui']`
 - [ ] Optional: embed the widget for intent tools
 - [ ] Verify success + gate paths in sandbox

@@ -131,7 +131,7 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 3. Copies the template (`template/`) to `<target-dir>`, substituting placeholders (`__WORKER_NAME__`, `__RESOURCE_URI_SLUG__`, `__SOLVAPAY_PRODUCT_REF__`, `__MCP_PUBLIC_BASE_URL__`). Preserves `.env.example` verbatim. Includes `scripts/verify.mjs`, `scripts/test.mjs`, and `scripts/lib/` for post-deploy checks (see [verify.md](verify.md) and [test.md](test.md)).
 4. **In one-to-one mode (default)**, for each operation with `tier !== 'skip'`, writes `src/tools/<operationId>.ts` with:
    - `register{OperationId}(ctx, env)` (or `(ctx)` when `upstreamAuth.kind === 'none'`).
-   - `ctx.registerPayable(...)` for paid tiers, `ctx.server.registerTool(...)` for free tiers.
+   - `ctx.registerPayable(...)` for paid tiers, `ctx.registerFree(...)` for `free-capped` (limit block from `freeLimit`), `ctx.server.registerTool(...)` for unlimited-free tiers.
    - Correct auth header per `upstreamAuth.kind`:
      - `bearer` → `Authorization: Bearer ${env.UPSTREAM_API_KEY}`
      - `apiKey` → `<name>: ${env.UPSTREAM_API_KEY}`
