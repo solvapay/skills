@@ -57,17 +57,17 @@ matches the run:
 npm install create-solvapay
 
 # --dev / internal testing — pulls the preview build, which carries
-# preview-only features the skill docs describe (e.g. apiKey-multi).
+# preview-only features the skill docs describe (e.g. free-capped /
+# registerFree until that release is @latest).
 npm install create-solvapay@preview
 ```
 
 Installing stable (`@latest`) while running `--dev` is the trap that bites:
-`scaffold.mjs` rejects preview-only `upstreamAuth.kind` values (such as
-`apiKey-multi`) with ``upstreamAuth.kind` must be one of none, bearer, apiKey,
-oauth2-client-credentials``. `resolve-scaffolder.mjs` warns when it detects a
-stable build under a dev backend, and the wrappers now provide that dev signal
-when `--dev` is passed. Pinning `@preview` at install time avoids the mismatch
-entirely.
+`scaffold.mjs` rejects preview-only values (such as `tier: "free-capped"`
+before that release ships) with an invalid-tier error. `resolve-scaffolder.mjs`
+warns when it detects a stable build under a dev backend, and the wrappers now
+provide that dev signal when `--dev` is passed. Pinning `@preview` at install
+time avoids the mismatch entirely.
 
 ## Project-local scripts
 

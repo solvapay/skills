@@ -14,7 +14,14 @@ type Selections = {
   // Required when mode === 'one-to-one' (or absent); ignored when mode === 'intent-driven'.
   operations?: Array<{
     operationId: string
-    tier: 'free' | 'paid' | 'skip'
+    tier: 'free' | 'free-capped' | 'paid' | 'skip'
+    // Required when tier is 'free-capped'. Sharing is by naming the same meter.
+    freeLimit?: {
+      meter?: string            // must match /^free-[a-z0-9-]+$/; default free-requests
+      cap: number
+      scope: 'rolling_window' | 'lifetime'
+      windowDays?: number       // required when scope is rolling_window
+    }
   }>
   // Optional — plan shapes the agent will create on the product after scaffold.
   // `scaffold.mjs` pre-flights these against the SolvaPay default-plan guardrail.
@@ -73,7 +80,8 @@ Intent definitions are not part of `selections.json` — the intent tool source 
 | `upstreamAuth.tokenUrl` | Agent reads from `describe.mjs.securitySchemes[*].tokenUrl` | OAuth 2.0 token endpoint. Must be HTTPS (or `http://localhost` for local tests). |
 | `upstreamAuth.clientId` / `clientSecret` | **User-supplied** | OAuth client credentials. Both treated as secrets. |
 | `upstreamAuth.scope` / `audience` | **Optional, user-supplied** | `scope` is a space-delimited list (defaults to empty); `audience` is only required by some providers (Auth0). |
-| `operations[].tier` | Agent default (from `describe.mjs.suggestedTier`) + user override | Per-operation override happens during curate. Only used in `one-to-one` mode. |
+| `operations[].tier` | Agent default (from `describe.mjs.suggestedTier`) + user override | Per-operation override happens during curate. Only used in `one-to-one` mode. `describe.mjs` suggests `free` / `paid` / `skip` only — a cap is a pricing decision, not inferable from an HTTP verb. Upgrade a `free` op to `free-capped` when the user wants a per-customer tracked allowance. |
+| `operations[].freeLimit` | Agent, when upgrading to `free-capped` | Required on `free-capped`. Same shape as `registerFree`'s `limit`. Tools share an allowance by naming the same `meter`. |
 | `plans[]` | **Optional**, agent proposes when curating pricing | Document-only during scaffold — `scaffold.mjs` validates but does not POST plans. Use for MCP products that need a free recurring default (`price: 0`, `freeUnits > 0`, `default: true`) or a usage-based metering plan, then create/verify the actual plan outside scaffold before handoff. See [Default plan and auto-enrollment](#default-plan-and-auto-enrollment). |
 | `solvapaySecretKey` | **Intentionally absent** | `solvapay-init` writes it directly to `.env`. Not part of this file ever. |
 
@@ -131,7 +139,12 @@ Add paid tiers as separate plans with `default: false` (or omit `default`).
   "operations": [
     { "operationId": "getPetById",  "tier": "paid" },
     { "operationId": "addPet",      "tier": "paid" },
-    { "operationId": "listPets",    "tier": "free" },
+    {
+      "operationId": "listPets",
+      "tier": "free-capped",
+      "freeLimit": { "meter": "free-previews", "cap": 5, "scope": "rolling_window", "windowDays": 30 }
+    },
+    { "operationId": "getInventory", "tier": "free" },
     { "operationId": "deletePet",   "tier": "skip" }
   ]
 }
@@ -188,7 +201,8 @@ Generic over N headers and header names — works for `AppKey` + `AppToken`, a t
 - `kind: "apiKey-multi"` requires `headers`: an array of **at least two** `{ name, value }` entries, each with a non-empty `name` and `value`, and no duplicate `name`s (case-insensitive). A single header should use `kind: "apiKey"` instead.
 - `kind: "oauth2-client-credentials"` requires `tokenUrl`, `clientId`, and `clientSecret`. `tokenUrl` must parse as a URL and must be `https:` (only `http://localhost` / `http://127.0.0.1` are permitted for local tests). `scope` and `audience` are optional strings. Other OAuth2 flows (`authorizationCode`, `implicit`, `password`) are still unsupported and routed through the advisories path.
 - `mode` (when provided) must be `'one-to-one'` or `'intent-driven'`.
-- When `mode === 'one-to-one'` (or absent), `operations[]` is required. Each `operations[].tier` must be `free`, `paid`, or `skip`, and every `operationId` referenced must exist in the OpenAPI document.
+- When `mode === 'one-to-one'` (or absent), `operations[]` is required. Each `operations[].tier` must be `free`, `free-capped`, `paid`, or `skip`, and every `operationId` referenced must exist in the OpenAPI document.
+- `tier: "free-capped"` requires `freeLimit` with integer `cap >= 1` and `scope` of `rolling_window` (needs `windowDays`) or `lifetime`. `freeLimit.meter`, when set, must match `/^free-[a-z0-9-]+$/`. `freeLimit` on any other tier is an error.
 - When `mode === 'intent-driven'`, `operations[]` is ignored if present (no per-op codegen runs).
 - When `plans[]` is provided, each entry needs `type`. At most one plan may set `default: true`. Default plans must pass the free-recurring or usage-based guardrail above; violations fail scaffold with an actionable error instead of a bare API `400`.
 - Free recurring defaults with `freeUnits` missing or `0` produce a scaffold reminder (non-fatal) — set `freeUnits > 0` so auto-enrollment grants a usable quota.

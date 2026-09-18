@@ -11,8 +11,8 @@
       "assertions": [
         "src/tools/ contains action-verb intent files (manage_pet.ts, find_pet.ts, manage_order.ts, manage_user.ts or similar) — NOT tag-grouped files like pets.ts/users.ts/store.ts, and NOT one-file-per-operation (no addPet.ts, getPetById.ts, deletePet.ts, etc.)",
         "Paid tools (ctx.registerPayable) use c.respond(data, { text: narration }) — NOT raw return { content: [...] } from paid handlers",
-        "Free tools (ctx.server.registerTool) return { content: [{ type: 'text', text: <render-instruction narration> }], structuredContent: {...} } — they include a text narration alongside structuredContent, not raw content with no narration",
-        "Free vs paid tier assignment in tool files matches describe.mjs's suggestedTier output — GET/read operations registered with ctx.server.registerTool, mutations registered with ctx.registerPayable",
+        "Unlimited-free tools (ctx.server.registerTool) return { content: [{ type: 'text', text: <render-instruction narration> }], structuredContent: {...} }. Free-capped tools (ctx.registerFree) use c.respond like paid tools — NOT a hand-rolled envelope, and NOT registerTool",
+        "Tier assignment: mutations use ctx.registerPayable. GET/read operations use ctx.server.registerTool unless the user asked for a per-customer cap, in which case ctx.registerFree with a limit block (meter matching /^free-[a-z0-9-]+$/). describe.mjs suggestedTier stays free/paid/skip — a cap is an explicit upgrade, not inferred from the HTTP verb",
         "selections.json is NOT found anywhere inside ./petstore-mcp/ (security requirement — upstream API key would leak)",
         "The agent ran node scripts/describe.mjs against the spec (visible in transcript)",
         "The agent ran node scripts/scaffold.mjs to generate the project (visible in transcript)",
@@ -221,6 +221,30 @@
         "Each generated src/tools/*.ts file imports getAccessToken and sets authorization: `Bearer ${token}`",
         "The generated ./acme-oauth-mcp/.env contains UPSTREAM_OAUTH_* vars — not UPSTREAM_API_KEY or UPSTREAM_API_HEADERS",
         "selections.json is NOT found anywhere inside ./acme-oauth-mcp/"
+      ]
+    },
+    {
+      "id": 14,
+      "slug": "extend-free-capped-preview-pet",
+      "prompt": "Setup: copy the directory at `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/` before starting — this represents an already-scaffolded MCP project. Task: add a free-capped preview_pet tool to my mcp server at `./petstore-mcp`. Five calls per 30 days, then a plan is required.",
+      "expected_output": "A new free-capped tool file under ./petstore-mcp/src/tools/. The tool calls ctx.registerFree with exactly 2 arguments: a string name and a config object with title/description/schema/limit/handler. Handler returns c.respond(data, { text }). limit.meter matches /^free-[a-z0-9-]+$/. src/tools/index.ts updated. No re-scaffolding. No ctx.server.registerTool for this tool.",
+      "files": [
+        "fixtures/petstore-mcp/package.json",
+        "fixtures/petstore-mcp/wrangler.jsonc",
+        "fixtures/petstore-mcp/tsconfig.json",
+        "fixtures/petstore-mcp/src/worker.ts",
+        "fixtures/petstore-mcp/src/tools/index.ts"
+      ],
+      "assertions": [
+        "The agent did NOT run npm create solvapay or scaffold.mjs (would re-scaffold the project)",
+        "A new tool file was created under ./petstore-mcp/src/tools/ (preview_pet.ts, previewPet.ts, or similar)",
+        "The new tool calls ctx.registerFree with EXACTLY 2 arguments: ctx.registerFree('<name>', { title, description, schema, limit, handler, annotations? }) — NOT ctx.server.registerTool, NOT ctx.registerPayable, NOT a 3-argument form",
+        "The limit block includes cap: 5, scope: 'rolling_window', windowDays: 30, and a meter matching /^free-[a-z0-9-]+$/",
+        "The tool's handler returns c.respond(data, { text: narration }) — NOT a hand-rolled { content: [...] } envelope",
+        "./petstore-mcp/src/tools/index.ts was updated to import and call the new tool's register function",
+        "The original ./petstore-mcp/package.json, wrangler.jsonc, and src/worker.ts were NOT overwritten or deleted",
+        "The new tool's annotations include openWorldHint: true",
+        "The agent did not treat this as an unlimited-free tool — there is NO ctx.server.registerTool call for preview_pet"
       ]
     }
   ]
