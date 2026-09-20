@@ -17,6 +17,7 @@ import { SolvaPayProvider } from '@solvapay/react'
 import { createSupabaseAuthAdapter } from '@solvapay/react-supabase'
 import { supabase } from '@/integrations/supabase/client'
 import '@solvapay/react/styles.css'
+import './index.css'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 const FN = (name: string) => `${SUPABASE_URL}/functions/v1/${name}`
@@ -43,7 +44,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 Use the **existing** Supabase singleton — second `GoTrueClient` drops sessions.
 
 - All `config.api.*` URLs must be **absolute**.
-- Import `@solvapay/react/styles.css` **after** `./index.css` (Tailwind).
+- Import `@solvapay/react/styles.css` **before** `./index.css` so Tailwind utilities can override primitives.
 
 ## Step 5 — Checkout route
 

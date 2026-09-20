@@ -10,7 +10,8 @@ import { join } from 'node:path'
 const HELP = `Usage: node scripts/check-import-map.mjs [deno.json-path]
 
 Default: supabase/functions/deno.json under cwd.
-Expects @solvapay/server@preview and trailing-slash server/ entry.
+Expects @preview pins for @solvapay/server (plus trailing-slash),
+@solvapay/auth, and @solvapay/core.
 `
 
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
@@ -39,6 +40,8 @@ const missing = []
 const required = [
   ['@solvapay/server', /@preview|@solvapay\/server@preview/],
   ['@solvapay/server/', /@preview|@solvapay\/server@preview/],
+  ['@solvapay/auth', /@preview|@solvapay\/auth@preview/],
+  ['@solvapay/core', /@preview|@solvapay\/core@preview/],
 ]
 
 for (const [key, pattern] of required) {

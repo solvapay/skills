@@ -5,7 +5,7 @@ End-to-end deploy of a SolvaPay MCP server on Cloudflare Workers — prerequisit
 - [widget-templates-config.md](widget-templates-config.md) — `package.json`, `tsconfig.json`, `wrangler.jsonc`, `vite.config.ts`, `mcp-app.html`, `src/assets.d.ts`, `src/worker.ts`.
 - [widget-templates-widget-and-scripts.md](widget-templates-widget-and-scripts.md) — `src/mcp-app.tsx`, `scripts/deploy.mjs`, `scripts/dev.mjs`, `.env.example`, `.gitignore`.
 
-Guardrails (secrets, `json-stateless`, `resourceUri`, no custom gate UI) are in the create-mcp-app SKILL.md and apply throughout.
+Guardrails (secrets, `responseMode: 'json'`, `resourceUri`, no custom gate UI) are in the create-mcp-app SKILL.md and apply throughout.
 
 ## Existing project? (deploy-existing fast path)
 
@@ -157,11 +157,11 @@ Your `.env` wasn't sourced. Check that `.env` exists in the project root and tha
 
 ### Worker bundle size over 1MB on deploy
 
-Cloudflare's free tier caps bundles at 1MB post-gzip. `@solvapay/mcp` + `@solvapay/server` + `@modelcontextprotocol/sdk` sit close to this ceiling. Upgrade to the paid tier (10MB cap) if you need more headroom.
+Cloudflare's free tier caps bundles at 1MB post-gzip. `@solvapay/mcp` + `@solvapay/server` + `@modelcontextprotocol/server` sit close to this ceiling. Upgrade to the paid tier (10MB cap) if you need more headroom.
 
 ### `Already connected to a transport` errors under load
 
-You removed `mode: 'json-stateless'`. Put it back; Workers isolates don't pin sessions across requests.
+You removed `responseMode: 'json'`. Put it back; Workers isolates don't pin sessions across requests.
 
 ### Tool calls succeed locally but fail from a browser MCP client
 

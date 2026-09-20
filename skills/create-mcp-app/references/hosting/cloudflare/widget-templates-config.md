@@ -209,9 +209,9 @@ declare module '*.html' {
  *
  * Single call into `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch`
  * gives us a paywalled MCP server over the Workers runtime with the
- * full `@modelcontextprotocol/sdk` wiring, `hideToolsByAudience` for
- * text-only hosts, and the stateless-JSON transport preset (correct
- * shape for Workers isolates, which don't pin across requests).
+ * full `@modelcontextprotocol/server` wiring, `hideToolsByAudience` for
+ * text-only hosts, and `responseMode: 'json'` (correct shape for
+ * Workers isolates, which don't pin across requests).
  *
  * The only extra plumbing on top of the SDK handler is browser-origin
  * CORS — native-scheme clients (Cursor / VS Code / Claude Desktop)
@@ -301,7 +301,7 @@ function getHandler(env: Env): (req: Request) => Promise<Response> {
     readHtml: async () => mcpAppHtml,
     publicBaseUrl: requireEnv(env, 'MCP_PUBLIC_BASE_URL'),
     apiBaseUrl,
-    mode: 'json-stateless',
+    responseMode: 'json',
     hideToolsByAudience: ['ui'],
     // Wire your paid tools here. See ../../tool-design.md for the
     // `registerPayable` pattern. Create src/tools.ts with a

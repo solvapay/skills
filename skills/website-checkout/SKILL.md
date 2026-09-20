@@ -11,7 +11,7 @@ description: >
 metadata:
   version: "1.0.0"
 compatibility: >
-  Node.js >= 18.17 for npx solvapay init. Next.js fully supported; React (no Next.js) partial.
+  Node.js >= 20 (@solvapay/server engine). Next.js fully supported; React (no Next.js) partial.
   Network required for init and hosted checkout.
 ---
 
@@ -80,9 +80,8 @@ For advanced use cases (usage metering, Express/MCP paths, webhook-heavy flows),
 - **Verification commands:**
 
         # Happy path — after sandbox checkout, access refresh returns granted
-        curl -i -X POST http://localhost:3000/api/check-access \
-          -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-          -d '{"productRef":"prd_..."}'
+        curl -i http://localhost:3000/api/check-purchase \
+          -H "Authorization: Bearer $TOKEN"
         # Failure path — unauthenticated checkout blocked
         curl -i -X POST http://localhost:3000/api/create-checkout-session \
           -H "Content-Type: application/json" -d '{"productRef":"prd_..."}'

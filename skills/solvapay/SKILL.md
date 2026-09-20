@@ -100,7 +100,7 @@ Default if still ambiguous: greenfield MCP in code → `solvapay/create-mcp-app`
 
 | Skill id | Owns |
 | --- | --- |
-| `solvapay/create-mcp-app` | Greenfield paid MCP on Cloudflare Workers |
+| `solvapay/create-mcp-app` | Paid MCP in code — greenfield worker, OpenAPI→MCP, or paywalling an existing MCP server |
 | `solvapay/sdk-integration` | SDK paywall, checkout, usage, webhooks in existing apps |
 | `solvapay/website-checkout` | Hosted checkout + portal for production web apps |
 | `solvapay/lovable-checkout` | Paste-in preview checkout for Lovable |
