@@ -101,10 +101,10 @@ app.post(
 | Event | Typical action |
 | --- | --- |
 | `purchase.created` | grant access and initialize usage state |
-| `purchase.activated` | mark the purchase live (trial converted or first activation) |
+| `purchase.activated` | purchase moved to `active` (paid); grant access |
 | `purchase.updated` | refresh access tier/limits |
-| `purchase.cancellation_scheduled` | show pending-cancel state; access continues until period end |
-| `purchase.cancelled` | schedule downgrade or revoke at period end |
+| `purchase.cancellation_scheduled` | recurring cancel-at-period-end; show pending-cancel state, access continues until `endDate` |
+| `purchase.cancelled` | immediate cancel (status `cancelled`); revoke access |
 | `purchase.reactivated` | clear pending cancel; restore `autoRenew` |
 | `purchase.expired` | revoke access |
 | `purchase.plan_changed` | move the customer onto the new plan; drop the old purchase |
@@ -114,9 +114,9 @@ app.post(
 
 ## Reactivation and Plan Switching Events
 
-**Reactivation**: `reactivateRenewal` emits `purchase.reactivated`. The purchase has `cancelledAt: null` and `autoRenew: true`. A `purchase.updated` may also fire — key handlers off `purchase.reactivated`.
+**Reactivation**: `reactivateRenewal` emits `purchase.reactivated` (not `purchase.updated`). The purchase has `cancelledAt: null` and `autoRenew: true`.
 
-**Plan switching**: `activatePlan` onto a different plan emits `purchase.plan_changed`. The old purchase expires and the new one is created; `purchase.expired` / `purchase.created` may accompany it. Key handlers off `purchase.plan_changed` so you do not double-apply a switch.
+**Plan switching**: `activatePlan` onto a different plan emits `purchase.expired` for the superseded purchase and `purchase.plan_changed` for the new one (the new purchase also emits `purchase.created`). Key handlers off `purchase.plan_changed` so you do not double-apply a switch.
 
 ## Idempotency Strategy
 

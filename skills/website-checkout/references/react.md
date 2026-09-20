@@ -32,13 +32,16 @@ const app = express()
 app.use(express.json())
 const solvaPay = createSolvaPay()
 
+// The *Core helpers read `authorization` (and the optional
+// `x-solvapay-customer-ref` cache hint) from a web-standard Request.
 function toRequest(req: express.Request): Request {
   const url = new URL(req.originalUrl, `http://${req.headers.host ?? 'localhost'}`)
-  return new Request(url, {
-    method: req.method,
-    headers: req.headers as HeadersInit,
-    body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
-  })
+  const headers = new Headers()
+  for (const name of ['authorization', 'x-solvapay-customer-ref']) {
+    const value = req.get(name)
+    if (value) headers.set(name, value)
+  }
+  return new Request(url, { method: req.method, headers })
 }
 
 app.post('/api/sync-customer', async (req, res) => {

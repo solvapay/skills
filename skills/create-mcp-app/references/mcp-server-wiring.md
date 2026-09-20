@@ -257,12 +257,19 @@ async function resolveCustomerRef(authHeader?: string): Promise<string | null> {
 
 ### Pass identity on MCP extra, not tool arguments
 
-The factory OAuth bridge already stamps `authInfo.extra.customer_ref` from the bearer. On a hand-rolled transport, resolve the bearer (userinfo or JWT) and pass the ref as MCP `authInfo` — `defaultGetCustomerRef` / `payable.mcp()` read it from `extra`, not from `arguments`.
+The factory OAuth bridge already stamps `authInfo.extra.customer_ref` from the bearer. On a hand-rolled transport, build the same `authInfo` with `buildAuthInfoFromBearer` and hand it to the MCP transport — `defaultGetCustomerRef` / `payable.mcp()` read it from `extra`, not from `arguments`.
 
 ```typescript
-const extra = {
-  authInfo: { extra: { customer_ref: customerRef } },
-}
+import { buildAuthInfoFromBearer } from '@solvapay/mcp-core'
+
+const authInfo = buildAuthInfoFromBearer(request.headers.get('authorization'))
+if (!authInfo) return unauthorized()
+
+// fetch-style transport (createMcpHandler from @modelcontextprotocol/server)
+return mcpHandler.fetch(request, { authInfo })
+
+// Express transport: set req.auth before transport.handleRequest(req, res, body)
+// req.auth = authInfo
 ```
 
 For unauthenticated requests, return 401 with:

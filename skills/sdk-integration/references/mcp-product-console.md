@@ -24,14 +24,21 @@ const result = await solvaPay.bootstrapMcpProduct({
     {
       key: 'free',
       name: 'Free',
-      options: [{ kind: 'charge', per: 'flat', amountMinor: 0, currency: 'USD' }],
+      currency: 'USD',
+      options: [
+        { kind: 'billingCycle', interval: 'month' },
+        { kind: 'charge', per: 'flat', amountMinor: 0, currency: 'USD' },
+        // Included allowance per cycle; 0 means unlimited.
+        { kind: 'entitlement', feature: 'included_units', value: 100 },
+      ],
     },
     {
       key: 'pro',
       name: 'Pro',
+      currency: 'USD',
       options: [
-        { kind: 'charge', per: 'flat', amountMinor: 2000, currency: 'USD' },
         { kind: 'billingCycle', interval: 'month' },
+        { kind: 'charge', per: 'flat', amountMinor: 2000, currency: 'USD' },
       ],
     },
   ],
@@ -58,9 +65,10 @@ await solvaPay.configureMcpPlans(result.product.reference, {
     {
       key: 'pro',
       name: 'Pro',
+      currency: 'USD',
       options: [
-        { kind: 'charge', per: 'flat', amountMinor: 3000, currency: 'USD' },
         { kind: 'billingCycle', interval: 'month' },
+        { kind: 'charge', per: 'flat', amountMinor: 3000, currency: 'USD' },
       ],
     },
   ],
