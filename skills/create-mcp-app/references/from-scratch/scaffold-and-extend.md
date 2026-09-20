@@ -47,7 +47,7 @@ A typical from-scratch tree:
 
 ```
 my-mcp/
-  package.json           wrangler / vite / @solvapay/mcp / @solvapay/react / zod
+  package.json           wrangler / vite / @solvapay/mcp / @solvapay/mcp-core / @solvapay/react / zod
   wrangler.jsonc
   tsconfig.json
   vite.config.ts
@@ -163,7 +163,7 @@ Before writing any tool code, read [../tool-design.md](../tool-design.md). It co
 
 ## Add a free-capped tool
 
-Same file layout as a paid tool. Use `ctx.registerFree` with a `limit` block. Identity is required; exhaustion emits the same paywall gate. Requires the `@solvapay/mcp` release that ships `registerFree` (`@latest` once published; `@preview` until then).
+Same file layout as a paid tool. Use `ctx.registerFree` with a `limit` block. Identity is required; exhaustion emits the same paywall gate. Use `@solvapay/mcp@latest` (`@preview` only for `--dev` / api-dev).
 
 ```ts
 import { z } from 'zod'
