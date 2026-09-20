@@ -5,7 +5,7 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 ## When to read this
 
 - You have an MCP server you control (any runtime, any transport) and want to add a SolvaPay paywall.
-- Your server was built directly on `@modelcontextprotocol/sdk` or an MCP-compatible framework — **not** via `npm create solvapay@latest`.
+- Your server was built directly on the official MCP TypeScript SDK (`@modelcontextprotocol/server` v2, or the older `@modelcontextprotocol/sdk` v1) or an MCP-compatible framework — **not** via `npm create solvapay@latest`.
 - If you want to scaffold a new paid MCP server from an OpenAPI spec, stop and route to [from-openapi/guide.md](from-openapi/guide.md).
 - If you want to scaffold a new paid MCP server by hand (no spec), stop and route to [from-scratch/guide.md](from-scratch/guide.md).
 
@@ -23,8 +23,8 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 
 ## Prerequisites
 
-- A running MCP server you control, built on `@modelcontextprotocol/sdk` or an MCP-compatible framework.
-- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint.
+- A running MCP server you control, built on the official MCP TypeScript SDK or an MCP-compatible framework.
+- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint. `@solvapay/mcp` peers on `@modelcontextprotocol/server@^2` + `@modelcontextprotocol/core@^2`; a server still on `@modelcontextprotocol/sdk` v1 must migrate to v2 first.
 - SolvaPay account with a secret key (`sk_...`) and a product ref (`prd_...`). If the product doesn't exist yet, pause and ask the user to create one in SolvaPay Console (https://app.solvapay.com).
 
 ## Audit

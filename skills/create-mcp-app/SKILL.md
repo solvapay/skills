@@ -6,9 +6,10 @@ description: >
   monetized MCP tools, or (2) they want to write the tools by hand on a fresh SolvaPay-wired
   scaffold. Also use for the `npm create solvapay` CLI command with `--type mcp`. This skill covers
   the full greenfield journey: spec parsing, tool authoring, Cloudflare Workers deployment, and
-  SolvaPay paywall setup on a new codebase. Skip when the user already has a running MCP server
-  and wants to add a paywall without rebuilding — use the existing-server skill. Skip for web
-  checkout pages, Lovable flows, and SDK-only integrations.
+  SolvaPay paywall setup on a new codebase. Also use when the user already has a running MCP
+  server and wants to add a paywall without rebuilding — stay on this skill and follow
+  references/existing-server.md. Skip for web checkout pages, Lovable flows, and SDK-only
+  integrations.
 metadata:
   version: "1.0.0"
 compatibility: >
@@ -36,7 +37,7 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - Never wrap SolvaPay intent tools (`account`, `activate_plan`) or the UI transport tools with `payable.mcp()` — they are the paywall recovery path, not paid business logic.
 - Never set `_meta.ui.resourceUri` on merchant payable tools. Hosts MUST open the iframe on every advertised call (SEP-1865), which flashes an empty widget on silent successes.
 - Never return custom iframe/UI on paywall gates — text-only narration naming `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known).
-- Always use `mode: 'json-stateless'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
+- Always use `responseMode: 'json'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
 - Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
 - Always confirm the resolved `SOLVAPAY_PRODUCT_REF` after `solvapay init`; under `--yes` / non-TTY, never treat an auto-picked product as final until the user confirms it belongs to this MCP.
 - If the requested business model is usage-based or metered, verify that the selected product has the intended usage-based plan before handoff. `selections.plans[]` is validated during scaffold but is not created by scaffold.

@@ -30,7 +30,7 @@ Add SolvaPay to an existing TypeScript / JavaScript app via `@solvapay/*` packag
 
 ## Gotchas
 
-- SDK 1.1 Next.js route wrappers return `Promise<NextResponse>` — update call sites (details: [references/nextjs.md](references/nextjs.md)).
+- `@solvapay/next` route wrappers return `Promise<NextResponse>` — update call sites (details: [references/nextjs.md](references/nextjs.md)).
 - Webhook signature verification needs the **raw request body**, not parsed JSON (details: [references/WEBHOOKS.md](references/WEBHOOKS.md)).
 - Deno import maps need trailing slashes on `@solvapay/` entries (details: [references/supabase-edge.md](references/supabase-edge.md)).
 - Virtual MCP UI tools ≠ `payable.mcp()` — different wiring paths (details: [references/mcp-server.md](references/mcp-server.md)).
@@ -69,7 +69,7 @@ If multiple match, ask which runtime is primary.
 ## Env plan-validate-execute
 
 1. **Plan:** List required env vars (`SOLVAPAY_SECRET_KEY`, product refs, webhook secret).
-2. **Validate:** Run `node scripts/check-env.mjs` — no secrets in `NEXT_PUBLIC_*` / `VITE_*`; init completed.
+2. **Validate:** Run `node scripts/check-env.mjs` — no secrets in `NEXT_PUBLIC_*` / `VITE_*`.
 3. **Execute:** Implement routes.
 
 ## Verification loop

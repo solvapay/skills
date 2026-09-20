@@ -238,7 +238,7 @@ createSolvaPayMcpFetch({
   readHtml: async () => mcpAppHtml,
   publicBaseUrl,
   apiBaseUrl,
-  mode: 'json-stateless',
+  responseMode: 'json',
   hideToolsByAudience: ['ui'],
   additionalTools: registerMyTools,
 })

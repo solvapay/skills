@@ -2,13 +2,13 @@
 name: lovable-checkout
 description: >
   Load when someone is adding SolvaPay to a Lovable app or Vite+Supabase project — especially when
-  they want to install @solvapay/react-supabase @preview packages, paste checkout code into Lovable
-  chat, wire Supabase edge function secrets, or use api-dev.solvapay.com. Also triggers for:
-  keeping SOLVAPAY_SECRET_KEY out of VITE_ env vars, setting up SolvaPayProvider, or getting a
-  paywall running on Lovable fast. This skill handles the full setup: @preview package install,
-  edge function templates, provider wiring, and sandbox testing. Skip for Next.js projects,
-  production solvapay.com deployments, MCP server setup, or general "which SolvaPay product"
-  questions.
+  they want to install @solvapay/react-supabase @preview packages, paste embedded checkout code
+  into Lovable chat, wire Supabase edge function secrets, or use api-dev.solvapay.com. Also
+  triggers for: keeping SOLVAPAY_SECRET_KEY out of VITE_ env vars, setting up SolvaPayProvider,
+  or getting a paywall running on Lovable fast. This skill handles the full setup: @preview
+  package install, edge function templates, provider wiring, and sandbox testing. Skip for
+  Next.js projects, production solvapay.com deployments, MCP server setup, or general "which
+  SolvaPay product" questions.
 metadata:
   version: "1.0.0"
 compatibility: >
@@ -18,7 +18,7 @@ compatibility: >
 
 # Lovable Checkout (preview)
 
-Paste-in SolvaPay hosted checkout for Lovable (Vite + shadcn/ui + Supabase Edge). Designed to paste reference content into Lovable chat on turn zero.
+Paste-in SolvaPay embedded checkout for Lovable (Vite + shadcn/ui + Supabase Edge). `CheckoutLayout` mounts a Stripe Payment Element in-page via `createPaymentIntent` / `processPayment` — not a hosted-checkout redirect. Designed to paste reference content into Lovable chat on turn zero.
 
 ## Guardrails
 
@@ -35,8 +35,8 @@ Full guardrails for paste-in: [references/01-edge-and-secrets.md](references/01-
 - Secret in `.env` or `VITE_*` breaks security — edge secrets only (details: `01-edge-and-secrets.md`).
 - Pinning exact preview version breaks exports — use `@preview` tag only.
 - Multiple GoTrueClient instances cause auth bugs — singleton pattern (details: `02-provider-and-routes.md`).
-- `@solvapay/react/styles.css` must import **after** `./index.css` (details: `03-troubleshooting-and-sandbox.md`).
-- `requireProduct` name must match Console product name exactly (details: `03-troubleshooting-and-sandbox.md`).
+- `@solvapay/react/styles.css` must import **before** `./index.css` so Tailwind utilities can override primitives (details: `03-troubleshooting-and-sandbox.md`).
+- `requireProduct` matches the Console product **name** (case-insensitive), not the product ref (details: `03-troubleshooting-and-sandbox.md`).
 - MCP App UI errors mean wrong skill — use `solvapay/sdk-integration` or `solvapay/create-mcp-app`.
 
 ## Mandatory read order
@@ -70,7 +70,7 @@ Paste-in tip: concatenate all three reference files into Lovable chat for turn-z
 ## Verification loop
 
 1. Complete edge setup and provider wiring.
-2. Sandbox redirect → return URL → access granted.
+2. Sandbox in-page checkout → `onResult({ kind: 'paid' | 'activated' })` → access granted.
 3. On failure → consult troubleshooting table in `03-troubleshooting-and-sandbox.md` → fix → repeat until pass.
 
 ## Handoff template
@@ -80,7 +80,7 @@ Paste-in tip: concatenate all three reference files into Lovable chat for turn-z
 - **Edge functions:** [names]
 - **Secrets set:** [list names, no values]
 - **Routes:** [checkout / portal / gate]
-- **Sandbox:** [redirect + return URL outcome]
+- **Sandbox:** [in-page `onResult` + PurchaseGate outcome]
 - **Preview pin:** @preview (not production)
 ```
 

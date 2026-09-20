@@ -25,7 +25,7 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 4. Gate premium views based on purchase/access state.
 5. Add webhook endpoint to synchronize purchase/payment events.
 
-> **Breaking change in SDK 1.1:** every `@solvapay/next` route-wrapper helper (`checkPurchase`, `createPaymentIntent`, `processPaymentIntent`, `activatePlan`, `cancelRenewal`, `reactivateRenewal`, `createCheckoutSession`, `createCustomerSession`, `syncCustomer`, `listPlans`, `getMerchant`, `getProduct`, `getPaymentMethod`, `getCustomerBalance`, `trackUsage`) now always returns `Promise<NextResponse>`. Collapse handlers to `return wrapperHelper(request, body)` — remove any `result instanceof NextResponse ? result : NextResponse.json(result)` branches. For Server Components, call the `*Core` primitives from `@solvapay/server` directly and check with `isErrorResult`. `getAuthenticatedUser` / `getCustomerReference` / `syncCustomer` data helpers are unchanged.
+> Every `@solvapay/next` route-wrapper helper (`checkPurchase`, `createPaymentIntent`, `processPaymentIntent`, `activatePlan`, `cancelRenewal`, `reactivateRenewal`, `createCheckoutSession`, `createCustomerSession`, `syncCustomer`, `listPlans`, `getMerchant`, `getProduct`, `getPaymentMethod`, `getCustomerBalance`, `trackUsage`) returns `Promise<NextResponse>`. Collapse handlers to `return wrapperHelper(request, body)` — do not wrap with `result instanceof NextResponse ? result : NextResponse.json(result)`. For Server Components, call the `*Core` primitives from `@solvapay/server` directly and check with `isErrorResult`. `getAuthenticatedUser` / `syncCustomer` data helpers are unchanged.
 
 ## Hosted vs Embedded Decision
 
@@ -38,7 +38,7 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 - [ ] Auth middleware/proxy extracts stable user identity
 - [ ] `/api/create-checkout-session` implemented
 - [ ] `/api/create-customer-session` implemented
-- [ ] `/api/check-access` or equivalent implemented
+- [ ] `GET /api/check-purchase` implemented
 - [ ] UI redirects to hosted checkout/customer URLs
 - [ ] Webhook route verifies signatures and updates local state
 - [ ] `/api/cancel-renewal` implemented (if subscription management needed)

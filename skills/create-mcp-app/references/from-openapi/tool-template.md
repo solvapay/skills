@@ -6,7 +6,7 @@ Rationale (why arrow wrapper, why single environment, etc.) lives in [design-not
 
 ## Entrypoint shape
 
-`src/worker.ts` exports a `fetch` that calls `createSolvaPayMcpFetch` with `mode: 'json-stateless'` and `hideToolsByAudience: ['ui']`, then threads the Workers `env` into generated tools via `additionalTools: ctx => registerTools(ctx, env)`. `src/tools/index.ts` exports the matching `registerTools(ctx, env)`; scaffold appends one import + one `register{OperationId}(ctx, env)` call per generated operation.
+`src/worker.ts` exports a `fetch` that calls `createSolvaPayMcpFetch` with `responseMode: 'json'` and `hideToolsByAudience: ['ui']`, then threads the Workers `env` into generated tools via `additionalTools: ctx => registerTools(ctx, env)`. `src/tools/index.ts` exports the matching `registerTools(ctx, env)`; scaffold appends one import + one `register{OperationId}(ctx, env)` call per generated operation.
 
 ## Tool file shape
 
@@ -125,7 +125,7 @@ The thrown `UpstreamError` is **not caught** in the generated handler — both c
 
 | Path | Converter |
 | --- | --- |
-| Unlimited free | `@modelcontextprotocol/sdk` wraps into `{ isError: true, content: [{ type: 'text', text: error.message }] }` |
+| Unlimited free | `@modelcontextprotocol/server` (`McpServer.registerTool`) wraps into `{ isError: true, content: [{ type: 'text', text: error.message }] }` |
 | Paid / free-capped | SolvaPay's `formatError` wraps into the same shape; the customer is not charged (and a free allowance is not decremented) for upstream failures |
 
 ## Who writes what to `.env`
