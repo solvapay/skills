@@ -348,10 +348,10 @@ That's the whole worker's tool surface. Three intents covering ten or so OpenAPI
 npm run serve:local
 
 # Point MCP Inspector at it
-npx @modelcontextprotocol/inspector http://localhost:8787/
+npx @modelcontextprotocol/inspector http://localhost:8787/mcp
 
 # Or call directly:
-curl -X POST http://localhost:8787/ \
+curl -X POST http://localhost:8787/mcp \
   -H 'content-type: application/json' \
   -d '{
     "jsonrpc": "2.0", "id": 1, "method": "tools/call",
