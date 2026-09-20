@@ -31,7 +31,7 @@ This guide is for SDK-based MCP server integrations where you self-host the serv
 - Install `@solvapay/mcp` for the batteries-included factory:
 
   ```bash
-  npm install @solvapay/mcp @solvapay/server
+  npm install @solvapay/mcp @solvapay/mcp-core @solvapay/server
   ```
 
 - A product created in SolvaPay Console with at least one plan
@@ -120,20 +120,20 @@ export const productRef = process.env.SOLVAPAY_PRODUCT_REF!
 
 export const solvaPay = createSolvaPay({ apiClient })
 
-export const payable = solvaPay.payable({ product: productRef })
+export const payable = solvaPay.payable({ productRef })
 ```
 
 ## Wrap tool handlers
 
 ### getCustomerRef helper
 
-The adapter needs a function to extract customer identity from tool arguments. The `_auth` field is injected by the HTTP layer (see [OAuth bridge setup](#oauth-bridge-setup)).
+The adapter reads customer identity from MCP `extra.authInfo`, not from tool arguments. The factory OAuth bridge stamps `extra.authInfo.extra.customer_ref` (and `extra.http.authInfo.extra.customer_ref` under SDK v2). Use `defaultGetCustomerRef` — do not inject `_auth` into tool args.
 
 ```typescript
-const getCustomerRef = (args: Record<string, unknown>) => {
-  const auth = args?._auth as { customer_ref?: string } | undefined
-  return auth?.customer_ref || 'anonymous'
-}
+import { defaultGetCustomerRef, type McpToolExtra } from '@solvapay/mcp-core'
+
+const getCustomerRef = (_args: Record<string, unknown>, extra?: McpToolExtra) =>
+  defaultGetCustomerRef(extra) ?? 'anonymous'
 ```
 
 ### Wrapping pattern
@@ -259,13 +259,13 @@ async function resolveCustomerRef(authHeader?: string): Promise<string | null> {
 }
 ```
 
-### Inject auth into tool arguments
+### Pass identity on MCP extra, not tool arguments
 
-In your HTTP handler, before passing the request to the MCP framework, inject the customer ref:
+The factory OAuth bridge already stamps `authInfo.extra.customer_ref` from the bearer. On a hand-rolled transport, resolve the bearer (userinfo or JWT) and pass the ref as MCP `authInfo` — `defaultGetCustomerRef` / `payable.mcp()` read it from `extra`, not from `arguments`.
 
 ```typescript
-if (request.body?.method === 'tools/call') {
-  request.body.params.arguments._auth = { customer_ref: customerRef }
+const extra = {
+  authInfo: { extra: { customer_ref: customerRef } },
 }
 ```
 

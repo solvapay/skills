@@ -4,12 +4,13 @@
  * Usage: node scripts/check-env.mjs [project-root]
  * stdout: JSON { ok, violations[] }
  */
-import { readFileSync, existsSync, readdirSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 const HELP = `Usage: node scripts/check-env.mjs [project-root]
 
-Detects SOLVAPAY_SECRET_KEY or sk_ keys in NEXT_PUBLIC_* / VITE_* patterns.
+Detects SOLVAPAY_SECRET_KEY, SOLVAPAY_WEBHOOK_SECRET, sk_*, or whsec_
+in NEXT_PUBLIC_* / VITE_* patterns across env files and Next/Vite configs.
 `
 
 if (process.argv.includes('--help') || process.argv.includes('-h')) {
@@ -19,7 +20,8 @@ if (process.argv.includes('--help') || process.argv.includes('-h')) {
 
 const root = process.argv[2] ?? process.cwd()
 const violations = []
-const secretPattern = /SOLVAPAY_SECRET_KEY|sk_(test|live|sandbox)_/i
+const secretPattern =
+  /SOLVAPAY_SECRET_KEY|SOLVAPAY_WEBHOOK_SECRET|sk_(test|live|sandbox)_|whsec_/i
 const publicPattern = /NEXT_PUBLIC_|VITE_/
 
 function scanFile(file) {
@@ -32,23 +34,37 @@ function scanFile(file) {
   if (!secretPattern.test(content)) return
   const lines = content.split('\n')
   lines.forEach((line, i) => {
-    if (secretPattern.test(line) && (publicPattern.test(line) || file.includes('.env'))) {
-      if (publicPattern.test(line)) {
-        violations.push({ file, line: i + 1, detail: 'secret pattern in public env var' })
-      }
+    if (secretPattern.test(line) && publicPattern.test(line)) {
+      violations.push({ file, line: i + 1, detail: 'secret pattern in public env var' })
     }
   })
 }
 
-for (const name of ['.env', '.env.local', '.env.development']) {
+const envFiles = [
+  '.env',
+  '.env.local',
+  '.env.development',
+  '.env.development.local',
+  '.env.production',
+  '.env.production.local',
+]
+for (const name of envFiles) {
   const p = join(root, name)
   if (existsSync(p)) scanFile(p)
 }
 
-const nextConfig = ['next.config.js', 'next.config.mjs', 'next.config.ts']
-  .map(f => join(root, f))
-  .find(existsSync)
-if (nextConfig) scanFile(nextConfig)
+const configFiles = [
+  'next.config.js',
+  'next.config.mjs',
+  'next.config.ts',
+  'vite.config.js',
+  'vite.config.mjs',
+  'vite.config.ts',
+]
+for (const name of configFiles) {
+  const p = join(root, name)
+  if (existsSync(p)) scanFile(p)
+}
 
 const ok = violations.length === 0
 const out = { ok, violations }

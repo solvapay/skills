@@ -102,15 +102,15 @@ Deno.serve(solvapayWebhook({
       case 'purchase.updated':
       case 'purchase.cancelled':
       case 'purchase.expired':
-      case 'payment_intent.succeeded':
-      case 'payment_intent.failed':
+      case 'payment.succeeded':
+      case 'payment.failed':
         break
     }
   },
 }))
 ```
 
-The factory handles HMAC signature verification automatically using `SOLVAPAY_WEBHOOK_SECRET` from the environment. On `payment_intent.succeeded`, SolvaPay mirrors the card brand + last4 onto the Customer — the `get-payment-method` handler reads that mirror with no Stripe round-trip.
+The factory handles HMAC signature verification automatically using `SOLVAPAY_WEBHOOK_SECRET` from the environment. On `payment.succeeded`, SolvaPay mirrors the card brand + last4 onto the Customer — the `get-payment-method` handler reads that mirror with no Stripe round-trip.
 
 ## CORS Configuration
 
@@ -171,7 +171,7 @@ const SUPABASE_URL = 'https://<project-ref>.supabase.co/functions/v1'
 >
 ```
 
-Pass the host app's existing Supabase client via `{ client }` so only one `GoTrue` instance is live on the page. The legacy `{ supabaseUrl, supabaseAnonKey }` form still works (emits a one-time `console.warn`) but can miss the session when the app uses `@supabase/ssr` or a custom `auth.storageKey`.
+Pass the host app's existing Supabase client via `{ client }` so only one `GoTrue` instance is live on the page. The `{ supabaseUrl, supabaseAnonKey }` form is gone — `createSupabaseAuthAdapter` now throws if `config.client` is missing.
 
 The `sync-customer`, `create-checkout-session`, `create-customer-session`, and `solvapay-webhook` functions are server-side only and not wired through the React provider.
 
