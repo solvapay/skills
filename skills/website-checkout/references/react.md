@@ -17,28 +17,61 @@ React-only projects need a backend for SolvaPay secret operations.
 
 ## Minimal Express backend skeleton
 
+`createSolvaPay()` reads `SOLVAPAY_SECRET_KEY` from the environment. `createCheckoutSession` requires both `productRef` and `customerRef`. Access state is `{ customerRef, purchases[] }` from `checkPurchaseCore` — there is no `hasAccess` field.
+
 ```typescript
 import express from 'express'
-import { createSolvaPayServer } from '@solvapay/server'
+import {
+  createSolvaPay,
+  checkPurchaseCore,
+  syncCustomerCore,
+  isErrorResult,
+} from '@solvapay/server'
 
 const app = express()
 app.use(express.json())
-const solvaPay = createSolvaPayServer({ secretKey: process.env.SOLVAPAY_SECRET_KEY! })
+const solvaPay = createSolvaPay()
+
+function toRequest(req: express.Request): Request {
+  const url = new URL(req.originalUrl, `http://${req.headers.host ?? 'localhost'}`)
+  return new Request(url, {
+    method: req.method,
+    headers: req.headers as HeadersInit,
+    body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
+  })
+}
+
+app.post('/api/sync-customer', async (req, res) => {
+  const result = await syncCustomerCore(toRequest(req), { solvaPay })
+  if (isErrorResult(result)) {
+    return res.status(result.status).json(result)
+  }
+  return res.json({ customerRef: result })
+})
 
 app.post('/api/create-checkout-session', async (req, res) => {
   const { customerRef, productRef, planRef, returnUrl } = req.body
-  const session = await solvaPay.checkout.createSession({
+  const session = await solvaPay.createCheckoutSession({
     customerRef,
     productRef,
     planRef,
     returnUrl,
   })
-  res.json({ checkoutUrl: session.checkoutUrl })
+  res.json(session)
 })
 
-app.get('/api/check-access', async (req, res) => {
-  // map auth user → customerRef; check purchase/access
-  res.json({ hasAccess: true })
+app.post('/api/create-customer-session', async (req, res) => {
+  const { customerRef, productRef } = req.body
+  const session = await solvaPay.createCustomerSession({ customerRef, productRef })
+  res.json(session)
+})
+
+app.get('/api/check-purchase', async (req, res) => {
+  const result = await checkPurchaseCore(toRequest(req), { solvaPay })
+  if (isErrorResult(result)) {
+    return res.status(result.status).json(result)
+  }
+  return res.json(result)
 })
 ```
 
@@ -46,9 +79,9 @@ Adapt to your auth middleware. For full SDK patterns install `solvapay/sdk-integ
 
 ## Required routes
 
-- `POST /api/create-checkout-session` → `{ checkoutUrl }`
-- `POST /api/create-customer-session` → `{ customerUrl }`
-- `GET /api/check-access` → access state
+- `POST /api/create-checkout-session` → `{ sessionId, checkoutUrl }`
+- `POST /api/create-customer-session` → `{ sessionId, customerUrl }`
+- `GET /api/check-purchase` → `{ customerRef, purchases[] }`
 
 ## Verification checklist
 
