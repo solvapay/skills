@@ -27,7 +27,7 @@ import { createMcpAppAdapter } from '@solvapay/react/mcp'
 ```
 
 - Wrap the MCP app root with `SolvaPayProvider`.
-- Pass `config.transport` from `createMcpAppAdapter` when running inside an MCP host iframe. SDK 1.1+ — `config.transport` is the only supported shape (per-method transport props on the provider were removed).
+- Pass `config.transport` from `createMcpAppAdapter` when running inside an MCP host iframe. `config.transport` is the only supported shape — there are no per-method transport props on the provider.
 
 `createMcpAppAdapter` wires the host postMessage transport so checkout and account calls reach your server without browser `fetch` to SolvaPay APIs.
 

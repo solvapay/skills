@@ -125,7 +125,7 @@ The thrown `UpstreamError` is **not caught** in the generated handler — both c
 
 | Path | Converter |
 | --- | --- |
-| Unlimited free | `@modelcontextprotocol/sdk` wraps into `{ isError: true, content: [{ type: 'text', text: error.message }] }` |
+| Unlimited free | `@modelcontextprotocol/server` (`McpServer.registerTool`) wraps into `{ isError: true, content: [{ type: 'text', text: error.message }] }` |
 | Paid / free-capped | SolvaPay's `formatError` wraps into the same shape; the customer is not charged (and a free allowance is not decremented) for upstream failures |
 
 ## Who writes what to `.env`

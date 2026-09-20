@@ -81,49 +81,61 @@ Bun HTTP docs: https://bun.sh/docs/api/http.
 
 ### Node + Express
 
-No `createSolvaPayMcpExpress` turnkey factory exists yet. Use `createSolvaPayMcpServer` (framework-neutral) + `StreamableHTTPServerTransport` (from `@modelcontextprotocol/sdk`) + `createMcpOAuthBridge` (from `@solvapay/mcp/express`).
+No `createSolvaPayMcpExpress` turnkey factory exists yet. Use `createSolvaPayMcpServer` (framework-neutral) + `createMcpHandler` (from `@modelcontextprotocol/server`) + `toNodeHandler` (from `@modelcontextprotocol/node`) + `createMcpOAuthBridge` (from `@solvapay/mcp/express`). The old `@modelcontextprotocol/sdk` `StreamableHTTPServerTransport` is not part of MCP SDK v2 — `createMcpHandler` owns the transport lifecycle and builds a fresh server per request.
 
 > **Import subpaths — do not use bare `@solvapay`:** `createSolvaPayMcpServer` comes from `@solvapay/mcp` (not bare `@solvapay`, which is not a valid package). `createMcpOAuthBridge` comes from `@solvapay/mcp/express`. These are two separate subpaths of the same package.
 
 ```ts
 import express from 'express'
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+import { createMcpHandler } from '@modelcontextprotocol/server'
+import { toNodeHandler } from '@modelcontextprotocol/node'
 import { createSolvaPay } from '@solvapay/server'
 import { createSolvaPayMcpServer } from '@solvapay/mcp'       // NOT '@solvapay' (bare)
 import { createMcpOAuthBridge } from '@solvapay/mcp/express'
 
 const solvaPay = createSolvaPay({ apiKey: process.env.SOLVAPAY_SECRET_KEY! })
+const publicBaseUrl = process.env.MCP_PUBLIC_BASE_URL!
+const productRef = process.env.SOLVAPAY_PRODUCT_REF!
 
-const mcpServer = createSolvaPayMcpServer({
-  solvaPay,
-  productRef: process.env.SOLVAPAY_PRODUCT_REF!,
-  publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
-  additionalTools: (ctx) => {
-    ctx.registerPayable('my_tool', {
-      title: 'My tool',
-      description: '...',
-      schema: { /* zod shape */ },
-      handler: async (input, c) => c.respond(data, { text: narration }),
-    })
-  },
-})
+// SDK v2 is stateless: the factory runs per request.
+const mcpHandler = createMcpHandler(() =>
+  createSolvaPayMcpServer({
+    solvaPay,
+    productRef,
+    publicBaseUrl,
+    resourceUri: 'ui://your-server/mcp-app.html',
+    htmlPath: './dist/mcp-app.html',
+    additionalTools: (ctx) => {
+      ctx.registerPayable('my_tool', {
+        title: 'My tool',
+        description: '...',
+        schema: { /* zod shape */ },
+        handler: async (input, c) => c.respond(data, { text: narration }),
+      })
+    },
+  }),
+)
 
 export const app = express()
 app.use(express.json())
+// /oauth/token is application/x-www-form-urlencoded.
+app.use(express.urlencoded({ extended: false }))
 app.use(...createMcpOAuthBridge({
-  publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
-  productRef: process.env.SOLVAPAY_PRODUCT_REF!,
+  publicBaseUrl,
+  productRef,
   apiBaseUrl: process.env.SOLVAPAY_API_BASE_URL ?? 'https://api.solvapay.com',
+  mcpPath: '/mcp',
 }))
 
-app.post('/mcp', async (req, res) => {
-  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
-  await mcpServer.connect(transport)
-  await transport.handleRequest(req, res, req.body)
+// Pass `req.body` explicitly — Express calls `(req, res, next)`, and
+// `toNodeHandler` must not treat `next` as the pre-parsed body.
+const handleMcp = toNodeHandler(mcpHandler)
+app.all('/mcp', (req, res) => {
+  void handleMcp(req, res, req.body)
 })
 ```
 
-Required deps: `@solvapay/mcp`, `@solvapay/mcp-core`, `@solvapay/server`, `@modelcontextprotocol/sdk`, `express`, `zod`. No `wrangler.jsonc`. Read env via `process.env` (not Workers `Env` interface).
+Required deps: `@solvapay/mcp`, `@solvapay/mcp-core`, `@solvapay/server`, `@modelcontextprotocol/server`, `@modelcontextprotocol/core`, `@modelcontextprotocol/node`, `express`, `zod`. No `wrangler.jsonc`. Read env via `process.env` (not Workers `Env` interface). Reference: [`examples/mcp-oauth-bridge`](https://github.com/solvapay/solvapay-sdk/tree/main/examples/mcp-oauth-bridge).
 
 ### Framework-neutral
 

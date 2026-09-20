@@ -157,7 +157,7 @@ Your `.env` wasn't sourced. Check that `.env` exists in the project root and tha
 
 ### Worker bundle size over 1MB on deploy
 
-Cloudflare's free tier caps bundles at 1MB post-gzip. `@solvapay/mcp` + `@solvapay/server` + `@modelcontextprotocol/sdk` sit close to this ceiling. Upgrade to the paid tier (10MB cap) if you need more headroom.
+Cloudflare's free tier caps bundles at 1MB post-gzip. `@solvapay/mcp` + `@solvapay/server` + `@modelcontextprotocol/server` sit close to this ceiling. Upgrade to the paid tier (10MB cap) if you need more headroom.
 
 ### `Already connected to a transport` errors under load
 
