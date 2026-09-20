@@ -40,7 +40,7 @@ const handler = createSolvaPayMcpFetch({
   publicBaseUrl: Deno.env.get('MCP_PUBLIC_BASE_URL')!,
   resourceUri: 'ui://your-server/mcp-app.html',
   readHtml: async () => await Deno.readTextFile('./dist/mcp-app.html'),
-  mode: 'json-stateless',
+  responseMode: 'json',
   hideToolsByAudience: ['ui'],
 })
 
@@ -68,7 +68,7 @@ Reuse the widget templates from [cloudflare/](cloudflare/) (`src/mcp-app.tsx`, `
 - [ ] `deno.json` import map resolves `@solvapay/mcp/fetch`
 - [ ] `GET /.well-known/oauth-protected-resource` returns expected JSON
 - [ ] Paid tool gates with text-only narration; intent tools mount widget when invoked
-- [ ] `mode: 'json-stateless'` (required on serverless Deno isolates)
+- [ ] `responseMode: 'json'` (required on serverless Deno isolates)
 
 ## Troubleshooting
 

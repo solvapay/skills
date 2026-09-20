@@ -6,7 +6,7 @@ Rationale (why arrow wrapper, why single environment, etc.) lives in [design-not
 
 ## Entrypoint shape
 
-`src/worker.ts` exports a `fetch` that calls `createSolvaPayMcpFetch` with `mode: 'json-stateless'` and `hideToolsByAudience: ['ui']`, then threads the Workers `env` into generated tools via `additionalTools: ctx => registerTools(ctx, env)`. `src/tools/index.ts` exports the matching `registerTools(ctx, env)`; scaffold appends one import + one `register{OperationId}(ctx, env)` call per generated operation.
+`src/worker.ts` exports a `fetch` that calls `createSolvaPayMcpFetch` with `responseMode: 'json'` and `hideToolsByAudience: ['ui']`, then threads the Workers `env` into generated tools via `additionalTools: ctx => registerTools(ctx, env)`. `src/tools/index.ts` exports the matching `registerTools(ctx, env)`; scaffold appends one import + one `register{OperationId}(ctx, env)` call per generated operation.
 
 ## Tool file shape
 

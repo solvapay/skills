@@ -47,7 +47,7 @@ const handler = createSolvaPayMcpFetch({
   publicBaseUrl: Deno.env.get('MCP_PUBLIC_BASE_URL')!,
   resourceUri: 'ui://your-server/mcp-app.html',
   readHtml: async () => await Deno.readTextFile('./dist/mcp-app.html'),
-  mode: 'json-stateless',
+  responseMode: 'json',
   hideToolsByAudience: ['ui'],
 })
 
@@ -70,7 +70,7 @@ const handler = createSolvaPayMcpFetch({
   publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
   resourceUri: 'ui://your-server/mcp-app.html',
   readHtml: async () => mcpAppHtml,
-  mode: 'json-stateless',
+  responseMode: 'json',
   hideToolsByAudience: ['ui'],
 })
 
@@ -98,7 +98,6 @@ const mcpServer = createSolvaPayMcpServer({
   solvaPay,
   productRef: process.env.SOLVAPAY_PRODUCT_REF!,
   publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
-  mode: 'json-stateless',
   additionalTools: (ctx) => {
     ctx.registerPayable('my_tool', {
       title: 'My tool',
@@ -132,12 +131,14 @@ If you have a custom HTTP framework or need to mount the MCP server on a non-sta
 
 ## Session mode by runtime
 
-| Runtime | Recommended `mode` |
-| --- | --- |
-| Cloudflare Workers | `'json-stateless'` (isolates don't pin) |
-| Supabase Edge Functions | `'json-stateless'` |
-| Deno deploy (serverless) | `'json-stateless'` |
-| Deno / Bun (long-running process) | `'streaming'` or `'json-stateless'` depending on session needs |
+`responseMode` applies to `createSolvaPayMcpFetch` only (`'json' | 'sse' | 'auto'`). `createSolvaPayMcpServer` has no transport-mode option — the host's transport owns that.
 
-When in doubt, start with `'json-stateless'` — it works everywhere and only loses efficiency under high per-session streaming load.
+| Runtime | Recommended `responseMode` |
+| --- | --- |
+| Cloudflare Workers | `'json'` (isolates don't pin) |
+| Supabase Edge Functions | `'json'` |
+| Deno deploy (serverless) | `'json'` |
+| Deno / Bun (long-running process) | `'sse'` or `'json'` depending on session needs |
+
+When in doubt, start with `'json'` — it works everywhere and only loses efficiency under high per-session streaming load.
 

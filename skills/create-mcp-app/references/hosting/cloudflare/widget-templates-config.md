@@ -301,7 +301,7 @@ function getHandler(env: Env): (req: Request) => Promise<Response> {
     readHtml: async () => mcpAppHtml,
     publicBaseUrl: requireEnv(env, 'MCP_PUBLIC_BASE_URL'),
     apiBaseUrl,
-    mode: 'json-stateless',
+    responseMode: 'json',
     hideToolsByAudience: ['ui'],
     // Wire your paid tools here. See ../../tool-design.md for the
     // `registerPayable` pattern. Create src/tools.ts with a
