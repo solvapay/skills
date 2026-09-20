@@ -56,15 +56,13 @@ matches the run:
 # standard (stable) — what end users get
 npm install create-solvapay
 
-# --dev / internal testing — pulls the preview build, which carries
-# preview-only features the skill docs describe (e.g. free-capped /
-# registerFree until that release is @latest).
+# --dev / internal testing — pulls the preview build so the scaffolder
+# matches `solvapay@preview` against api-dev.
 npm install create-solvapay@preview
 ```
 
 Installing stable (`@latest`) while running `--dev` is the trap that bites:
-`scaffold.mjs` rejects preview-only values (such as `tier: "free-capped"`
-before that release ships) with an invalid-tier error. `resolve-scaffolder.mjs`
+api-dev needs the preview CLI and scaffolder in lockstep. `resolve-scaffolder.mjs`
 warns when it detects a stable build under a dev backend, and the wrappers now
 provide that dev signal when `--dev` is passed. Pinning `@preview` at install
 time avoids the mismatch entirely.

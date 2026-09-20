@@ -85,7 +85,7 @@ Usage-based or plan-gated tools. The factory runs the paywall before your handle
 
 ### Free-capped (`ctx.registerFree`)
 
-An otherwise-free tool with a per-customer cap declared next to the tool. Exhaustion uses the same paywall gate as paid. Requires the same `@solvapay/mcp` release that ships `registerFree` (`@latest` once published; `@preview` until then).
+An otherwise-free tool with a per-customer cap declared next to the tool. Exhaustion uses the same paywall gate as paid. Requires `@solvapay/mcp@latest` (`@preview` only for `--dev` / api-dev).
 
 Meter names must match `/^free-[a-z0-9-]+$/`. Omitting `meter` defaults to `free-requests`. Tools that name the same meter share one counter and **must** agree on `cap` / `scope` / `windowDays` or registration throws. Hand the same `limit` object to both.
 

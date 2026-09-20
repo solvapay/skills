@@ -31,7 +31,7 @@ This guide is for SDK-based MCP server integrations where you self-host the serv
 - Install `@solvapay/mcp` for the batteries-included factory:
 
   ```bash
-  npm install @solvapay/mcp @solvapay/server
+  npm install @solvapay/mcp @solvapay/mcp-core @solvapay/server
   ```
 
 - A product created in SolvaPay Console with at least one plan

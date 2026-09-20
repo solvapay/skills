@@ -107,7 +107,7 @@ Verify with an MCP client:
 # Reference MCP client
 npx @modelcontextprotocol/inspector
 
-# Then connect to http://localhost:8787/ in the inspector UI
+# Then connect to http://localhost:8787/mcp in the inspector UI
 ```
 
 Quick sanity curls:

@@ -124,7 +124,7 @@ app.post('/mcp', async (req, res) => {
 })
 ```
 
-Required deps: `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`, `express`, `zod`. No `wrangler.jsonc`. Read env via `process.env` (not Workers `Env` interface).
+Required deps: `@solvapay/mcp`, `@solvapay/mcp-core`, `@solvapay/server`, `@modelcontextprotocol/sdk`, `express`, `zod`. No `wrangler.jsonc`. Read env via `process.env` (not Workers `Env` interface).
 
 ### Framework-neutral
 
