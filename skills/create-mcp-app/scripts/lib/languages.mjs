@@ -8,6 +8,7 @@ export const LANGUAGE_IDS = Object.freeze(['ts', 'python', 'ruby', 'go', 'rust']
  * @property {string} label
  * @property {number} port
  * @property {readonly { bin: string, install: string }[]} requires
+ * @property {readonly { id: string, install: string, command: string, args: readonly string[] }[]} probes
  * @property {string} registry
  * @property {string} manifest
  * @property {readonly ('scratch' | 'openapi')[]} inputModes
@@ -24,6 +25,7 @@ export const LANGUAGES = Object.freeze([
     label: 'TypeScript',
     port: 8787,
     requires: [{ bin: 'npm', install: 'https://nodejs.org' }],
+    probes: Object.freeze([]),
     registry: 'https://registry.npmjs.org/@solvapay%2Fmcp',
     manifest: 'package.json',
     inputModes: Object.freeze(['scratch', 'openapi']),
@@ -37,6 +39,7 @@ export const LANGUAGES = Object.freeze([
     label: 'Python',
     port: 3030,
     requires: [{ bin: 'uv', install: 'https://docs.astral.sh/uv/' }],
+    probes: Object.freeze([]),
     registry: 'https://pypi.org/pypi/solvapay/json',
     manifest: 'pyproject.toml',
     inputModes: Object.freeze(['scratch']),
@@ -49,7 +52,24 @@ export const LANGUAGES = Object.freeze([
     id: 'ruby',
     label: 'Ruby',
     port: 3030,
-    requires: [{ bin: 'bundle', install: 'https://bundler.io' }],
+    requires: [
+      { bin: 'ruby', install: 'https://www.ruby-lang.org' },
+      { bin: 'bundle', install: 'https://bundler.io' },
+    ],
+    // Native gems (`json_schemer` → `bigdecimal`, `rb_sys` → rake-compiler-dock)
+    // need interpreter headers, not just `bundle` on PATH.
+    probes: Object.freeze([
+      {
+        id: 'ruby-headers',
+        install: 'ruby-dev (Debian/Ubuntu) or ruby-devel (Fedora/RHEL)',
+        command: 'ruby',
+        args: Object.freeze([
+          '-rrbconfig',
+          '-e',
+          'hdr = RbConfig::CONFIG.fetch("rubyhdrdir", ""); abort "rubyhdrdir missing" if hdr.empty? || !File.directory?(hdr)',
+        ]),
+      },
+    ]),
     registry: 'https://rubygems.org/api/v1/gems/solvapay.json',
     manifest: 'Gemfile',
     inputModes: Object.freeze(['scratch']),
@@ -63,6 +83,7 @@ export const LANGUAGES = Object.freeze([
     label: 'Go',
     port: 3030,
     requires: [{ bin: 'go', install: 'https://go.dev/dl' }],
+    probes: Object.freeze([]),
     registry: 'https://proxy.golang.org/github.com/solvapay/solvapay-sdk/sdks/go/@v/list',
     manifest: 'go.mod',
     inputModes: Object.freeze(['scratch']),
@@ -76,6 +97,7 @@ export const LANGUAGES = Object.freeze([
     label: 'Rust',
     port: 3030,
     requires: [{ bin: 'cargo', install: 'https://rustup.rs' }],
+    probes: Object.freeze([]),
     registry: 'https://crates.io/api/v1/crates/solvapay',
     manifest: 'Cargo.toml',
     inputModes: Object.freeze(['scratch']),

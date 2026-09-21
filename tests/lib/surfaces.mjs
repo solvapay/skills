@@ -58,6 +58,7 @@ export const LANE_CASES = Object.freeze([
  * @property {string} [replace]
  * @property {string} [name]
  * @property {string} [version]
+ * @property {string} [checkoutRel]
  */
 
 /**
@@ -69,6 +70,7 @@ export const LANE_CASES = Object.freeze([
  * @property {RegExp} pathDepMarker
  * @property {boolean} pathDepOnCheckout
  * @property {readonly { name: string, rel: string }[]} fileDeps
+ * @property {readonly string[]} reinstallPackages
  * @property {readonly { path: string, contents: string }[]} seedFiles
  * @property {readonly string[]} extraScaffoldArgs
  * @property {Record<string, string>} discoveryHeaders
@@ -93,64 +95,22 @@ export const SURFACES = Object.freeze([
       'wrangler.jsonc',
     ]),
     installMarker: 'node_modules',
-    pathDepMarker: /"@solvapay\/mcp":\s*"(file:|workspace:)/,
-    pathDepOnCheckout: false,
-    fileDeps: Object.freeze([]),
+    pathDepMarker: /"@solvapay\/mcp":\s*"(file:|link:|workspace:)/,
+    pathDepOnCheckout: true,
+    fileDeps: Object.freeze([{ name: '@solvapay/server-wasm', rel: 'sdks/wasm' }]),
+    reinstallPackages: Object.freeze([]),
     extraScaffoldArgs: Object.freeze([]),
     discoveryHeaders: Object.freeze({}),
     assertHiddenUi: true,
     requiredTools: Object.freeze(['account', 'activate_plan']),
     promptNames: Object.freeze(['upgrade', 'manage_account', 'topup', 'activate_plan']),
-    anonymousDiscovery: false,
+    anonymousDiscovery: true,
     seedFiles: Object.freeze([
       { path: 'src/assets/mcp-app.html', contents: '<!doctype html><title>e2e</title>' },
     ]),
     timeoutMs: 180_000,
     build: { command: 'npm', args: Object.freeze(['run', 'build']) },
-    waivers: Object.freeze([
-      {
-        id: 'ts-server-wasm-stub',
-        kind: 'stub',
-        reason:
-          '@solvapay/server-wasm is not on the npm registry (404), so the template npm install fails.',
-        ref: 'DEV-0000',
-        provesAt: 'install',
-        failureMatch: /@solvapay\/server-wasm/,
-        registryProbe: {
-          url: 'https://registry.npmjs.org/@solvapay%2Fserver-wasm',
-          expectMissing: true,
-        },
-        name: '@solvapay/server-wasm',
-        version: '0.1.0',
-      },
-      {
-        id: 'ts-core-browser-wasm-export',
-        kind: 'patch',
-        reason:
-          'Published @solvapay/core@1.7.0 predates the ./browser-wasm export (present in the local checkout at the same version). No release was cut, so the version number is not a usable stale signal.',
-        ref: 'DEV-0000',
-        provesAt: 'build',
-        failureMatch: /"\.\/browser-wasm" is not exported/,
-        exportProbe: {
-          file: 'node_modules/@solvapay/core/package.json',
-          subpath: './browser-wasm',
-          expectMissing: true,
-        },
-        file: 'src/install-widget-core.ts',
-        find: [
-          "import { installBrowserCoreJs } from '@solvapay/core/browser-wasm'",
-          "import * as binding from '@solvapay/server-wasm/browser-js'",
-          '',
-          'export function installSolvaPayWidgetCore(): void {',
-          "  if (binding.SOLVAPAY_BROWSER_JS_CORE !== 'solvapay-browser-js-core') {",
-          "    throw new Error('SolvaPay widget core failed to initialize: missing wasm2js marker')",
-          '  }',
-          '  installBrowserCoreJs(binding)',
-          '}',
-        ].join('\n'),
-        replace: 'export function installSolvaPayWidgetCore(): void {}',
-      },
-    ]),
+    waivers: Object.freeze([]),
   },
   {
     id: 'python',
@@ -160,6 +120,7 @@ export const SURFACES = Object.freeze([
     pathDepMarker: /\[tool\.uv\.sources\]/,
     pathDepOnCheckout: true,
     fileDeps: Object.freeze([]),
+    reinstallPackages: Object.freeze(['solvapay-mcp', 'solvapay']),
     extraScaffoldArgs: Object.freeze([]),
     discoveryHeaders: Object.freeze({}),
     assertHiddenUi: true,
@@ -179,6 +140,7 @@ export const SURFACES = Object.freeze([
     pathDepMarker: /gem\s+"solvapay",\s*path:/,
     pathDepOnCheckout: true,
     fileDeps: Object.freeze([]),
+    reinstallPackages: Object.freeze([]),
     extraScaffoldArgs: Object.freeze([]),
     discoveryHeaders: Object.freeze({}),
     assertHiddenUi: false,
@@ -198,6 +160,7 @@ export const SURFACES = Object.freeze([
     pathDepMarker: /^replace\s+/m,
     pathDepOnCheckout: true,
     fileDeps: Object.freeze([]),
+    reinstallPackages: Object.freeze([]),
     extraScaffoldArgs: Object.freeze(['--module', 'github.com/solvapay/e2e-go']),
     discoveryHeaders: Object.freeze({}),
     assertHiddenUi: true,
@@ -217,6 +180,7 @@ export const SURFACES = Object.freeze([
     pathDepMarker: /solvapay\s*=\s*\{\s*path\s*=/,
     pathDepOnCheckout: true,
     fileDeps: Object.freeze([]),
+    reinstallPackages: Object.freeze([]),
     extraScaffoldArgs: Object.freeze([]),
     discoveryHeaders: Object.freeze({}),
     assertHiddenUi: false,

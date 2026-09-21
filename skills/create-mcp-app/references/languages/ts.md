@@ -55,18 +55,20 @@ wrangler.jsonc
 package.json
 ```
 
-`--tool-name` is the MCP identifier and the file stem. Use snake_case (`generate_haiku`), not camelCase.
+Published `create-solvapay` `--tool-name` is camelCase (`helloTool` / `generateHaiku`). After scaffold, rename the MCP identifier and file stem to snake_case (`generate_haiku`) — `tool-design.md` wants snake_case tool ids. `scaffold-app.mjs` against a checkout CLI may accept snake_case `--tool-name` directly.
 
 ## Install and run
 
 ```bash
 node scripts/check-toolchain.mjs --language ts
-node scripts/scaffold-app.mjs ./my-mcp --language ts --tool-name generate_haiku
-npm create solvapay@latest my-mcp -- --type mcp --language ts --no-openapi --tool-name generate_haiku
-npx -y solvapay@latest init --language ts
+node scripts/scaffold-app.mjs ./my-mcp --language ts --tool-name generateHaiku
+npm create solvapay@latest my-mcp -- --type mcp --no-openapi --tool-name helloTool
+npx -y solvapay@latest init
 npm install
 npm run dev          # :8787
 ```
+
+If the gate printed `ok checkout`, pass `--dev` so `package.json` uses `link:`/`file:` deps into the checkout's `sdks/typescript/*` and `sdks/wasm`. **First run `pnpm build:packages` in the checkout** — the linked TS packages resolve to their built `dist/`, which a fresh checkout does not have, so a `--dev` scaffold that skips the build appears to fail at install. (`link:` symlinks under pnpm/yarn; the scaffolder falls back to `file:` when the project's package manager is plain `npm`.)
 
 OpenAPI (this row only): `scripts/describe.mjs` + `scripts/scaffold.mjs` per [../from-openapi/guide.md](../from-openapi/guide.md).
 

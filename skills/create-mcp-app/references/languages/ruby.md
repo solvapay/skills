@@ -67,9 +67,8 @@ Replace the placeholder in `tools.rb`. Register additional paid tools in `regist
 
 ```bash
 node scripts/check-toolchain.mjs --language ruby
-node scripts/scaffold-app.mjs ./my-mcp --language ruby --tool-name generate_haiku
-npm create solvapay@latest my-mcp -- --type mcp --language ruby --no-openapi --tool-name generate_haiku
-npx -y solvapay@latest init --language ruby
+node scripts/scaffold-app.mjs ./my-mcp --language ruby --tool-name generate_haiku --dev
+npx -y solvapay@latest init
 bundle install
 ./scripts/http.sh     # :3030
 ```
@@ -89,6 +88,9 @@ If the gate printed `ok checkout`, pass `--dev` so the Gemfile uses `gem "solvap
 ## Troubleshooting
 
 - Missing `bundle`: `gem install bundler`.
-- RubyGems 404 for `solvapay` / `solvapay-mcp`: expected until publish. Use `--dev` + `SOLVAPAY_SDK_ROOT`.
+- Gate `fail missing-ruby-headers`: the interpreter is present but `RbConfig::CONFIG["rubyhdrdir"]` is missing. Install `ruby-dev` (Debian/Ubuntu) or `ruby-devel` (Fedora/RHEL). On macOS use rbenv/ruby-build or Xcode CLT so `ruby.h` is on disk.
+- `mkmf can't find header files for ruby` / `ruby.h`: same as missing headers — the native gems (`json_schemer` → `bigdecimal`, `rb_sys`) compile C. Install the matching `-dev`/`-devel` package for this Ruby, then retry `bundle install`.
+- `Bundler::PermissionError` writing to the system gem dir: `bundle config set --local path vendor/bundle`, then `bundle install`.
+- RubyGems 404 for `solvapay` / `solvapay-mcp` is the expected steady state. This row installs from a local `solvapay-sdk` checkout (`--dev` + `SOLVAPAY_SDK_ROOT`), not from a package registry.
 - After a checkout path-dep, compile the native gem in the SDK Ruby package if `bundle install` fails on the extension.
 - Scaffolder `⚠️` means install failed — do not continue.

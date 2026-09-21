@@ -76,9 +76,8 @@ Replace the placeholder handler and `PayableTool { name: ... }` in `src/main.rs`
 
 ```bash
 node scripts/check-toolchain.mjs --language rust
-node scripts/scaffold-app.mjs ./my-mcp --language rust --tool-name generate_haiku
-npm create solvapay@latest my-mcp -- --type mcp --language rust --no-openapi --tool-name generate_haiku
-npx -y solvapay@latest init --language rust
+node scripts/scaffold-app.mjs ./my-mcp --language rust --tool-name generate_haiku --dev
+npx -y solvapay@latest init
 cargo fetch
 ./scripts/http.sh     # :3030
 ```
@@ -98,6 +97,6 @@ If the gate printed `ok checkout`, pass `--dev` so `Cargo.toml` uses `solvapay =
 ## Troubleshooting
 
 - Missing `cargo`: https://rustup.rs.
-- crates.io 404 for `solvapay` / `solvapay-mcp`: expected until publish. Use `--dev` + `SOLVAPAY_SDK_ROOT`.
+- crates.io 404 for `solvapay` / `solvapay-mcp` is the expected steady state. This row installs from a local `solvapay-sdk` checkout (`--dev` + `SOLVAPAY_SDK_ROOT`), not from crates.io.
 - First `cargo` build against the checkout compiles the core — several minutes. Timeouts belong on the language row, not a shorter global.
 - Scaffolder `⚠️` means `cargo fetch` failed — do not continue.

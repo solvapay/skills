@@ -19,6 +19,7 @@ using `SCAFFOLDER_SCRIPTS_DIR` or a sibling `solvapay-sdk` checkout:
 
 ```bash
 npm install create-solvapay
+( cd node_modules/create-solvapay/scripts/mcp && npm install )
 ```
 
 For internal dev-mode testing against `https://api-dev.solvapay.com`, use preview tooling and pass `--dev` to the wrappers:
@@ -61,16 +62,16 @@ matches the run:
 # standard (stable) — what end users get
 npm install create-solvapay
 
-# --dev / internal testing — pulls the preview build, which carries
-# preview-only features the skill docs describe (e.g. apiKey-multi).
+# --dev / internal testing — pulls the preview build. Use it when the
+# skill docs describe a scaffolder feature that is not on @latest yet.
 npm install create-solvapay@preview
 ```
 
 Installing stable (`@latest`) while running `--dev` is the trap that bites:
-`scaffold.mjs` rejects preview-only `upstreamAuth.kind` values (such as
-`apiKey-multi`) with ``upstreamAuth.kind` must be one of none, bearer, apiKey,
-oauth2-client-credentials``. `resolve-scaffolder.mjs` warns when it detects a
-stable build under a dev backend, and the wrappers now provide that dev signal
+a preview-only `upstreamAuth.kind` or flag the skill docs mention can fail
+deep in `validateSelections` with a confusing "`upstreamAuth.kind` must be
+one of …" error. `resolve-scaffolder.mjs` warns when it detects a stable
+build under a dev backend, and the wrappers now provide that dev signal
 when `--dev` is passed. Pinning `@preview` at install time avoids the mismatch
 entirely.
 
@@ -87,6 +88,13 @@ node scripts/test.mjs https://my-worker.example.com --spec path/to/openapi.json
 
 ## Source of truth
 
-- **Published package**: `npm create solvapay@latest <name> -- --type mcp`
+- **Published package**: `npm create solvapay@latest <name> -- --type mcp` (TypeScript)
 - **SDK source**: `solvapay-sdk/tools/create-solvapay/scripts/mcp/`
 - **Contracts**: [../references/from-openapi/describe.md](../references/from-openapi/describe.md), [../references/from-openapi/scaffold.md](../references/from-openapi/scaffold.md)
+
+## Local solvapay-sdk follow-ups (not this repo)
+
+Recorded here so they stay tracked. Do not publish anything for them.
+
+1. Wire pin rewriting into the OpenAPI `scripts/mcp/scaffold.mjs` lane. `failOnNotPublished: true` exists only on the from-scratch path, so OpenAPI still copies `templates/mcp/_base/package.json` and emits the unsatisfiable `@solvapay/server ^1.1.0` tree.
+2. `tools/init/src/language/versions.ts` fallbacks point at versions that do not exist on npm (`@solvapay/mcp` 1.0.0, `server` 3.0.0, `react` 3.0.0, `server-wasm` 0.2.0). The registry lane must keep failing loudly via `failOnNotPublished` rather than pinning those fallbacks.

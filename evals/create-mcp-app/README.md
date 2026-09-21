@@ -32,3 +32,15 @@ Harness sets `EVAL_DEV_MODE=1` to append `dev_mode_suffix` from `evals.json` to 
 Internal testing only — production keys are rejected by api-dev.
 
 Per-eval `assertions_dev` for dev codepath verification is deferred; current assertions are dev/prod-agnostic.
+
+## Runner contract (`requires` / `params`)
+
+Import `selectEvals` from [`../lib/select-evals.mjs`](../lib/select-evals.mjs). Skip any eval whose `requires` env vars are unset — do not fail the suite.
+
+Evals 14–17 require `EVAL_REQUIRES_SDK_CHECKOUT`. They assert blocked-gate behavior (`registry-404 no-checkout`): isolate the workspace from a sibling checkout / `SOLVAPAY_SDK_ROOT` so the gate actually prints that line. The env var opts the harness into that isolated run; it does not mean the agent should see a checkout.
+
+Eval 11 is parametrized over `bearer` / `apiKey` / `oauth2-client-credentials`. Eval 9 (`apiKey-multi`) remains the multi-header discriminator against the `apiKey` row.
+
+## Local SDK follow-ups
+
+See [../../skills/create-mcp-app/scripts/README.md](../../skills/create-mcp-app/scripts/README.md#local-solvapay-sdk-follow-ups-not-this-repo). Nothing in this skill publishes packages.

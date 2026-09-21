@@ -4,6 +4,12 @@ import { basename, resolve } from 'node:path'
 import { enableDevEnv, splitDevArgs } from './lib/dev-mode.mjs'
 import { getLanguage, LANGUAGE_IDS } from './lib/languages.mjs'
 import { resolveCreateSolvapayCli } from './lib/resolve-scaffolder.mjs'
+import {
+  assertToolNameForCli,
+  buildCreateSolvapayArgs,
+  probeCliLanguageSupport,
+  resolveLanguageForward,
+} from './lib/scaffold-cli.mjs'
 import { probeLanguage } from './lib/toolchain.mjs'
 
 const HELP = `Usage: node scripts/scaffold-app.mjs <target-dir> --language <id> [flags]
@@ -119,33 +125,44 @@ if (!gate.ok) {
 }
 
 const useDev = parsed.dev || gate.source === 'checkout'
-if (gate.source === 'checkout' && !useDev) {
-  console.error(
-    `Refusing to scaffold ${language.id}: packages are not on the registry. ` +
-      'Re-run with --dev against a solvapay-sdk checkout (SOLVAPAY_SDK_ROOT).',
-  )
+
+const cli = resolveCreateSolvapayCli()
+const supportsLanguage = probeCliLanguageSupport(cli)
+const languageForward = resolveLanguageForward({
+  supportsLanguage,
+  languageId: language.id,
+})
+if (languageForward.error) {
+  console.error(languageForward.error)
+  process.exit(1)
+}
+if (languageForward.omit && languageForward.message) {
+  console.error(languageForward.message)
+}
+
+const toolNameCheck = assertToolNameForCli({
+  supportsLanguage,
+  toolName: parsed.toolName,
+})
+if (!toolNameCheck.ok) {
+  console.error(toolNameCheck.error)
   process.exit(1)
 }
 
-const cli = resolveCreateSolvapayCli()
 const target = resolve(parsed.targetDir)
 const projectName = basename(target)
-const cliArgs = [
+const cliArgs = buildCreateSolvapayArgs({
   cli,
   projectName,
-  '--type',
-  'mcp',
-  '--no-openapi',
-  '--language',
-  language.id,
-  '--yes',
-]
-if (parsed.toolName) cliArgs.push('--tool-name', parsed.toolName)
-if (parsed.modulePath) cliArgs.push('--module', parsed.modulePath)
-if (useDev) cliArgs.push('--dev')
-if (parsed.apiBaseUrl) cliArgs.push('--api-base', parsed.apiBaseUrl)
-if (parsed.skipInit) cliArgs.push('--skip-init')
-if (parsed.skipInstall) cliArgs.push('--skip-install')
+  languageId: language.id,
+  supportsLanguage,
+  toolName: parsed.toolName,
+  modulePath: parsed.modulePath,
+  useDev,
+  apiBaseUrl: parsed.apiBaseUrl,
+  skipInit: parsed.skipInit,
+  skipInstall: parsed.skipInstall,
+})
 
 const env = enableDevEnv(useDev, parsed.apiBaseUrl)
 const result = spawnSync(process.execPath, cliArgs, {

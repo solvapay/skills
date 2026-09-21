@@ -15,25 +15,25 @@ This guide picks up **after** the scaffolder finishes. File layout, registration
 If you haven't scaffolded yet:
 
 ```bash
-npm create solvapay@latest my-mcp -- --type mcp --language <id> --no-openapi
-# or: node scripts/scaffold-app.mjs ./my-mcp --language <id> --tool-name generate_haiku
+npm create solvapay@latest my-mcp -- --type mcp --no-openapi --tool-name helloTool
+# or: node scripts/scaffold-app.mjs ./my-mcp --language <id> --tool-name generateHaiku
 ```
 
-The scaffolder asks for a project name + a tool name (default `helloTool`), then drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
+Published `create-solvapay` is TypeScript-only. It asks for a project name + a camelCase tool name (default `helloTool`), then drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
 
-### Pick the tool name in snake_case
+### Published `--tool-name` is camelCase — rename to snake_case after
 
-Pass the final MCP tool name (snake_case) to `--tool-name`, even though the prompt examples historically used camelCase. The scaffolder uses this value verbatim as both the file name (`src/tools/<tool-name>.ts`) and the `ctx.registerPayable(<tool-name>, ...)` argument. MCP tool names are snake_case by convention (`get_item`, `generate_haiku`, `manage_pet`), and the host UI / LLM grounding both work better when file name, register name, and tool identifier match.
+Published `create-solvapay` rejects snake_case `--tool-name` (`/^[a-z][a-zA-Z0-9]*$/`). Pass camelCase (`helloTool`, `generateHaiku`). MCP tool identifiers should still be snake_case (`get_item`, `generate_haiku`) — rename in source after scaffold. A checkout CLI used by `scaffold-app.mjs` may accept snake_case `--tool-name` directly.
 
 ```bash
-# Right — final tool name is generate_haiku
-npm create solvapay@latest haiku-mcp -- --type mcp --no-openapi --tool-name generate_haiku
-
-# Wrong — produces src/tools/generateHaiku.ts and registerPayable('generateHaiku', ...)
+# Right for published CLI — then rename in source
 npm create solvapay@latest haiku-mcp -- --type mcp --no-openapi --tool-name generateHaiku
+
+# Wrong on published CLI — rejected by TOOL_NAME_RE
+npm create solvapay@latest haiku-mcp -- --type mcp --no-openapi --tool-name generate_haiku
 ```
 
-If you've already scaffolded with a camelCase `--tool-name`, fix it in three places before continuing:
+After a camelCase `--tool-name`, fix it in three places before continuing:
 1. Rename `src/tools/<camelCaseName>.ts` → `src/tools/<snake_case_name>.ts`.
 2. Change the `ctx.registerPayable('<camelCaseName>', { ... })` first argument to `'<snake_case_name>'`.
 3. Update the `import` and `register*()` call in `src/tools/index.ts` to point at the new file path (the exported function name like `registerGenerateHaiku` is fine to keep PascalCase — that's the JS function, not the MCP identifier).

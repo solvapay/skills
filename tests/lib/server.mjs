@@ -47,6 +47,29 @@ function waitForPort(port, timeoutMs) {
 }
 
 /**
+ * wrangler binds TCP before workerd accepts HTTP. Handshake `fetch failed`
+ * if we proceed on the first listen.
+ * @param {number} port
+ * @param {number} timeoutMs
+ */
+export async function waitForHttp(port, timeoutMs) {
+  const started = Date.now()
+  let last = 'no request yet'
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/`, {
+        signal: AbortSignal.timeout(2_000),
+      })
+      if (response) return
+    } catch (error) {
+      last = error instanceof Error ? error.message : String(error)
+    }
+    await new Promise(resolve => setTimeout(resolve, 400))
+  }
+  throw new Error(`timed out waiting for HTTP on 127.0.0.1:${port} (${last})`)
+}
+
+/**
  * @param {object} input
  * @param {import('../../skills/create-mcp-app/scripts/lib/languages.mjs').LanguageRow} input.language
  * @param {string} input.cwd
@@ -75,6 +98,7 @@ export async function startServer(input) {
 
   try {
     await waitForPort(language.e2ePort, language.timeoutMs)
+    await waitForHttp(language.e2ePort, Math.min(language.timeoutMs, 60_000))
     flush()
   } catch (error) {
     flush()

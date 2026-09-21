@@ -33,7 +33,16 @@ export async function registryReachable(url) {
 }
 
 /**
- * Uniform gate: binaries present, then registry or checkout fallback.
+ * Uniform gate: binaries present, then language probes (e.g. Ruby headers),
+ * then a checkout wins, else the registry.
+ *
+ * Precedence is checkout-before-registry on purpose. A local solvapay-sdk
+ * checkout is the local-only source of truth: when one is present the skill
+ * must scaffold with `--dev` (path deps) against it, so the checkout has to
+ * win the lane decision even when the registry is also reachable. Otherwise a
+ * present, valid checkout would still print `ok registry` and the agent would
+ * scaffold into the published lane (F2). An invalid `SOLVAPAY_SDK_ROOT` is a
+ * hard error — never a silent fall-through to the registry.
  * @param {import('./languages.mjs').LanguageRow} language
  * @returns {Promise<{ id: string, ok: boolean, source: 'registry' | 'checkout' | 'none', line: string }>}
  */
@@ -49,13 +58,16 @@ export async function probeLanguage(language) {
     }
   }
 
-  const published = await registryReachable(language.registry)
-  if (published) {
-    return {
-      id: language.id,
-      ok: true,
-      source: 'registry',
-      line: `${language.id} ok registry`,
+  for (const probe of language.probes ?? []) {
+    try {
+      execFileSync(probe.command, [...probe.args], { stdio: 'ignore' })
+    } catch {
+      return {
+        id: language.id,
+        ok: false,
+        source: 'none',
+        line: `${language.id} fail missing-${probe.id} ${probe.install}`,
+      }
     }
   }
 
@@ -77,6 +89,16 @@ export async function probeLanguage(language) {
       ok: true,
       source: 'checkout',
       line: `${language.id} ok checkout`,
+    }
+  }
+
+  const published = await registryReachable(language.registry)
+  if (published) {
+    return {
+      id: language.id,
+      ok: true,
+      source: 'registry',
+      line: `${language.id} ok registry`,
     }
   }
 

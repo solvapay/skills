@@ -45,6 +45,13 @@ export function assertPromptCatalog(names, expected = PROMPT_NAMES) {
 }
 
 /**
+ * Both branches of `paywall_structured_content_schema`
+ * (core/solvapay-core/src/paywall_gate.rs).
+ */
+export const GATE_KINDS = Object.freeze(['payment_required', 'activation_required'])
+const GATE_REQUIRED_KEYS = Object.freeze(['product', 'checkoutUrl', 'message', 'shortMessage'])
+
+/**
  * @param {unknown} envelope
  */
 export function assertPaywallGate(envelope) {
@@ -61,7 +68,17 @@ export function assertPaywallGate(envelope) {
     throw new Error('gate narration must be text-only in content[0].text')
   }
   const structured = record.structuredContent
-  if (!structured || typeof structured !== 'object' || !('gate' in structured)) {
-    throw new Error('gate response missing structuredContent.gate')
+  if (!structured || typeof structured !== 'object') {
+    throw new Error('gate response missing structuredContent')
+  }
+  const gate = /** @type {Record<string, unknown>} */ (structured)
+  if (typeof gate.kind !== 'string' || !GATE_KINDS.includes(gate.kind)) {
+    throw new Error(
+      `structuredContent.kind must be one of ${GATE_KINDS.join(', ')} — got ${JSON.stringify(gate.kind)}`,
+    )
+  }
+  const missing = GATE_REQUIRED_KEYS.filter(key => typeof gate[key] !== 'string')
+  if (missing.length > 0) {
+    throw new Error(`gate ${gate.kind} missing required string fields: ${missing.join(', ')}`)
   }
 }

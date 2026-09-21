@@ -162,6 +162,10 @@ Before handoff, skim the generated README and `.env.example` for mode/auth accur
 
 If the package template source is available locally, fix it there. If not, patch the generated README in the project and list the upstream template change as a follow-up.
 
+## Install pins (ERESOLVE)
+
+`scaffold.mjs` copies `templates/mcp/_base/package.json` verbatim. Published pins `@solvapay/mcp ^0.3.0` / `@solvapay/react ^1.2.0` / `@solvapay/server ^1.1.0`. `@solvapay/mcp@0.3.0` requires `@solvapay/server "^1.4.0 || ^2.0.0"` — unsatisfiable. After scaffold, edit `package.json` to `@solvapay/mcp` 0.4.1, `@solvapay/react` 2.2.1, `@solvapay/server` 2.5.0, then `npm install`. `--legacy-peer-deps` is not the fix.
+
 ## What it refuses to do
 
 - Overwrite an existing `<target-dir>`. Re-running scaffold against an existing project is an open follow-up. Delete and re-run for now.

@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { resolveCreateSolvapayCli } from '../../skills/create-mcp-app/scripts/lib/resolve-scaffolder.mjs'
 import { waiversFor } from './waivers.mjs'
@@ -55,14 +55,21 @@ export function scaffoldLane(input) {
       `SOLVAPAY_SECRET_KEY=${secretKey}`,
       `SOLVAPAY_PRODUCT_REF=${productRef}`,
       `SOLVAPAY_API_BASE_URL=${apiBase}`,
-      `MCP_PUBLIC_BASE_URL=http://localhost:${language.e2ePort}`,
+      `MCP_PUBLIC_BASE_URL=http://127.0.0.1:${language.e2ePort}`,
       `MCP_PORT=${language.e2ePort}`,
       '',
     ].join('\n'),
   )
+  writeWranglerLocalBindings(workspace, {
+    secretKey,
+    productRef,
+    apiBase,
+    publicBaseUrl: `http://127.0.0.1:${language.e2ePort}`,
+  })
 
   applySeedFiles(workspace, language)
   applyFileDeps(workspace, language, process.env.SOLVAPAY_SDK_ROOT)
+  reinstallPathPackages(workspace, language)
 
   const applied = new Set()
 
@@ -96,6 +103,55 @@ export function scaffoldLane(input) {
  * @param {string} workspace
  * @param {{ seedFiles: readonly { path: string, contents: string }[] }} language
  */
+/**
+ * Wrangler reads Worker secrets from `.dev.vars` and vars from wrangler.jsonc.
+ * A project `.env` alone does not bind SOLVAPAY_SECRET_KEY for `wrangler dev`.
+ * @param {string} workspace
+ * @param {{ secretKey: string, productRef: string, apiBase: string, publicBaseUrl: string }} bindings
+ */
+export function writeWranglerLocalBindings(workspace, bindings) {
+  writeFileSync(
+    join(workspace, '.dev.vars'),
+    [
+      `SOLVAPAY_SECRET_KEY=${bindings.secretKey}`,
+      `SOLVAPAY_PRODUCT_REF=${bindings.productRef}`,
+      `SOLVAPAY_API_BASE_URL=${bindings.apiBase}`,
+      `MCP_PUBLIC_BASE_URL=${bindings.publicBaseUrl}`,
+      '',
+    ].join('\n'),
+  )
+  const wranglerPath = join(workspace, 'wrangler.jsonc')
+  if (!existsSync(wranglerPath)) return
+  let raw = readFileSync(wranglerPath, 'utf8')
+  raw = raw.replace(
+    /"SOLVAPAY_PRODUCT_REF":\s*"[^"]*"/,
+    `"SOLVAPAY_PRODUCT_REF": "${bindings.productRef}"`,
+  )
+  raw = raw.replace(
+    /"MCP_PUBLIC_BASE_URL":\s*"[^"]*"/,
+    `"MCP_PUBLIC_BASE_URL": "${bindings.publicBaseUrl}"`,
+  )
+  if (!/"SOLVAPAY_API_BASE_URL"/.test(raw)) {
+    raw = raw.replace(
+      /"vars":\s*\{/,
+      `"vars": {\n    "SOLVAPAY_API_BASE_URL": "${bindings.apiBase}",`,
+    )
+  } else {
+    raw = raw.replace(
+      /"SOLVAPAY_API_BASE_URL":\s*"[^"]*"/,
+      `"SOLVAPAY_API_BASE_URL": "${bindings.apiBase}"`,
+    )
+  }
+  if (!/"alias"\s*:/.test(raw)) {
+    raw = raw.replace(
+      /"compatibility_flags":\s*\[[^\]]*\]/,
+      match =>
+        `${match},\n  "alias": {\n    "@solvapay/server": "./node_modules/@solvapay/server/dist/edge.js",\n    "@solvapay/mcp/fetch": "./node_modules/@solvapay/mcp/dist/fetch/edge.js"\n  }`,
+    )
+  }
+  writeFileSync(wranglerPath, raw)
+}
+
 function applySeedFiles(workspace, language) {
   for (const file of language.seedFiles) {
     const path = join(workspace, file.path)
@@ -109,38 +165,57 @@ function applySeedFiles(workspace, language) {
  * @param {import('./surfaces.mjs').Waiver[]} stubs
  * @param {{ manifest: string, install: { command: string, args: readonly string[] } }} language
  */
+/**
+ * @param {{ id: string, name?: string, version?: string, checkoutRel?: string }} stub
+ * @param {string | undefined} sdkRoot
+ * @param {string} workspace
+ */
+export function stubPackageSpec(stub, sdkRoot, workspace) {
+  if (stub.checkoutRel) {
+    if (!sdkRoot) {
+      throw new Error(`stub ${stub.id} checkoutRel requires SOLVAPAY_SDK_ROOT`)
+    }
+    const target = join(sdkRoot, stub.checkoutRel)
+    if (!existsSync(target)) {
+      throw new Error(`stub ${stub.id} checkoutRel missing: ${target}`)
+    }
+    return `file:${target}`
+  }
+  if (!stub.name || !stub.version) {
+    throw new Error(`stub waiver ${stub.id} is missing name or version`)
+  }
+  const dir = join(workspace, '.e2e-stubs', stub.name.replace(/^@/, '').replace('/', '-'))
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(
+    join(dir, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: stub.name,
+        version: stub.version,
+        type: 'module',
+        exports: { './browser-js': './browser-js.js', '.': './browser-js.js' },
+      },
+      null,
+      2,
+    )}\n`,
+  )
+  writeFileSync(
+    join(dir, 'browser-js.js'),
+    [
+      "export const SOLVAPAY_BROWSER_JS_CORE = 'solvapay-browser-js-core'",
+      "export function resolveDisplayMode() { return JSON.stringify({ ok: true, value: { mode: 'inline' } }) }",
+      '',
+    ].join('\n'),
+  )
+  return `file:${dir}`
+}
+
 function applyStubs(workspace, language, stubs) {
   const manifestPath = join(workspace, language.manifest)
   const pkg = JSON.parse(readFileSync(manifestPath, 'utf8'))
   pkg.dependencies = pkg.dependencies ?? {}
   for (const stub of stubs) {
-    if (!stub.name || !stub.version) {
-      throw new Error(`stub waiver ${stub.id} is missing name or version`)
-    }
-    const dir = join(workspace, '.e2e-stubs', stub.name.replace(/^@/, '').replace('/', '-'))
-    mkdirSync(dir, { recursive: true })
-    writeFileSync(
-      join(dir, 'package.json'),
-      `${JSON.stringify(
-        {
-          name: stub.name,
-          version: stub.version,
-          type: 'module',
-          exports: { './browser-js': './browser-js.js', '.': './browser-js.js' },
-        },
-        null,
-        2,
-      )}\n`,
-    )
-    writeFileSync(
-      join(dir, 'browser-js.js'),
-      [
-        "export const SOLVAPAY_BROWSER_JS_CORE = 'solvapay-browser-js-core'",
-        "export function resolveDisplayMode() { return JSON.stringify({ ok: true, value: { mode: 'inline' } }) }",
-        '',
-      ].join('\n'),
-    )
-    pkg.dependencies[stub.name] = `file:${dir}`
+    pkg.dependencies[stub.name] = stubPackageSpec(stub, process.env.SOLVAPAY_SDK_ROOT, workspace)
   }
   writeFileSync(manifestPath, `${JSON.stringify(pkg, null, 2)}\n`)
   const install = spawnSync(language.install.command, [...language.install.args], {
@@ -180,9 +255,10 @@ function applyFileDeps(workspace, language, sdkRoot) {
   }
   const manifestPath = join(workspace, language.manifest)
   const pkg = JSON.parse(readFileSync(manifestPath, 'utf8'))
+  pkg.dependencies = pkg.dependencies ?? {}
   for (const dep of language.fileDeps) {
     const spec = `file:${join(sdkRoot, dep.rel)}`
-    if (pkg.dependencies?.[dep.name]) pkg.dependencies[dep.name] = spec
+    pkg.dependencies[dep.name] = spec
     if (pkg.devDependencies?.[dep.name]) pkg.devDependencies[dep.name] = spec
   }
   writeFileSync(manifestPath, `${JSON.stringify(pkg, null, 2)}\n`)
@@ -192,5 +268,30 @@ function applyFileDeps(workspace, language, sdkRoot) {
   })
   if (install.status !== 0) {
     throw new Error(`fileDeps reinstall failed: ${install.stderr || install.stdout}`)
+  }
+}
+
+/**
+ * Force uv (or the language installer) to rebuild checkout path deps.
+ * Stale wheels keep an old `solvapay-mcp` and break tools/list.
+ * @param {string} workspace
+ * @param {{ reinstallPackages: readonly string[], install: { command: string, args: readonly string[] } }} language
+ */
+export function pathReinstallArgs(language) {
+  return [
+    ...language.install.args,
+    ...language.reinstallPackages.flatMap(name => ['--reinstall-package', name]),
+  ]
+}
+
+export function reinstallPathPackages(workspace, language) {
+  if (language.reinstallPackages.length === 0) return
+  const args = pathReinstallArgs(language)
+  const install = spawnSync(language.install.command, args, {
+    cwd: workspace,
+    encoding: 'utf8',
+  })
+  if (install.status !== 0) {
+    throw new Error(`path-dep reinstall failed: ${install.stderr || install.stdout}`)
   }
 }

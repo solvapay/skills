@@ -10,6 +10,7 @@ and nothing else.
   ts ok registry
   python ok checkout
   ruby fail missing-bin bundle (https://bundler.io)
+  ruby fail missing-ruby-headers ruby-dev (Debian/Ubuntu) or ruby-devel (Fedora/RHEL)
 
 Exit 0 when every printed language passes. Exit 1 when any fail.
 `
@@ -41,7 +42,7 @@ for (const result of results) {
 if (results.some(result => !result.ok)) {
   process.stderr.write(
     `Toolchain gate failed. Valid languages: ${LANGUAGE_IDS.join(', ')}.\n` +
-      'Install the missing binary, or set SOLVAPAY_SDK_ROOT to a solvapay-sdk checkout.\n',
+        'Install the missing binary or headers, or set SOLVAPAY_SDK_ROOT to a solvapay-sdk checkout.\n',
   )
   process.exit(1)
 }

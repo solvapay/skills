@@ -297,6 +297,9 @@ try {
       workspace,
       scaffoldLog,
       credentialsFile: env.credentialsFile,
+      apiBase: env.apiBase,
+      secretKey: env.secretKey,
+      productRef: env.productRef,
     }
     const lane = {
       probeWaivers: parsed.probeWaivers,

@@ -27,13 +27,18 @@ SOLVAPAY_SDK_ROOT=/absolute/path/to/solvapay-sdk
 
 `SOLVAPAY_PRODUCT_REF` must be a product that exists for `SOLVAPAY_SECRET_KEY` on `SOLVAPAY_API_BASE_URL`. Do not commit a real product into the repo — update gitignored `tests/.env.local`.
 
-Optional: `MCP_TEST_CREDENTIALS_FILE` with `{ "accessToken": "…" }` to run the paywall-gate case. Without it that case is `skipped`, never `passed`.
+The paywall-gate case needs a customer bearer, and the harness mints one itself: it creates (idempotently) a harness customer with `SOLVAPAY_SECRET_KEY`, plants a known bcrypt hash on `metadata.oauth.passwordHash`, then drives DCR → login → consent → token against the same stack (`tests/lib/customer-token.mjs`). No extra env is needed.
+
+The token is bound to one lane. Scaffolded servers verify it by calling `GET /v1/customer/auth/userinfo` and re-checking the claims, so it must carry `iss=http://127.0.0.1:<lane port>` and `aud=http://127.0.0.1:<lane port>/mcp` — which is why a token is minted per lane from that lane's own port (`ts` is `8787`, the other four share `13030`).
+
+Optional: `MCP_TEST_CREDENTIALS_FILE` with `{ "accessToken": "…" }` overrides the minting for one manual token. It must be audience-bound to the lane you run, and access tokens expire after about an hour, so it cannot cover a full `--all` run.
 
 SDK traffic must use `:3010` (provider-app proxy). Never `:3001`.
 
 ## Run
 
 ```bash
+npm run test:unit
 npm run test:e2e -- --lang python
 npm run test:e2e:all
 node tests/run.mjs --lang ts --keep --verbose
@@ -50,7 +55,7 @@ Default output is one summary line per lane. Logs land in `tests/workspaces/<id>
 | --- | --- | --- |
 | `pass` | Case succeeded on an unpatched tree (or a tree whose waivers do not target this case) | 0 |
 | `xfail` | Case is covered by a declared waiver. The tree was patched for that case. Never reported as `pass` | 0 |
-| `skip` | Case could not run (missing customer token, no paid tool) | 0 |
+| `skip` | Case could not run (no merchant paid tool in `tools/list`) | 0 |
 | `FAIL` | Unexpected failure, stale waiver, unknown breakage, or ineffective waiver | 1 |
 
 `--strict` exits non-zero on any `xfail` or `skipped` result. Use it on a release branch when the waiver set must be empty.

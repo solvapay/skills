@@ -67,9 +67,8 @@ Replace the placeholder in `tools.py`. Add further paid tools in the same file (
 
 ```bash
 node scripts/check-toolchain.mjs --language python
-node scripts/scaffold-app.mjs ./my-mcp --language python --tool-name generate_haiku
-npm create solvapay@latest my-mcp -- --type mcp --language python --no-openapi --tool-name generate_haiku
-npx -y solvapay@latest init --language python
+node scripts/scaffold-app.mjs ./my-mcp --language python --tool-name generate_haiku --dev
+npx -y solvapay@latest init
 uv sync
 ./scripts/http.sh     # :3030
 ```
@@ -89,7 +88,10 @@ If the gate printed `ok checkout`, pass `--dev` to the scaffolder so `pyproject.
 ## Troubleshooting
 
 - Missing `uv`: https://docs.astral.sh/uv/ — required for `uv sync` and `http.sh`.
-- PyPI 404 for `solvapay` / `solvapay-mcp`: expected until publish. Use `--dev` + `SOLVAPAY_SDK_ROOT`.
+- PyPI 404 for `solvapay` / `solvapay-mcp` is the expected steady state. This row installs from a local `solvapay-sdk` checkout (`--dev` + `SOLVAPAY_SDK_ROOT`), not from a package registry.
 - `uv sync` builds the native extension via PEP 517; a missing global `maturin` is not a blocker.
+- `--dev` path deps are **not** uv-editable. That keeps the PyO3 `.so` out of the checkout's shared `target/`. Do not add `editable = true` to the generated `[tool.uv.sources]` — a leftover Mac dylib in that `target/` wins over a fresh Linux build (`invalid ELF header`).
+- After changing checkout Python sources, stale uv wheels keep the old files. Run `uv cache clean solvapay-mcp` (and `solvapay` if the facade changed) before the next `uv sync`.
+- If you must compile against the checkout, set `CARGO_TARGET_DIR` to a directory **outside** the SDK tree so a foreign-platform artifact cannot shadow the build.
 - Scaffolder `⚠️` means install failed — do not continue.
 - First `uv sync` against a checkout can take several minutes.

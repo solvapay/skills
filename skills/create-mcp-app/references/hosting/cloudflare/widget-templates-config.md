@@ -32,9 +32,9 @@ Widget, scripts, and env templates: [widget-templates-widget-and-scripts.md](wid
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "@solvapay/mcp": "^0.2.5",
-    "@solvapay/react": "^1.2.0",
-    "@solvapay/server": "^1.1.0",
+    "@solvapay/mcp": "0.4.1",
+    "@solvapay/react": "2.2.1",
+    "@solvapay/server": "2.5.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "zod": "^4.3.6"

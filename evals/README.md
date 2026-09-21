@@ -76,6 +76,8 @@ Legacy path `evals/<skill>/iterations/` is also gitignored.
 | `skill_name` | yes | Short name matching eval directory |
 | `dev_mode_suffix` | no | Appended to every `prompt` when `EVAL_DEV_MODE=1` (create-mcp-app only today) |
 | `evals[]` | yes | Cases: `id`, `slug`, `prompt`, `expected_output`, `files`, `assertions` |
+| `evals[].requires` | no | Env var names that must be set. Skip the case (do not fail) when any is absent. Helpers: `evals/lib/select-evals.mjs`. |
+| `evals[].params` | no | Expand one case into N runs; interpolate `{{key}}` in `prompt` / `assertions` / `expected_output` from each row. |
 
 Handoff / router cases assert **skill id** (`solvapay/sdk-integration`), not filesystem `../` paths.
 
@@ -86,6 +88,7 @@ Handoff / router cases assert **skill id** (`solvapay/sdk-integration`), not fil
 | `SKILLS_REPO` | Absolute path to this repo; substitute for `<skills-repo>` in prompts |
 | `SCAFFOLDER_SCRIPTS_DIR` | Override for `create-solvapay/scripts/mcp` when bundled scripts cannot resolve |
 | `EVAL_DEV_MODE=1` | Append `dev_mode_suffix` from `evals/create-mcp-app/evals.json` |
+| `EVAL_REQUIRES_SDK_CHECKOUT=1` | Run create-mcp-app evals 14–17 (Python / Ruby / Go / Rust blocked-gate cases). Skip them when unset. |
 
 **Placeholders in prompts:** `<skills-repo>`, `<skill-path>` — never commit machine-specific absolute paths.
 

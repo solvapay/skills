@@ -59,9 +59,8 @@ Replace the placeholder in `tools.go`. Add further `RegisterPayable` calls from 
 
 ```bash
 node scripts/check-toolchain.mjs --language go
-node scripts/scaffold-app.mjs ./my-mcp --language go --tool-name generate_haiku --module github.com/you/my-mcp
-npm create solvapay@latest my-mcp -- --type mcp --language go --no-openapi --tool-name generate_haiku --module github.com/you/my-mcp
-npx -y solvapay@latest init --language go
+node scripts/scaffold-app.mjs ./my-mcp --language go --tool-name generate_haiku --module github.com/you/my-mcp --dev
+npx -y solvapay@latest init
 go mod tidy
 ./scripts/http.sh     # :3030
 ```
@@ -81,6 +80,6 @@ If the gate printed `ok checkout`, pass `--dev` so `go.mod` gets a `replace … 
 ## Troubleshooting
 
 - Missing `go`: https://go.dev/dl.
-- Go proxy 404 for `github.com/solvapay/solvapay-sdk/sdks/go`: expected until the module is published. Use `--dev` + `SOLVAPAY_SDK_ROOT`.
+- Go proxy 404 for `github.com/solvapay/solvapay-sdk/sdks/go` is the expected steady state. This row installs from a local `solvapay-sdk` checkout (`--dev` + `SOLVAPAY_SDK_ROOT`), not from a module proxy.
 - Scaffolder `⚠️` means `go mod tidy` failed — do not continue.
 - `--module` is the `module` path in `go.mod`. Pick it before scaffold; renaming later means rewriting the module line and imports.

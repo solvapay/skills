@@ -12,8 +12,8 @@ const CLI_REL = 'tools/create-solvapay/dist/cli.js'
 /**
  * Warn when a stable (`@latest`) create-solvapay is resolved while a dev
  * signal is present. Dev mode is meant to run the `@preview` dist-tag
- * (which carries preview-only features like `apiKey-multi`); a stable
- * build there fails deep in `validateSelections` with a confusing
+ * (preview-only scaffolder features that are not on @latest yet); a
+ * stable build there fails deep in `validateSelections` with a confusing
  * "`upstreamAuth.kind` must be one of …" error. Catch the mismatch early.
  * @param {string} mcpDir Absolute path to create-solvapay/scripts/mcp
  */

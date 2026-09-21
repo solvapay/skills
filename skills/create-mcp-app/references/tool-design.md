@@ -65,7 +65,7 @@ Some tools are not paid — catalogue reads, status pings. Register them on the 
 
 ## Hide transport tools from text hosts
 
-Pass the factory option that hides UI-only virtual tools from `tools/list` (`hideToolsByAudience: ['ui']` on TypeScript; the other language factories hide them by default). Always hide unless you have a specific reason not to.
+Pass the factory option that hides UI-only virtual tools from `tools/list`. TypeScript is the one row that must opt in explicitly: `hideToolsByAudience: ['ui']`. Go, Python, and Rust hide the `ui` audience by default (Rust's `McpHttpConfig` defaults `hide_audiences` to `["ui"]`; pass `Some(vec![])` to disable). Always hide unless you have a specific reason not to.
 
 ## Annotations
 
