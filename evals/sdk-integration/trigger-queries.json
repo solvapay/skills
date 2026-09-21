@@ -9,7 +9,7 @@
   { "query": "add solvapay to existing mcp server dont rescaffold one shot", "should_trigger": true, "split": "validation" },
   { "query": "i need cancel renewal and reactivate plan wired w solvapay sdk its broken rn", "should_trigger": true, "split": "validation" },
   { "query": "solvapay fetch handler in my supabase edge function pls wire it up", "should_trigger": true, "split": "validation" },
-  { "query": "scaffold brand new paid mcp from openapi", "should_trigger": false, "split": "train" },
+  { "query": "paid MCP server in Python from scratch", "should_trigger": false, "split": "train" },
   { "query": "npm create solvapay --type mcp greenfield worker", "should_trigger": false, "split": "train" },
   { "query": "need hosted checkout nextjs marketing site asap", "should_trigger": false, "split": "train" },
   { "query": "openapi to mcp cloudflare workers", "should_trigger": false, "split": "train" },

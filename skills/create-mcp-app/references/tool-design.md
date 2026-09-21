@@ -1,6 +1,14 @@
-# Tool Design for SolvaPay MCP Apps
+# Tool design for SolvaPay MCP apps
 
-Intent-driven composition for paywalled MCP tools. Read this before writing any `registerPayable(...)` or `registerFree(...)` call.
+Intent-driven composition for paywalled MCP tools. Read this before writing any paid-tool registration. Syntax for the chosen language is in **one** file from the table below — never a second language file.
+
+| Language | Paid | Free-capped | Unlimited free | Respond | File |
+| --- | --- | --- | --- | --- | --- |
+| TypeScript | `ctx.registerPayable(name, { schema, handler })` | `ctx.registerFree` (TypeScript only) | `ctx.server.registerTool` | `c.respond(data, { text })` | [languages/ts.md](languages/ts.md) |
+| Python | `register_payable_tool(server, name, solvapay=, product=, handler=)` | — | host MCP server register | `ctx.respond(data, {"text": ...})` | [languages/python.md](languages/python.md) |
+| Ruby | `engine.register_payable(name, product:, handler:)` | — | host MCP server register | `ctx.respond(data)` | [languages/ruby.md](languages/ruby.md) |
+| Go | `srv.RegisterPayable(name, solvapaymcp.Options{...})` | — | host MCP server register | `rc.Respond(data, map[string]any{"text": ...})` | [languages/go.md](languages/go.md) |
+| Rust | `server.register_payable(PayableTool{...}, handler, None)` | — | host MCP server register | `ctx.respond(json!(data), Some(json!({"text": ...})))` | [languages/rust.md](languages/rust.md) |
 
 ## Contents
 
@@ -14,12 +22,11 @@ Intent-driven composition for paywalled MCP tools. Read this before writing any 
 - Annotations
 - Slash-command prompts
 - Tool-naming guardrails
-- Wiring into the server
 - Anti-patterns
 
 ## Core principle
 
-**Data-in, host-rendered-out.** Tools return data (text or `structuredContent`) regardless of domain — data, search, integrations, actions, computations, content — and the host LLM (Claude, ChatGPT, Cursor, MCP Inspector, …) decides how to present it. For the common case this is the whole surface — stay here. If a specific tool genuinely needs a custom graphical widget, keep the server + paywall wiring from this skill and add the UI surface via [mcp-apps-ui.md](mcp-apps-ui.md) (server wiring in [mcp-server-wiring.md](mcp-server-wiring.md)).
+**Data-in, host-rendered-out.** Tools return data (text or `structuredContent`) regardless of domain. The host LLM decides presentation. Custom graphical widgets are an opt-in module: [mcp-apps-ui.md](mcp-apps-ui.md).
 
 ## Three response modes
 
@@ -27,52 +34,43 @@ Every paid or free-capped tool response is in one of three modes. Know which bef
 
 | Mode | When | Surface |
 | --- | --- | --- |
-| **Silent** | Merchant's tool returned data, customer is within limits. The common case. | Data only. No iframe, no card, no upsell. |
-| **Nudge** | Data returned *and* something is worth flagging (low balance, cycle ending, approaching limit). | Dismissible inline strip. Never blocks. |
-| **Gate** | Data could *not* be returned. Customer is out of credits, needs to upgrade, or a `registerFree` allowance is exhausted (`paywallReason: 'limit_reached'`). | **Text-only** narration in `content[0].text` naming the recovery intent tool. `structuredContent` carries a `gate` payload with `checkoutUrl` for programmatic consumers. **The widget iframe does not auto-open.** |
+| **Silent** | Merchant tool returned data, customer has balance / is within limits. | Data only. No iframe. |
+| **Nudge** | Data returned *and* something is worth flagging. | Dismissible strip. Never blocks. |
+| **Gate** | Data could not be returned (out of credits, or a `registerFree` allowance exhausted with `paywallReason: 'limit_reached'`). | **Text-only** narration in `content[0].text` naming the recovery intent. `structuredContent` carries a `gate` payload. The widget iframe does not auto-open. |
 
-On a gate, the user (or LLM) reads the narration and decides whether to invoke a recovery intent tool. Only that deliberate invocation mounts the iframe. This is the non-intrusive contract — do not work around it.
+On a gate, the user (or LLM) reads the narration and decides whether to invoke a recovery intent tool. Only that deliberate invocation mounts the iframe.
 
 ## Intent composition with recovery tools
 
-Every paid business tool pairs with the built-in recovery intents, which ship for free from `@solvapay/mcp` when you use `createSolvaPayMcpFetch` / `createSolvaPayMcpServer`:
+The factory registers these for free:
 
-| Intent tool | Purpose |
+| Surface | Purpose |
 | --- | --- |
-| `account` | Read-only billing viewer. Pass optional `view: 'checkout' \| 'account' \| 'topup'`; omit `view` and the server picks. Mounts the checkout, account, or top-up widget. Slash prompts `/upgrade`, `/manage_account`, and `/topup` remap onto this tool with the matching `view`. |
-| `activate_plan` | Activate a specific plan by `planRef`. Mutator only — no bootstrap payload, no `_meta.ui.resourceUri`. To list plans, call `account` with `view: "checkout"`. |
+| `account` | Read-only billing viewer. Optional `view: 'checkout' \| 'account' \| 'topup'`. Slash prompts `/upgrade`, `/manage_account`, `/topup` remap onto `account` with that `view`. |
+| `activate_plan` | Activate a plan by `planRef`. Mutator only — no bootstrap payload, no `_meta.ui.resourceUri`. List plans via `account` with `view: "checkout"`. |
 
-`registerPayable` and `registerFree` write the gate narration for you; they name `` `account` `` with the appropriate `view` (or `` `activate_plan` `` when a `planRef` is known) based on the customer's state. You don't compose the narration yourself.
+Paid and free-capped registration write the gate narration. They name `` `account` `` (or `` `activate_plan` `` when a `planRef` is known). You do not compose that narration.
+
+UI transport tools (`create_hosted_session`, `set_renewal`, `get_history`, payment helpers) stay hidden from text hosts — see below.
 
 ## `_meta.ui.resourceUri` rule
 
-Never set `_meta.ui.resourceUri` on merchant payable tools. Per SEP-1865, hosts MUST open the iframe on every call when a tool advertises this — which flashes an empty widget on every silent success. `registerPayable` deliberately does not accept `resourceUri`; don't work around it by calling the lower-level `registerPayableTool` with it either.
+Never set `_meta.ui.resourceUri` on merchant payable tools. SEP-1865 requires hosts to open the iframe on every advertised call, which flashes an empty widget on silent success. Paid registration does not accept `resourceUri`; do not work around it.
 
-`_meta.ui.resourceUri` lives only on the `account` viewer descriptor, where calling it is the user's explicit intent to open the UI. `` `activate_plan` `` is a mutator only — no `resourceUri`.
+`_meta.ui.resourceUri` lives only on the `account` viewer. `activate_plan` is a mutator — no `resourceUri`.
 
 ## Artifact rendering on success
 
-For successful calls, put business data in `structuredContent` via `ctx.respond(payload, { text: narration })`. Write the narration as an explicit render instruction so capable hosts (Claude artifacts, ChatGPT Apps) present the data well:
-
-```ts
-return ctx.respond(
-  { items, total, currency: 'USD' },
-  {
-    text: `Returned ${items.length} matching items. Render this as a table with columns: name, price, stock. Show the total at the bottom.`,
-  },
-)
-```
-
-The host LLM reads the narration to decide presentation (table, card, list, chart), and the `structuredContent` carries the raw data for programmatic consumers.
+Put business data in `structuredContent` via the language's respond helper. Write narration as an explicit render instruction (table, card, list, chart). Programmatic consumers read the structured payload; the host LLM reads the text.
 
 ## Three tool kinds
 
-Pick one registration API per tool. They are not interchangeable.
+Pick one registration API per tool. They are not interchangeable. **Free-capped (`registerFree`) is TypeScript-only.** Python, Ruby, Go, and Rust have paid + unlimited-free only.
 
-| Kind | Register with | Identity | Counting | Gate |
+| Kind | Register with (TypeScript) | Identity | Counting | Gate |
 | --- | --- | --- | --- | --- |
 | **Paid** | `ctx.registerPayable` | Required | Billable meter | Credits / plan |
-| **Free-capped** | `ctx.registerFree` | **Required** | `free-*` meter, cap in code | `paywallReason: 'limit_reached'` |
+| **Free-capped** | `ctx.registerFree` (TypeScript only) | **Required** | `free-*` meter, cap in code | `paywallReason: 'limit_reached'` |
 | **Unlimited free** | `ctx.server.registerTool` | None | None | None |
 
 `c.respond` is on the handler context for **paid and free-capped**. Unlimited-free handlers hand-roll `{ content, structuredContent }`. Mixing `c.respond` into a `registerTool` callback fails — that helper is not on that signature.
@@ -81,11 +79,11 @@ The highest-cost mix-up: **free-capped is not "free with no auth".** `registerFr
 
 ### Paid (`ctx.registerPayable`)
 
-Usage-based or plan-gated tools. The factory runs the paywall before your handler. Return `c.respond(data, { text: narration })`.
+Usage-based or plan-gated tools. The factory runs the paywall before your handler. Return `c.respond(data, { text: narration })`. Other languages: paid helper from the table at the top.
 
-### Free-capped (`ctx.registerFree`)
+### Free-capped (`ctx.registerFree`) — TypeScript only
 
-An otherwise-free tool with a per-customer cap declared next to the tool. Exhaustion uses the same paywall gate as paid. Requires `@solvapay/mcp@latest` (`@preview` only for `--dev` / api-dev).
+An otherwise-free tool with a per-customer cap declared next to the tool. Exhaustion uses the same paywall gate as paid. Requires `@solvapay/mcp@latest` (`@preview` only for `--dev` / api-dev). Do not invent `register_free` / `RegisterFree` on Python, Ruby, Go, or Rust.
 
 Meter names must match `/^free-[a-z0-9-]+$/`. Omitting `meter` defaults to `free-requests`. Tools that name the same meter share one counter and **must** agree on `cap` / `scope` / `windowDays` or registration throws. Hand the same `limit` object to both.
 
@@ -118,7 +116,7 @@ export function registerPreviewQuote(ctx: AdditionalToolsContext): void {
 
 ### Unlimited free (`ctx.server.registerTool`)
 
-Public catalogue lookups, version pings, tools that must work with no auth and no counting. No gate, no usage event. The response shape is different (`c.respond` is not available), but the **render-instruction narration principle is the same**.
+Public catalogue lookups, version pings, tools that must work with no auth and no counting. No gate, no usage event. The respond helper is not available. Still include render-instruction narration plus structured data.
 
 ```ts
 ctx.server.registerTool(
@@ -144,177 +142,41 @@ ctx.server.registerTool(
 )
 ```
 
-The narration in `content[0].text` plays the same role as the `text` field in `c.respond(...)` — it tells the host LLM how to present the data. Put the raw data in `structuredContent` so programmatic consumers don't have to parse the narration.
+The narration in `content[0].text` plays the same role as the `text` field in `c.respond(...)`.
 
 ## Hide transport tools from text hosts
 
-`createSolvaPayMcp*({ hideToolsByAudience: ['ui'] })` drops UI-only virtual tools (`create_hosted_session`, `process_payment`, …) from `tools/list` so text-only hosts don't reason about iframe transport tools meant for the embedded widget. Always set this unless you have a specific reason not to.
+Pass the factory option that hides UI-only virtual tools from `tools/list`. TypeScript is the one row that must opt in explicitly: `hideToolsByAudience: ['ui']`. Go, Python, and Rust hide the `ui` audience by default (Rust's `McpHttpConfig` defaults `hide_audiences` to `["ui"]`; pass `Some(vec![])` to disable). Always hide unless you have a specific reason not to.
 
 ## Annotations
 
-Every tool must have annotations. `registerPayable` and `registerFree` apply `{ readOnlyHint: true, openWorldHint: true }` by default. Override when needed:
+Every tool needs annotations. Payable / free-capped registration applies `{ readOnlyHint: true, openWorldHint: true }` when the language surface supports defaults. Override when needed:
 
-- `readOnlyHint: false` + `destructiveHint: true` for state-mutating tools (create, update, delete).
-- `idempotentHint: true` for pure query tools.
-- `openWorldHint: true` is always correct for paywalled tools — they talk to merchant and SolvaPay backends.
+- `readOnlyHint: false` + `destructiveHint: true` for create / update / delete
+- `idempotentHint: true` for pure queries
+- `openWorldHint: true` is always correct for paywalled tools
 
 ## Slash-command prompts
 
-Optional. For hosts with prompt UI (Claude Desktop slash commands), register a prompt per user-facing tool so the tool is discoverable from the host chrome:
-
-```ts
-server.registerPrompt(
-  'search_items',
-  {
-    title: 'Search items',
-    description: 'Search the merchant catalog. 1 credit per call.',
-    argsSchema: { query: z.string().optional() },
-  },
-  async ({ query }) => ({
-    messages: [
-      {
-        role: 'user',
-        content: { type: 'text', text: `Search items matching "${query ?? ''}" and render the top results as a table.` },
-      },
-    ],
-  }),
-)
-```
-
-Hosts without prompt support silently ignore these — purely additive.
+Optional. Hosts with prompt UI (Claude Desktop) can register a prompt per user-facing tool. Hosts without prompt support ignore them. See the language file for the register-prompt call if the scaffold includes one.
 
 ## Tool-naming guardrails
 
-- Verbs first: `get_*`, `list_*`, `search_*`, `create_*`, `update_*`, `delete_*`, `analyze_*`, `predict_*`, `generate_*`.
-- One clear intent per tool. No overloading. If a tool's description has "or" in it, split it.
-- Match the SolvaPay tool surface's verb style. `get_user_info` not `userInfo`; `list_items` not `items`.
-- Keep names short and lowercased with underscores. Avoid prefixes like `mcp_` or your company name — the host shows the merchant's name alongside the tool.
-
-## Wiring into the server
-
-Register paid and free-capped tools by passing an `additionalTools` callback to the factory:
-
-```ts
-import { z } from 'zod'
-import type { AdditionalToolsContext } from '@solvapay/mcp'
-
-export function registerMyTools(ctx: AdditionalToolsContext): void {
-  const { registerPayable, registerFree } = ctx
-
-  registerFree('preview_item', {
-    title: 'Preview item',
-    description: 'Name and price preview. Shares the free-previews allowance.',
-    schema: { id: z.string().min(1) },
-    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
-    limit: { meter: 'free-previews', cap: 5, scope: 'rolling_window', windowDays: 30 },
-    handler: async ({ id }, ctx) => {
-      const data = await previewItem(id)
-      return ctx.respond(data, { text: `Preview of item ${id}. Render as a compact card.` })
-    },
-  })
-
-  registerPayable('get_item', {
-    title: 'Get item',
-    description:
-      'Returns the requested item. 1 credit per call; when the customer is out of balance, returns a text-only purchase-required narration naming the `account` viewer with the appropriate `view` — the widget iframe does not auto-open.',
-    schema: { id: z.string().min(1) },
-    annotations: { readOnlyHint: true, idempotentHint: true },
-    handler: async ({ id }, ctx) => {
-      const data = await loadItem(id)
-      const narration = `Item ${id}: ${summarize(data)}. Render as a card with the key fields.`
-      return ctx.respond(data, { text: narration })
-    },
-  })
-}
-```
-
-Then in the server factory call:
-
-```ts
-createSolvaPayMcpFetch({
-  solvaPay,
-  productRef,
-  resourceUri: 'ui://your-worker/mcp-app.html',
-  readHtml: async () => mcpAppHtml,
-  publicBaseUrl,
-  apiBaseUrl,
-  responseMode: 'json',
-  hideToolsByAudience: ['ui'],
-  additionalTools: registerMyTools,
-})
-```
-
-For Cloudflare Workers, the full server template is in [hosting/cloudflare/](hosting/cloudflare/). For other runtimes, see [hosting/alternatives.md](hosting/alternatives.md).
+- Verbs first: `get_*`, `list_*`, `search_*`, `create_*`, `update_*`, `delete_*`, `analyze_*`, `predict_*`, `generate_*`
+- One intent per tool. If the description has "or", split it
+- Snake_case MCP names. No `mcp_` or company prefix
+- `--tool-name` at scaffold time is the MCP identifier — pass snake_case
 
 ## Anti-patterns
 
-- Do not wrap `account` / `activate_plan` with `payable.mcp()`. They are recovery tools, not paid business logic.
-- Do not hand-roll a paywall response. `registerPayable` and `registerFree` emit the correct text-only gate narration — adding your own `_meta.ui.*` / `McpPaywallView` / custom iframe defeats the non-intrusive contract.
-- Do not return data from a gated call by running the handler first and then checking balance. The gate check runs before your handler — don't re-order it.
-- Do not depend on the widget mounting "somewhere automatically" for merchant tools. The widget mounts only on deliberate `account` viewer calls; merchant tools always return data.
-- Do not skip annotations. `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint` are required, not optional.
-- Do not register a capped preview with `ctx.server.registerTool` plus a hand-rolled counter. That is `registerFree`.
+- Do not wrap `account` / `activate_plan` with the payable helper. They are recovery tools.
+- Do not hand-roll a paywall response or attach a custom iframe on the gate path.
+- Do not run expensive handler logic and then check balance. The payable helper gates first.
+- Do not depend on the widget mounting automatically for merchant tools.
+- Do not skip annotations where the language surface accepts them.
+- Do not register a capped preview with `ctx.server.registerTool` plus a hand-rolled counter. That is `registerFree` (TypeScript only).
 - Do not treat `registerFree` as anonymous. Unidentified callers fail with `identity_required`.
 
-### Wrong / right — three high-cost patterns
+**Wrong:** advertise `resourceUri` on a merchant tool; return an iframe on a gate; call upstream before the gate.
 
-These are the mistakes most expensive to recover from. Snippets are deliberately short; the full contract is above.
-
-**1. `_meta.ui.resourceUri` on a merchant payable tool**
-
-```ts
-// WRONG — hosts MUST open the iframe on every advertised call (SEP-1865),
-// which flashes an empty widget on every silent success.
-ctx.server.registerTool('get_item', {
-  _meta: { ui: { resourceUri: 'ui://my-mcp/mcp-app.html' } },
-  // ...
-}, handler)
-
-// RIGHT — registerPayable refuses resourceUri on merchant tools by design.
-ctx.registerPayable('get_item', {
-  schema: { id: z.string() },
-  annotations: { readOnlyHint: true, idempotentHint: true },
-  handler: async ({ id }, c) => c.respond(await loadItem(id), { text: `Item ${id}.` }),
-})
-```
-
-**2. Hand-rolled paywall response**
-
-```ts
-// WRONG — bypasses registerPayable, returns a custom iframe / structured UI on
-// the gate path, and the non-intrusive contract is gone.
-if (!hasBalance(customer)) {
-  return {
-    content: [{ type: 'resource', resource: { uri: 'ui://my-mcp/paywall.html' } }],
-  }
-}
-
-// RIGHT — let registerPayable own the gate. It emits text-only narration in
-// content[0].text naming `account` with the appropriate `view` (or
-// `activate_plan` when a planRef is known); structuredContent carries the gate
-// payload for programmatic consumers; the widget mounts only on a deliberate
-// recovery-tool call.
-ctx.registerPayable('get_item', {
-  /* ... */
-  handler: async ({ id }, c) => c.respond(await loadItem(id), { text: `Item ${id}.` }),
-})
-```
-
-**3. Running expensive handler logic before the gate check**
-
-```ts
-// WRONG — pays for the upstream call (latency + spend) on a gated request,
-// then throws it away when the user can't be charged.
-handler: async (input, c) => {
-  const data = await expensiveUpstreamCall(input) // runs even when gated
-  if (!c.hasBalance) return c.gate()              // wrong shape too
-  return c.respond(data, { text: '…' })
-}
-
-// RIGHT — registerPayable runs the gate check before invoking your handler.
-// Your handler only runs on the happy path; no need to guard it yourself.
-handler: async (input, c) => {
-  const data = await expensiveUpstreamCall(input) // only runs on success
-  return c.respond(data, { text: '…' })
-}
-```
+**Right:** payable registration + respond helper; gate narration names `account`; handler runs only on the happy path.

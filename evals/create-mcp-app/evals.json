@@ -16,7 +16,8 @@
         "selections.json is NOT found anywhere inside ./petstore-mcp/ (security requirement — upstream API key would leak)",
         "The agent ran node scripts/describe.mjs against the spec (visible in transcript)",
         "The agent ran node scripts/scaffold.mjs to generate the project (visible in transcript)",
-        "The agent read references/from-openapi/guide.md, references/tool-design.md, AND references/from-openapi/intent-driven.md before authoring tools (visible in transcript) — intent-driven.md is load-bearing for clustering patterns"
+        "The agent read references/from-openapi/guide.md, references/tool-design.md, AND references/from-openapi/intent-driven.md before authoring tools (visible in transcript) — intent-driven.md is load-bearing for clustering patterns",
+        "npm install in the generated project exits 0 without --legacy-peer-deps or manual pin edits"
       ]
     },
     {
@@ -32,7 +33,8 @@
         "scaffold.mjs completed successfully and produced a valid project directory (retry into an alternate target dir after 'target dir exists' is acceptable on dirty workspaces)",
         "src/tools/ contains one file per non-skipped Petstore v3 operation (one-to-one mode — many files like getPetById.ts, findPetsByStatus.ts, etc.)",
         "src/tools/index.ts exists with a registerTools aggregator that imports and calls each per-operation register function",
-        "The agent ran node scripts/describe.mjs against the local temp spec file"
+        "The agent ran node scripts/describe.mjs against the local temp spec file",
+        "npm install in the generated project exits 0 without --legacy-peer-deps or manual pin edits"
       ]
     },
     {
@@ -94,7 +96,8 @@
         "The agent surfaced gate G6 (selections.json preview) before invoking scaffold.mjs — the preview redacts upstreamAuth.key as '<redacted>' (or equivalent) and shows the resolved mode / workerName / upstreamAuth payload (note: in intent-driven mode there is no operations[] field — that exists only in one-to-one mode)",
         "selections.json is NOT found anywhere inside ./petstore-mcp-gated/ (the secret-key redaction in G6 is render-time only; the file written to /tmp still contains the real key)",
         "The agent read references/from-openapi/intent-driven.md and references/from-openapi/scaffold.md (visible in transcript) — both define the gates this eval asserts",
-        "src/tools/ contains intent-driven action-verb files (manage_pet.ts, find_pet.ts, etc.) after scaffold + authoring, matching the cluster proposal surfaced at G2"
+        "src/tools/ contains intent-driven action-verb files (manage_pet.ts, find_pet.ts, etc.) after scaffold + authoring, matching the cluster proposal surfaced at G2",
+        "npm install in the generated project exits 0 without --legacy-peer-deps or manual pin edits"
       ]
     },
     {
@@ -104,7 +107,8 @@
       "expected_output": "A fresh Cloudflare Workers project at `./haiku-mcp/` produced from the from-scratch (no-OpenAPI) scaffold flow. Exactly one paid tool, `generate_haiku`, lives in its own `src/tools/generate_haiku.ts` exporting `registerGenerateHaiku(ctx)`. The placeholder tool from the scaffold is gone — neither its file nor its register-call survives. `src/tools/index.ts` imports + calls `registerGenerateHaiku`. Handler uses `c.respond(data, { text })` narration. Schema validates `topic: z.string()` and `mood: z.enum(['serene','melancholy','playful']).optional()`. No OpenAPI scripts (describe.mjs / scaffold.mjs from `scripts/mcp/`) were invoked — those are the spec-first agent path.",
       "files": [],
       "assertions": [
-        "The agent ran `npm create solvapay` with `--type mcp --no-openapi` (or `pnpm/yarn create solvapay --no-openapi`) — not describe.mjs/scaffold.mjs from the OpenAPI agent path",
+        "The agent ran `npm create solvapay` with `--type mcp --no-openapi` (or `pnpm/yarn create solvapay --no-openapi`, or `scripts/scaffold-app.mjs`) — not describe.mjs/scaffold.mjs from the OpenAPI agent path",
+        "Published `--tool-name` is camelCase (`helloTool` / `generateHaiku`); the finished MCP identifier and file stem are snake_case (`generate_haiku`). The agent did not leave registerPayable('generateHaiku') / generateHaiku.ts as the public tool name",
         "The project is rooted at `./haiku-mcp/` with `package.json`, `wrangler.jsonc`, and `src/worker.ts` calling `createSolvaPayMcpFetch` (or equivalent fetch-first factory)",
         "`src/tools/generate_haiku.ts` exists and exports `registerGenerateHaiku(ctx, env?)` (per the file-layout convention)",
         "The scaffolder's placeholder tool (e.g. `helloTool`/`placeholder`/`hello`) is no longer registered — its file is deleted or replaced, and `src/tools/index.ts` does NOT import/call any leftover placeholder register function",
@@ -119,17 +123,17 @@
       "id": 7,
       "slug": "express-alternative-host",
       "prompt": "Task: i wanna set up a paid mcp server but were on node + express, not cloudflare — company doesnt use cloudflare. walk me through wiring solvapay in from scratch. i'll write the app.listen glue myself, just give me a server.ts that compiles and a package.json with the right deps under ./express-mcp/.",
-      "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` wired to `StreamableHTTPServerTransport`, with `createMcpOAuthBridge` from `@solvapay/mcp/express` mounted as middleware. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
+      "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` wired via `createMcpHandler` + `toNodeHandler`, with `createMcpOAuthBridge` from `@solvapay/mcp/express` mounted as middleware. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
       "files": [],
       "assertions": [
         "`./express-mcp/server.ts` imports `createSolvaPayMcpServer` from `@solvapay/mcp` AND `createMcpOAuthBridge` from `@solvapay/mcp/express` — NOT `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch` and NOT a nonexistent `createSolvaPayMcpExpress`",
-        "`./express-mcp/server.ts` uses `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` to bridge the MCP server to Express (req, res)",
-        "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`, and `express` as dependencies",
+        "`./express-mcp/server.ts` uses `createMcpHandler` from `@modelcontextprotocol/server` and `toNodeHandler` from `@modelcontextprotocol/node` to bridge the MCP server to Express — NOT `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk`",
+        "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/mcp-core`, `@solvapay/server`, `@modelcontextprotocol/server`, `@modelcontextprotocol/core`, `@modelcontextprotocol/node`, and `express` as dependencies",
         "Env vars are read via `process.env.SOLVAPAY_SECRET_KEY` etc. — NOT a Workers `Env` interface and NOT `env.SOLVAPAY_SECRET_KEY` from a Workers fetch signature",
         "No `wrangler.jsonc` is created (Cloudflare-specific; not applicable on Express)",
         "At least one paid tool is registered via `ctx.registerPayable(name, { title, description, schema, handler })` with the 2-arg shape, and its handler returns `c.respond(data, { text })`",
         "The agent did NOT run the OpenAPI agent path (`describe.mjs` / `scaffold.mjs` from `scripts/mcp/`) — there is no OpenAPI spec in this task",
-        "The `createSolvaPayMcpServer` call includes `mode: 'json-stateless'` — this option is required for stateless HTTP deployments on Node/Express and is only documented in references/hosting/alternatives.md; agents without that reference typically omit it or pass no mode",
+        "`createSolvaPayMcpServer` has no `responseMode` / `mode` option — transport is owned by `createMcpHandler`. The factory runs inside `createMcpHandler(() => createSolvaPayMcpServer(...))` so a fresh server is built per request",
         "`createMcpOAuthBridge(...)` is spread into `app.use()` using the spread operator (e.g. `app.use(...createMcpOAuthBridge(...))`) — the bridge returns an array of Express route handlers that must be spread; calling it as a single middleware (`app.use(createMcpOAuthBridge(...))`) is a pattern error only caught by reading alternatives.md"
       ]
     },
@@ -166,7 +170,8 @@
         "The generated ./acme-widgets-mcp/.env contains UPSTREAM_API_HEADERS compact JSON keyed by both header names — and does NOT contain UPSTREAM_API_KEY",
         "Each generated src/tools/*.ts file spreads UPSTREAM_API_HEADERS into request headers — NOT a single hardcoded header or invented per-header env var",
         "selections.json is NOT found anywhere inside ./acme-widgets-mcp/",
-        "The agent ran node scripts/scaffold.mjs to generate the project (visible in transcript)"
+        "The agent ran node scripts/scaffold.mjs to generate the project (visible in transcript)",
+        "npm install in the generated project exits 0 without --legacy-peer-deps or manual pin edits"
       ]
     },
     {
@@ -181,50 +186,130 @@
         "Each authored intent tool spreads UPSTREAM_API_HEADERS into request headers",
         "The generated ./acme-widgets-mcp-intent/.env contains UPSTREAM_API_HEADERS — not UPSTREAM_API_KEY",
         "The agent read references/from-openapi/intent-driven-patterns.md (visible in transcript)",
-        "selections.json is NOT found anywhere inside ./acme-widgets-mcp-intent/"
+        "selections.json is NOT found anywhere inside ./acme-widgets-mcp-intent/",
+        "npm install in the generated project exits 0 without --legacy-peer-deps or manual pin edits"
       ]
     },
     {
       "id": 11,
-      "slug": "bearer-one-to-one",
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate from `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-bearer.openapi.json` into `./acme-bearer-mcp`. one-to-one. HTTP Bearer token — placeholder value.",
-      "expected_output": "One-to-one scaffold with upstreamAuth.kind 'bearer'. Tools set Authorization: Bearer from env.UPSTREAM_API_KEY.",
+      "slug": "upstream-auth-one-to-one",
+      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate from `<skills-repo>/evals/create-mcp-app/fixtures/specs/{{spec}}` into `{{target}}`. one-to-one. {{authBlurb}}.",
+      "expected_output": "One-to-one scaffold with upstreamAuth.kind '{{kind}}'. Discriminator vs eval 9: this case is a single-scheme auth kind (bearer / apiKey / oauth2-client-credentials), never apiKey-multi.",
       "files": [],
+      "params": [
+        {
+          "kind": "bearer",
+          "spec": "widgets-bearer.openapi.json",
+          "target": "./acme-bearer-mcp",
+          "authBlurb": "HTTP Bearer token — placeholder value",
+          "kindAssert": "selections.json sets upstreamAuth.kind to 'bearer' — NOT 'apiKey', NOT 'apiKey-multi', NOT 'none'",
+          "headerAssert": "Each generated src/tools/*.ts file sets authorization: Bearer from env.UPSTREAM_API_KEY",
+          "envAssert": "The generated ./acme-bearer-mcp/.env contains UPSTREAM_API_KEY — not UPSTREAM_API_HEADERS"
+        },
+        {
+          "kind": "apiKey",
+          "spec": "widgets-apikey.openapi.json",
+          "target": "./acme-apikey-mcp",
+          "authBlurb": "single api key header X-Acme-Api-Key — placeholder",
+          "kindAssert": "selections.json sets upstreamAuth.kind to 'apiKey' with in: 'header', name: 'X-Acme-Api-Key' — NOT 'apiKey-multi'",
+          "headerAssert": "Each generated src/tools/*.ts file sets x-acme-api-key from env.UPSTREAM_API_KEY",
+          "envAssert": "The generated ./acme-apikey-mcp/.env contains UPSTREAM_API_KEY"
+        },
+        {
+          "kind": "oauth2-client-credentials",
+          "spec": "widgets-oauth2.openapi.json",
+          "target": "./acme-oauth-mcp",
+          "authBlurb": "oauth2 client_credentials — placeholder client_id and client_secret",
+          "kindAssert": "selections.json sets upstreamAuth.kind to 'oauth2-client-credentials' with tokenUrl, clientId, clientSecret",
+          "headerAssert": "Each generated src/tools/*.ts file imports getAccessToken and sets authorization: Bearer ${token}",
+          "envAssert": "The generated ./acme-oauth-mcp/.env contains UPSTREAM_OAUTH_* vars — not UPSTREAM_API_KEY or UPSTREAM_API_HEADERS"
+        }
+      ],
       "assertions": [
-        "selections.json sets upstreamAuth.kind to 'bearer' — NOT 'apiKey', NOT 'apiKey-multi', NOT 'none'",
-        "Each generated src/tools/*.ts file sets authorization: `Bearer ${env.UPSTREAM_API_KEY}`",
-        "The generated ./acme-bearer-mcp/.env contains UPSTREAM_API_KEY — not UPSTREAM_API_HEADERS",
-        "selections.json is NOT found anywhere inside ./acme-bearer-mcp/"
-      ]
-    },
-    {
-      "id": 12,
-      "slug": "apikey-one-to-one",
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate from `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-apikey.openapi.json` into `./acme-apikey-mcp`. one-to-one. single api key header X-Acme-Api-Key — placeholder.",
-      "expected_output": "One-to-one scaffold with upstreamAuth.kind 'apiKey'. Tools set X-Acme-Api-Key from env.UPSTREAM_API_KEY.",
-      "files": [],
-      "assertions": [
-        "selections.json sets upstreamAuth.kind to 'apiKey' with in: 'header', name: 'X-Acme-Api-Key' — NOT 'apiKey-multi'",
-        "Each generated src/tools/*.ts file sets 'x-acme-api-key' from env.UPSTREAM_API_KEY",
-        "The generated ./acme-apikey-mcp/.env contains UPSTREAM_API_KEY",
-        "selections.json is NOT found anywhere inside ./acme-apikey-mcp/"
-      ]
-    },
-    {
-      "id": 13,
-      "slug": "oauth2-client-credentials-one-to-one",
-      "prompt": "Context: run scaffolder scripts via `<skills-repo>/skills/create-mcp-app/scripts/describe.mjs` and `scaffold.mjs`. Task: generate from `<skills-repo>/evals/create-mcp-app/fixtures/specs/widgets-oauth2.openapi.json` into `./acme-oauth-mcp`. one-to-one. oauth2 client_credentials — placeholder client_id and client_secret.",
-      "expected_output": "One-to-one scaffold with upstreamAuth.kind 'oauth2-client-credentials'. Tools call getAccessToken(env) and set Bearer token.",
-      "files": [],
-      "assertions": [
-        "selections.json sets upstreamAuth.kind to 'oauth2-client-credentials' with tokenUrl, clientId, clientSecret",
-        "Each generated src/tools/*.ts file imports getAccessToken and sets authorization: `Bearer ${token}`",
-        "The generated ./acme-oauth-mcp/.env contains UPSTREAM_OAUTH_* vars — not UPSTREAM_API_KEY or UPSTREAM_API_HEADERS",
-        "selections.json is NOT found anywhere inside ./acme-oauth-mcp/"
+        "{{kindAssert}}",
+        "{{headerAssert}}",
+        "{{envAssert}}",
+        "selections.json is NOT found anywhere inside {{target}}/",
+        "npm install in the generated project exits 0 without --legacy-peer-deps or manual pin edits"
       ]
     },
     {
       "id": 14,
+      "slug": "from-scratch-python",
+      "requires": ["EVAL_REQUIRES_SDK_CHECKOUT"],
+      "prompt": "Task: scaffold a brand new paid mcp server in Python (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Agent reads references/languages/python.md only, runs the toolchain gate, and stops on `registry-404 no-checkout`. It does not invent a PyPI package or stub tool.",
+      "files": [],
+      "assertions": [
+        "The agent ran `scripts/check-toolchain.mjs --language python` or `scripts/scaffold-app.mjs` with `--language python`",
+        "The gate output names `registry-404 no-checkout`",
+        "The agent stopped after the blocked gate — it did not hand-write a substitute solvapay/solvapay-mcp package, invent a pin, or stub a payable tool to continue",
+        "The agent read references/languages/python.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/ruby.md, references/languages/go.md, or references/languages/rust.md"
+      ]
+    },
+    {
+      "id": 15,
+      "slug": "from-scratch-ruby",
+      "requires": ["EVAL_REQUIRES_SDK_CHECKOUT"],
+      "prompt": "Task: scaffold a brand new paid mcp server in Ruby (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Agent reads references/languages/ruby.md only, runs the toolchain gate, and stops on `registry-404 no-checkout`. It does not invent a gem or stub tool.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language ruby`",
+        "The gate output names `registry-404 no-checkout`",
+        "The agent stopped after the blocked gate — it did not hand-write a substitute solvapay gem, invent a pin, or stub a payable tool to continue",
+        "The agent read references/languages/ruby.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/python.md, references/languages/go.md, or references/languages/rust.md"
+      ]
+    },
+    {
+      "id": 16,
+      "slug": "from-scratch-go",
+      "requires": ["EVAL_REQUIRES_SDK_CHECKOUT"],
+      "prompt": "Task: monetize a new Go MCP server from scratch (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Agent reads references/languages/go.md only, runs the toolchain gate, and stops on `registry-404 no-checkout`. It does not invent a Go module or stub tool.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language go`",
+        "The gate output names `registry-404 no-checkout`",
+        "The agent stopped after the blocked gate — it did not hand-write a substitute solvapay module, invent a replace pin, or stub a payable tool to continue",
+        "The agent read references/languages/go.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/python.md, references/languages/ruby.md, or references/languages/rust.md"
+      ]
+    },
+    {
+      "id": 17,
+      "slug": "from-scratch-rust",
+      "requires": ["EVAL_REQUIRES_SDK_CHECKOUT"],
+      "prompt": "Task: scaffold a brand new paid Rust MCP server (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "Agent reads references/languages/rust.md only, runs the toolchain gate, and stops on `registry-404 no-checkout`. It does not invent a crate or stub tool.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language rust`",
+        "The gate output names `registry-404 no-checkout`",
+        "The agent stopped after the blocked gate — it did not hand-write a substitute solvapay crate, invent a path pin, or stub a payable tool to continue",
+        "The agent read references/languages/rust.md (visible in transcript)",
+        "The agent did NOT open references/languages/ts.md, references/languages/python.md, references/languages/ruby.md, or references/languages/go.md"
+      ]
+    },
+    {
+      "id": 18,
+      "slug": "from-scratch-ts-language-file",
+      "prompt": "Task: scaffold a brand new paid TypeScript mcp server (no openapi) into `./haiku-mcp`. one paid tool generate_haiku.",
+      "expected_output": "TypeScript from-scratch scaffold. Agent reads references/languages/ts.md only — not python/ruby/go/rust.",
+      "files": [],
+      "assertions": [
+        "The agent ran check-toolchain or scaffold-app with `--language ts`, or `npm create solvapay` with `--type mcp --no-openapi` and no `--language` flag",
+        "The agent did NOT pass `--language` to `npm create solvapay` or `solvapay init`",
+        "Published `--tool-name` is camelCase (`helloTool` / `generateHaiku`); the finished MCP identifier and file stem are snake_case (`generate_haiku`)",
+        "The agent read references/languages/ts.md (visible in transcript)",
+        "The agent did NOT open references/languages/python.md, references/languages/ruby.md, references/languages/go.md, or references/languages/rust.md",
+        "Paid tool uses ctx.registerPayable(name, { schema, handler }) and c.respond(data, { text })"
+      ]
+    },
+    {
+      "id": 19,
       "slug": "extend-free-capped-preview-pet",
       "prompt": "Setup: copy the directory at `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/` before starting — this represents an already-scaffolded MCP project. Task: add a free-capped preview_pet tool to my mcp server at `./petstore-mcp`. Five calls per 30 days, then a plan is required.",
       "expected_output": "A new free-capped tool file under ./petstore-mcp/src/tools/. The tool calls ctx.registerFree with exactly 2 arguments: a string name and a config object with title/description/schema/limit/handler. Handler returns c.respond(data, { text }). limit.meter matches /^free-[a-z0-9-]+$/. src/tools/index.ts updated. No re-scaffolding. No ctx.server.registerTool for this tool.",

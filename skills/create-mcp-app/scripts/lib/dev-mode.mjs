@@ -16,9 +16,13 @@ export function splitDevArgs(argv) {
   return { dev, args }
 }
 
-export function enableDevEnv(dev) {
-  if (dev && !process.env.SOLVAPAY_API_BASE_URL) {
-    process.env.SOLVAPAY_API_BASE_URL = DEV_API_BASE_URL
+export function enableDevEnv(dev, apiBaseUrl) {
+  if (!process.env.SOLVAPAY_API_BASE_URL) {
+    if (typeof apiBaseUrl === 'string' && apiBaseUrl.length > 0) {
+      process.env.SOLVAPAY_API_BASE_URL = apiBaseUrl.replace(/\/$/, '')
+    } else if (dev) {
+      process.env.SOLVAPAY_API_BASE_URL = DEV_API_BASE_URL
+    }
   }
   return process.env
 }

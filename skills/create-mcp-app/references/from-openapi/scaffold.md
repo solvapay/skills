@@ -162,6 +162,10 @@ Before handoff, skim the generated README and `.env.example` for mode/auth accur
 
 If the package template source is available locally, fix it there. If not, patch the generated README in the project and list the upstream template change as a follow-up.
 
+## Install pins (checkout vs registry)
+
+`scaffold.mjs` copies `templates/mcp/ts/_base/package.json`. Published registry pins resolve cleanly. The in-tree template pins an unpublished train (including `@solvapay/server-wasm`), so a checkout-resolved scaffolder requires `--dev` — [../languages/toolchain-gate.md](../languages/toolchain-gate.md). `--legacy-peer-deps` is not the fix.
+
 ## What it refuses to do
 
 - Overwrite an existing `<target-dir>`. Re-running scaffold against an existing project is an open follow-up. Delete and re-run for now.

@@ -1,6 +1,8 @@
-# Alternative Hosting for SolvaPay MCP
+# TypeScript extra hosts
 
-Decision matrix for deploying a SolvaPay MCP server on a runtime other than Cloudflare Workers. Cloudflare Workers is the recommended default with a full step-by-step in [cloudflare/](cloudflare/); this page routes you elsewhere when the runtime is constrained.
+TypeScript host is a function of the language row: the scaffold defaults to Cloudflare Workers (`npm run dev` on 8787). This page is the extra-host map for **TypeScript only** — Express, Deno, Bun, Supabase Edge. Other languages serve via `./scripts/http.sh` on 3030 and do not use this file.
+
+Workers deploy steps: [cloudflare/](cloudflare/).
 
 ## Contents
 
@@ -12,7 +14,7 @@ Decision matrix for deploying a SolvaPay MCP server on a runtime other than Clou
 
 | Runtime | SDK subpath | Factory | Route to |
 | --- | --- | --- | --- |
-| Cloudflare Workers | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [cloudflare/](cloudflare/) (recommended, full inline templates) |
+| Cloudflare Workers | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [cloudflare/](cloudflare/) (TypeScript row default) |
 | Supabase Edge Functions | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | [supabase-edge-mcp.md](supabase-edge-mcp.md) |
 | Deno | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Deno docs: https://docs.deno.com/runtime/fundamentals/http_server/ |
 | Bun | `@solvapay/mcp/fetch` | `createSolvaPayMcpFetch` | See Runtime notes below; Bun docs: https://bun.sh/docs/api/http |
