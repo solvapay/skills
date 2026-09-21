@@ -100,6 +100,7 @@ export function buildCreateSolvapayArgs({
   modulePath,
   useDev,
   apiBaseUrl,
+  productRef,
   skipInit,
   skipInstall,
 }) {
@@ -112,6 +113,7 @@ export function buildCreateSolvapayArgs({
   if (modulePath) args.push('--module', modulePath)
   if (useDev) args.push('--dev')
   if (apiBaseUrl) args.push('--api-base', apiBaseUrl)
+  if (productRef) args.push('--product', productRef)
   if (skipInit) args.push('--skip-init')
   if (skipInstall) args.push('--skip-install')
   return args

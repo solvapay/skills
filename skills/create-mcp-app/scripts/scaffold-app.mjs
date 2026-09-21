@@ -24,6 +24,9 @@ Flags:
   --dev                  Path-depend on a solvapay-sdk checkout; seed api-dev
   --api-base <url>       Override the API origin. Does not replace --dev —
                          a checkout lane still needs both.
+  --product <ref>        Seed SOLVAPAY_PRODUCT_REF (prd_...) so solvapay init
+                         verifies it instead of skipping product selection on
+                         a non-TTY / agent run.
   --skip-init            Skip solvapay init (harness / pre-seeded .env)
   --skip-install         Skip dependency install
   --yes                  Non-interactive (always on)
@@ -37,6 +40,7 @@ function parseArgs(argv) {
   let toolName
   let modulePath
   let apiBaseUrl
+  let productRef
   let skipInit = false
   let skipInstall = false
   let verbose = false
@@ -64,6 +68,13 @@ function parseArgs(argv) {
       }
       continue
     }
+    if (arg === '--product') {
+      productRef = args[++i]
+      if (!productRef || productRef.startsWith('-')) {
+        throw new Error('--product requires a product reference')
+      }
+      continue
+    }
     if (arg === '--skip-init') {
       skipInit = true
       continue
@@ -87,6 +98,7 @@ function parseArgs(argv) {
     help: false,
     dev,
     apiBaseUrl,
+    productRef,
     language,
     toolName,
     modulePath,
@@ -160,6 +172,7 @@ const cliArgs = buildCreateSolvapayArgs({
   modulePath: parsed.modulePath,
   useDev,
   apiBaseUrl: parsed.apiBaseUrl,
+  productRef: parsed.productRef,
   skipInit: parsed.skipInit,
   skipInstall: parsed.skipInstall,
 })

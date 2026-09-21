@@ -38,6 +38,14 @@ node scripts/scaffold-app.mjs <target-dir> --language <id> --tool-name <name>
 
 `--dev` is required when the gate printed `ok checkout` — it rewrites manifests to checkout path deps. It does **not** lock the API origin: pass `--api-base <url>` to point auth, product lookup, and `.env` at a local stack (for example `http://localhost:3010`) while keeping `--dev` for path deps. `scaffold-app.mjs` refuses to run when the gate fails. `--language ts` uses this same script and the same gate.
 
+On a non-TTY / agent run `solvapay init` cannot prompt for a product and skips product selection, leaving `SOLVAPAY_PRODUCT_REF` unset (Gate G10 then blocks). When the intended product is known, pass `--product <prd_...>` to the scaffolder — it forwards to `solvapay init`, which verifies the ref and writes it deterministically instead of skipping:
+
+```bash
+node scripts/scaffold-app.mjs <target-dir> --language <id> --tool-name <name> --dev --api-base http://localhost:3010 --product prd_...
+```
+
+Under `--dev`, `solvapay init` skips its registry SDK install so the checkout path deps written by the scaffolder are preserved (a registry re-install would clobber them for TypeScript and fail outright for python/ruby/rust).
+
 ## Install warning
 
 `create-solvapay` treats a failed install as a soft warning (`⚠️ … failed`). That is not success. If the scaffolder prints `⚠️`, stop and fix the install. Do not claim dependencies are installed.

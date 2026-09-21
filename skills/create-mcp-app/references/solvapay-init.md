@@ -26,7 +26,14 @@ npx -y solvapay@preview init --dev
 # Checkout path deps against a local platform stack — --api-base wins
 # over --dev for the origin, and is persisted to .env.
 npx -y solvapay@preview init --dev --api-base http://localhost:3010
+
+# Non-interactive / agent run: seed the product so init verifies and
+# persists it instead of skipping product selection (Gate G10). --product
+# is honored before the picker, so it works even under --yes / non-TTY.
+npx -y solvapay@preview init --dev --api-base http://localhost:3010 --product prd_...
 ```
+
+Under `--dev`, `init` skips its registry SDK install step — the project already path-depends the SDK on the checkout (written by the scaffolder), and a registry re-install would clobber those path deps for TypeScript and fail outright for python / ruby / rust (their SDK packages are not published). The scaffolder's own internal `init` sets the same skip via `skipSdkInstall`.
 
 The `@latest` suffix re-resolves the registry every run (so cached CLIs never lag behind); `-y` auto-confirms the npx install prompt (required for non-interactive / agent execution). Under `--dev`, use `@preview` instead of `@latest` — it tracks the same preview build as `create-solvapay@preview`, keeping the CLI and scaffolder in lockstep.
 
@@ -52,7 +59,7 @@ The CLI:
 
 After init, read the resulting `SOLVAPAY_PRODUCT_REF` from `.env` and confirm it is the product intended for this MCP server. This gate is mandatory at every confirmation level, and especially when init ran under `--yes` or non-TTY, because unattended product selection can otherwise bind a new MCP to an unrelated account product.
 
-For non-TTY / `--yes` runs, prefer seeding the product before init via `selections.solvapayProductRef` or an existing `.env` value. If no product ref is known, pause and ask for the intended `prd_...` rather than treating an auto-picked product as final.
+For non-TTY / `--yes` runs, seed the product deterministically rather than relying on the picker (which skips on a non-TTY, leaving the ref unset). Pass `--product <prd_...>` to `solvapay init` (or to `scaffold-app.mjs`, which forwards it) — it is honored before the picker and verified against the API. Seeding via `selections.solvapayProductRef` or an existing `.env` value works too. If no product ref is known, pause and ask for the intended `prd_...` rather than treating an auto-picked product as final.
 
 If the user already knows the intended product, seed it before init (via `selections.solvapayProductRef` or an existing `.env` value) so the CLI verifies that exact ref instead of selecting for you. If the CLI picked an unrelated smoke/test product, replace `SOLVAPAY_PRODUCT_REF` with the intended `prd_...` and rerun init or the product verification before deploy.
 

@@ -130,4 +130,20 @@ describe('buildCreateSolvapayArgs', () => {
     })
     assert.ok(args.includes('--dev'))
   })
+
+  it('forwards --product <ref> when a product is seeded', () => {
+    const args = buildCreateSolvapayArgs({
+      ...base,
+      supportsLanguage: true,
+      productRef: 'prd_ABC123',
+    })
+    const idx = args.indexOf('--product')
+    assert.ok(idx !== -1, 'expected --product to be forwarded')
+    assert.equal(args[idx + 1], 'prd_ABC123')
+  })
+
+  it('omits --product when no product is seeded', () => {
+    const args = buildCreateSolvapayArgs({ ...base, supportsLanguage: true })
+    assert.equal(args.includes('--product'), false)
+  })
 })
