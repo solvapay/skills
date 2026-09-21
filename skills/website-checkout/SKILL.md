@@ -30,7 +30,7 @@ Hosted checkout + customer portal for web apps. Server creates checkout session;
 ## Gotchas
 
 - Checkout succeeds but access unchanged → missing webhooks or stale client cache; refresh from server truth on return URL.
-- React-only apps need a backend for checkout sessions — partial guidance here; full wiring → `solvapay/sdk-integration`.
+- React-only apps need a backend for checkout sessions — partial guidance here; full wiring → `solvapay/app-integration`.
 - Lovable / Vite + Supabase Edge → `solvapay/lovable-checkout`, not this skill.
 - Customer must exist in SolvaPay before checkout session — sync/ensure step first (details: [references/nextjs.md](references/nextjs.md)).
 - JWT/session must reach server routes that create sessions (details: [references/nextjs.md](references/nextjs.md)).
@@ -40,12 +40,12 @@ Hosted checkout + customer portal for web apps. Server creates checkout session;
 
 Before stack-specific implementation, run `npx -y solvapay@latest init` to configure `SOLVAPAY_SECRET_KEY` and install base SDK packages.
 
-For advanced use cases (usage metering, Express/MCP paths, webhook-heavy flows), use `solvapay/sdk-integration`.
+For advanced use cases (usage metering, Express paths, webhook-heavy flows), use `solvapay/app-integration`. MCP server wiring → `solvapay/create-mcp-app`.
 
 ## Mandatory read order
 
 - **Next.js detected** → read [references/nextjs.md](references/nextjs.md) end-to-end before generating routes.
-- **React-only** → read [references/react.md](references/react.md); if no backend exists, stop and hand off to `solvapay/sdk-integration`.
+- **React-only** → read [references/react.md](references/react.md); if no backend exists, stop and hand off to `solvapay/app-integration`.
 - Out-of-scope flows → [references/out-of-scope.md](references/out-of-scope.md).
 
 ## Checkout procedure

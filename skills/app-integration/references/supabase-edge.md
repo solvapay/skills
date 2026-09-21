@@ -17,7 +17,7 @@ Use `@solvapay/server/fetch` one-liner handlers on Supabase Edge Functions.
 - No Node.js backend (Next.js, Express) is available for API routes
 - Deno/Edge runtime is the deployment target
 
-If the project already has a Next.js backend, use the Next.js stack guide from sdk-integration SKILL.md instead.
+If the project already has a Next.js backend, use the Next.js stack guide from app-integration SKILL.md instead.
 
 ## Prerequisites
 

@@ -1,8 +1,8 @@
 # Managed MCP product console (existing product only)
 
-Use when the user already has a Managed MCP product and needs to bootstrap or reconfigure plans via API — **not** for greenfield MCP worker scaffold.
+Use when the user already has a Managed MCP product and needs to bootstrap or reconfigure plans via API — **not** for code-based MCP server work.
 
-Greenfield paid MCP server → hand off to `solvapay/create-mcp-app`.
+Any MCP server monetized in code (greenfield, existing, factory wrap) → hand off to `solvapay/create-mcp-app`.
 
 Call the SDK methods on a `createSolvaPay()` instance. Do not POST a raw JSON blob — `bootstrapMcpProduct` / `configureMcpPlans` own the routes (`POST /v1/sdk/products/mcp/bootstrap`, `PUT /v1/sdk/products/{productRef}/mcp/plans`).
 

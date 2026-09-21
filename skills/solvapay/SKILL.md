@@ -26,7 +26,7 @@ SolvaPay adds usage-based billing, paywalls, and hosted checkout to apps and AI 
 | --- | --- | --- | --- |
 | Paid MCP | Per-call or subscription billing on a Cloudflare Workers MCP server | The product **is** MCP tools for AI agents and you want to **write code** (greenfield, OpenAPI→MCP, or paywalling an existing MCP server) | `solvapay/create-mcp-app` |
 | Managed MCP | SolvaPay-managed auth, paywall, and proxying for an MCP server you host | You want to monetize an MCP server **without code** — paste your server URL, configure plans in the console | [Managed MCP exit](#managed-mcp-exit) |
-| SDK paywall | Gate endpoints, meter usage, handle webhooks in your own code | You own an app/API backend and want billing **in code** (REST, Next.js, Express, any stack) | `solvapay/sdk-integration` |
+| App integration | Gate endpoints, meter usage, handle webhooks, and billing UI in your own code | You own an app or API and want billing **in code** (REST, Next.js, Express) | `solvapay/app-integration` |
 | Hosted checkout | Drop-in payment page + customer portal | You want a production website to sell access with **no custom billing code** | `solvapay/website-checkout` |
 | Lovable checkout | Paste-in Vite + Supabase edge checkout | You're prototyping in a **Lovable / Vite preview** and want checkout pasted in | `solvapay/lovable-checkout` |
 
@@ -36,8 +36,8 @@ Walk these in order; the first "yes" wins:
 
 1. Is the thing being monetized an **MCP server / MCP tools for AI agents**?
    - **No code / console / paste server URL** → [Managed MCP exit](#managed-mcp-exit).
-   - **Write code** (greenfield worker, OpenAPI→MCP, SDK paywall on existing MCP) → `solvapay/create-mcp-app`.
-2. Otherwise, is there an **existing app or API backend** to bill from code (paywall, metering, webhooks)? → `solvapay/sdk-integration`.
+   - **Write code** (greenfield worker, OpenAPI→MCP, paywall or factory wrap on an existing MCP) → `solvapay/create-mcp-app`.
+2. Otherwise, is there an **existing app or API backend** to bill from code (paywall, metering, webhooks)? → `solvapay/app-integration`.
 3. Otherwise, do they just want a **hosted payment page** for a production website (no billing code)? → `solvapay/website-checkout`.
 4. Is it specifically a **Lovable / Vite preview** app? → `solvapay/lovable-checkout`.
 5. None clearly fits → ask the [disambiguation question](#disambiguation-prompt).
@@ -52,12 +52,12 @@ Walk these in order; the first "yes" wins:
 ## Gotchas
 
 - Valid as a standalone install — routes by **skill id** (`solvapay/<surface>`), not filesystem paths.
-- "Paywall my API" or "paywall web app" without MCP context → `solvapay/sdk-integration`, not `solvapay/create-mcp-app`.
-- "Scaffold mcp" / greenfield MCP worker → `solvapay/create-mcp-app`, not `solvapay/sdk-integration`.
+- "Paywall my API" or "paywall web app" without MCP context → `solvapay/app-integration`, not `solvapay/create-mcp-app`.
+- "Scaffold mcp" / greenfield MCP worker → `solvapay/create-mcp-app`, not `solvapay/app-integration`.
 - **Managed MCP** is console-driven — no skill owns it; use the [Managed MCP exit](#managed-mcp-exit), not a fake skill id.
 - "Monetize mcp server no-code" / "paste my server url" / "gate tools without code" → Managed MCP exit, not `solvapay/create-mcp-app`.
 - Surface skill descriptions own specific keywords; this router owns ambiguous top-of-funnel prompts only.
-- "Customer portal" or billing UI inside an MCP host app → `solvapay/sdk-integration`, not `solvapay/website-checkout`.
+- "Customer portal" or billing UI inside an MCP host app → `solvapay/create-mcp-app` (`references/mcp-apps-ui.md`), not `solvapay/website-checkout`.
 
 ## Routing procedure
 
@@ -77,31 +77,31 @@ Ambiguous / top-of-funnel triggers only. Stack-specific keywords belong on surfa
 | --- | --- | --- |
 | Vague onboarding | "add solvapay", "where do I start", "what can solvapay do", "monetize something" | Ask disambiguation, then route |
 | Greenfield paid MCP | "create mcp app", "scaffold mcp", "new mcp server", "openapi to mcp", "npm create solvapay", "paid mcp", "monetize mcp" | `solvapay/create-mcp-app` |
-| Existing MCP + audit | "add solvapay to my mcp", "paywall my mcp tools" (needs worker template) | `solvapay/create-mcp-app` |
+| Existing MCP server (add paywall / wrap with factory) | "add solvapay to my mcp", "paywall my mcp tools", "wrap with the factory" | `solvapay/create-mcp-app` |
 | Managed MCP (no code) | "no code", "managed mcp", "paste my mcp server url", "gate tools without code", "hosted no-code proxy" | [Managed MCP exit](#managed-mcp-exit) |
-| Existing app / API paywall | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "npx solvapay init" | `solvapay/sdk-integration` |
+| Existing app / API paywall | "integrate sdk", "protect api", "paywall", "usage events", "webhooks", "npx solvapay init" | `solvapay/app-integration` |
 | Web hosted checkout | "add checkout to website", "hosted checkout", "sell access on my site" | `solvapay/website-checkout` |
 | Lovable preview checkout | "lovable", "paste into lovable", "vite checkout", "supabase edge checkout", "@preview" | `solvapay/lovable-checkout` |
 
 ## Negative routing examples
 
 - "Migrate old billing data", "general Stripe setup only" → ask clarification; do not auto-route.
-- Greenfield MCP from OpenAPI/scratch → `solvapay/create-mcp-app`, NOT `solvapay/sdk-integration`.
-- Paywall web/API without MCP → `solvapay/sdk-integration`, NOT `solvapay/create-mcp-app`.
+- Greenfield MCP from OpenAPI/scratch → `solvapay/create-mcp-app`, NOT `solvapay/app-integration`.
+- Paywall web/API without MCP → `solvapay/app-integration`, NOT `solvapay/create-mcp-app`.
 - No-code MCP / paste server URL → Managed MCP exit, NOT `solvapay/create-mcp-app`.
 
 ## Disambiguation prompt
 
-"Do you want to (1) build a paid MCP server in code (OpenAPI or hand-written tools), (2) set up Managed MCP in the console (no code — paste your server URL), (3) integrate the TypeScript SDK into an existing app, (4) set up hosted checkout for a production web app, or (5) paste checkout into a Lovable preview app?"
+"Do you want to (1) build a paid MCP server in code (OpenAPI or hand-written tools), (2) set up Managed MCP in the console (no code — paste your server URL), (3) add a paywall, usage metering, webhooks or billing UI to an existing app or API, (4) set up hosted checkout for a production web app, or (5) paste checkout into a Lovable preview app?"
 
-Default if still ambiguous: greenfield MCP in code → `solvapay/create-mcp-app`; no-code MCP → Managed MCP exit; otherwise → `solvapay/sdk-integration`.
+Default if still ambiguous: greenfield MCP in code → `solvapay/create-mcp-app`; no-code MCP → Managed MCP exit; otherwise → `solvapay/app-integration`.
 
 ## Surface skills
 
 | Skill id | Owns |
 | --- | --- |
 | `solvapay/create-mcp-app` | Paid MCP in code — greenfield worker, OpenAPI→MCP, or paywalling an existing MCP server |
-| `solvapay/sdk-integration` | SDK paywall, checkout, usage, webhooks in existing apps |
+| `solvapay/app-integration` | Paywalls, usage, webhooks, and billing UI in an existing app or API |
 | `solvapay/website-checkout` | Hosted checkout + portal for production web apps |
 | `solvapay/lovable-checkout` | Paste-in preview checkout for Lovable |
 
@@ -138,7 +138,7 @@ Use when the user wants no-code MCP monetization — paste a server URL, gate to
 - **Next steps:**
   1. Open the SolvaPay provider console and create a Managed MCP product.
   2. Follow docs: `/no-code-mcp/overview` and `/no-code-mcp/quick-start`.
-  3. For API bootstrap on an existing Managed MCP product, see `solvapay/sdk-integration` → `references/mcp-product-console.md`.
+  3. For API bootstrap on an existing Managed MCP product, see `solvapay/app-integration` → `references/mcp-product-console.md`.
 ```
 
 **After emitting this exit, stop. Do not scaffold a worker, write paywall code, or hand off to `solvapay/create-mcp-app`.**

@@ -10,7 +10,7 @@ React-only projects need a backend for SolvaPay secret operations.
 
 ## Procedure
 
-1. Confirm a backend exists (Express, Next API, etc.). If none → hand off to `solvapay/sdk-integration`.
+1. Confirm a backend exists (Express, Next API, etc.). If none → hand off to `solvapay/app-integration`.
 2. Implement backend routes (below).
 3. Keep `SOLVAPAY_SECRET_KEY` server-only.
 4. Frontend: send auth token to backend; redirect to hosted URLs; refresh access after return.
@@ -78,7 +78,7 @@ app.get('/api/check-purchase', async (req, res) => {
 })
 ```
 
-Adapt to your auth middleware. For full SDK patterns install `solvapay/sdk-integration`.
+Adapt to your auth middleware. For full SDK patterns install `solvapay/app-integration`.
 
 ## Required routes
 
