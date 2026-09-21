@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 
-/** Published create-solvapay@0.6.1 TOOL_NAME_RE — camelCase only, no underscores. */
+/** Published create-solvapay@0.7.2 TOOL_NAME_RE — camelCase only, no underscores. */
 export const PUBLISHED_TOOL_NAME_RE = /^[a-z][a-zA-Z0-9]*$/
 
 /** Checkout / language-aware CLI — camelCase or snake_case. */

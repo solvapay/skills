@@ -20,11 +20,10 @@
 | --- | --- | --- |
 | `CheckoutLayout` missing from exports | Old pinned preview version | Use `"preview"` in package.json, reinstall |
 | `/list-plans` returns `[]` | Wrong `VITE_SOLVAPAY_PRODUCT_REF` or no plans | Verify product ref and active plans in Console |
-| `PurchaseGate` always `Blocked` after checkout | `requireProduct` name mismatch | Copy product **name** verbatim from Console |
-| 402 with no checkout URL | Prod API with sandbox key | Set api-dev URL in edge secret, redeploy |
+| `PurchaseGate` always `Blocked` after checkout | `requireProduct` name mismatch | Copy product **name** from Console (match is case-insensitive) |
+| 401 / 404 from edge functions | Prod API with sandbox key | Set api-dev URL in edge secret, redeploy |
 | CORS / 500 from functions | Secrets changed, not redeployed | `supabase functions deploy` |
-| Unstyled primitives | CSS import order wrong | `@solvapay/react/styles.css` after `./index.css` |
-| `useApp is not exported` | Wrong skill (MCP App UI) | Use `solvapay/sdk-integration` or `solvapay/create-mcp-app` |
+| Unstyled primitives | CSS import order wrong | `@solvapay/react/styles.css` before `./index.css` |
 | Deno wrong versions | Stale `deno.json` | Recreate import map per 01-edge-and-secrets.md |
 
 ## Going stable

@@ -31,16 +31,18 @@ Widget, scripts, and env templates: [widget-templates-widget-and-scripts.md](wid
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.7.1",
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "@solvapay/mcp": "0.4.1",
-    "@solvapay/react": "2.2.1",
-    "@solvapay/server": "2.5.0",
+    "@modelcontextprotocol/core": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@solvapay/mcp": "^0.4.3",
+    "@solvapay/mcp-core": "^0.4.4",
+    "@solvapay/react": "^2.3.1",
+    "@solvapay/server": "^2.8.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20251124.0",
+    "@cloudflare/workers-types": "^5.20260815.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -207,9 +209,9 @@ declare module '*.html' {
  *
  * Single call into `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch`
  * gives us a paywalled MCP server over the Workers runtime with the
- * full `@modelcontextprotocol/sdk` wiring, `hideToolsByAudience` for
- * text-only hosts, and the stateless-JSON transport preset (correct
- * shape for Workers isolates, which don't pin across requests).
+ * full `@modelcontextprotocol/server` wiring, `hideToolsByAudience` for
+ * text-only hosts, and `responseMode: 'json'` (correct shape for
+ * Workers isolates, which don't pin across requests).
  *
  * The only extra plumbing on top of the SDK handler is browser-origin
  * CORS — native-scheme clients (Cursor / VS Code / Claude Desktop)
@@ -299,7 +301,7 @@ function getHandler(env: Env): (req: Request) => Promise<Response> {
     readHtml: async () => mcpAppHtml,
     publicBaseUrl: requireEnv(env, 'MCP_PUBLIC_BASE_URL'),
     apiBaseUrl,
-    mode: 'json-stateless',
+    responseMode: 'json',
     hideToolsByAudience: ['ui'],
     // Wire your paid tools here. See ../../tool-design.md for the
     // `registerPayable` pattern. Create src/tools.ts with a

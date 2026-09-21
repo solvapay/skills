@@ -131,7 +131,7 @@ node scripts/scaffold.mjs path/to/openapi.json /path/to/petstore-mcp \
 3. Copies the template (`template/`) to `<target-dir>`, substituting placeholders (`__WORKER_NAME__`, `__RESOURCE_URI_SLUG__`, `__SOLVAPAY_PRODUCT_REF__`, `__MCP_PUBLIC_BASE_URL__`). Preserves `.env.example` verbatim. Includes `scripts/verify.mjs`, `scripts/test.mjs`, and `scripts/lib/` for post-deploy checks (see [verify.md](verify.md) and [test.md](test.md)).
 4. **In one-to-one mode (default)**, for each operation with `tier !== 'skip'`, writes `src/tools/<operationId>.ts` with:
    - `register{OperationId}(ctx, env)` (or `(ctx)` when `upstreamAuth.kind === 'none'`).
-   - `ctx.registerPayable(...)` for paid tiers, `ctx.server.registerTool(...)` for free tiers.
+   - `ctx.registerPayable(...)` for paid tiers, `ctx.registerFree(...)` for `free-capped` (limit block from `freeLimit`), `ctx.server.registerTool(...)` for unlimited-free tiers.
    - Correct auth header per `upstreamAuth.kind`:
      - `bearer` → `Authorization: Bearer ${env.UPSTREAM_API_KEY}`
      - `apiKey` → `<name>: ${env.UPSTREAM_API_KEY}`
@@ -162,9 +162,9 @@ Before handoff, skim the generated README and `.env.example` for mode/auth accur
 
 If the package template source is available locally, fix it there. If not, patch the generated README in the project and list the upstream template change as a follow-up.
 
-## Install pins (ERESOLVE)
+## Install pins (checkout vs registry)
 
-`scaffold.mjs` copies `templates/mcp/_base/package.json` verbatim. Published pins `@solvapay/mcp ^0.3.0` / `@solvapay/react ^1.2.0` / `@solvapay/server ^1.1.0`. `@solvapay/mcp@0.3.0` requires `@solvapay/server "^1.4.0 || ^2.0.0"` — unsatisfiable. After scaffold, edit `package.json` to `@solvapay/mcp` 0.4.1, `@solvapay/react` 2.2.1, `@solvapay/server` 2.5.0, then `npm install`. `--legacy-peer-deps` is not the fix.
+`scaffold.mjs` copies `templates/mcp/ts/_base/package.json`. Published registry pins resolve cleanly. The in-tree template pins an unpublished train (including `@solvapay/server-wasm`), so a checkout-resolved scaffolder requires `--dev` — [../languages/toolchain-gate.md](../languages/toolchain-gate.md). `--legacy-peer-deps` is not the fix.
 
 ## What it refuses to do
 

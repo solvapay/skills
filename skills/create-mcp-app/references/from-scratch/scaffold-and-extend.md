@@ -46,7 +46,7 @@ A typical from-scratch tree:
 
 ```
 my-mcp/
-  package.json           wrangler / vite / @solvapay/mcp / @solvapay/react / zod
+  package.json           wrangler / vite / @solvapay/mcp / @solvapay/mcp-core / @solvapay/react / zod
   wrangler.jsonc
   tsconfig.json
   vite.config.ts
@@ -160,6 +160,31 @@ Before writing any tool code, read [../tool-design.md](../tool-design.md). It co
 
    Populate `UPSTREAM_OAUTH_TOKEN_URL`, `UPSTREAM_OAUTH_CLIENT_ID`, `UPSTREAM_OAUTH_CLIENT_SECRET` (and optional `UPSTREAM_OAUTH_SCOPE` / `UPSTREAM_OAUTH_AUDIENCE`) in `.env`. `scripts/deploy.mjs` uploads them as Worker Secrets on the first deploy. The helper caches the exchanged token in the Workers isolate until ~30s before expiry — every tool in the same isolate reuses it.
 
+## Add a free-capped tool
+
+Same file layout as a paid tool. Use `ctx.registerFree` with a `limit` block. Identity is required; exhaustion emits the same paywall gate. Use `@solvapay/mcp@latest` (`@preview` only for `--dev` / api-dev).
+
+```ts
+import { z } from 'zod'
+import type { AdditionalToolsContext } from '@solvapay/mcp'
+
+export function registerPreviewItem(ctx: AdditionalToolsContext): void {
+  ctx.registerFree('preview_item', {
+    title: 'Preview item',
+    description: 'Name and price preview. Free up to 5 calls per 30 days, then a plan is required.',
+    schema: { id: z.string().min(1) },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+    limit: { meter: 'free-previews', cap: 5, scope: 'rolling_window', windowDays: 30 },
+    handler: async ({ id }, c) => {
+      const data = await previewItem(id)
+      return c.respond(data, { text: `Preview of item ${id}. Render as a compact card.` })
+    },
+  })
+}
+```
+
+Tools that should share one allowance name the same `limit.meter` and pass the same object. Unlimited public tools still use `ctx.server.registerTool` with no identity and a hand-rolled envelope — see [../tool-design.md](../tool-design.md). Reuse the same `upstreamFetchJson` / `getAccessToken` helpers as paid tools.
+
 For the full tool design rules (response modes, narration shape, annotations, naming), see [../tool-design.md](../tool-design.md).
 
 ## Replace the placeholder
@@ -187,7 +212,7 @@ Then verify and smoke-test (see [../hosting/cloudflare/](../hosting/cloudflare/)
 - [ ] Run `npm create solvapay@latest <name> -- --type mcp --no-openapi` (or equivalent for pnpm/yarn)
 - [ ] Read [../tool-design.md](../tool-design.md)
 - [ ] Replace the placeholder tool body in `src/tools/<toolName>.ts`
-- [ ] Add additional paid tools under `src/tools/` and wire them into `src/tools/index.ts`
+- [ ] Add additional paid or free-capped tools under `src/tools/` and wire them into `src/tools/index.ts`
 - [ ] `npm run deploy` — verify the worker boots
 - [ ] `node scripts/verify.mjs <url>` — confirm MCP contract
 - [ ] `( cd scripts && npm install ) && node scripts/test.mjs` — exercise each tool

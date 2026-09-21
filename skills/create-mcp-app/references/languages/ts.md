@@ -37,7 +37,7 @@ export function registerGetItem(ctx: AdditionalToolsContext): void {
 }
 ```
 
-Wire `additionalTools: registerMyTools` on `createSolvaPayMcpFetch`. Pass `mode: 'json-stateless'` and `hideToolsByAudience: ['ui']`.
+Wire `additionalTools: registerMyTools` on `createSolvaPayMcpFetch`. Pass `responseMode: 'json'` and `hideToolsByAudience: ['ui']`.
 
 ## Respond
 

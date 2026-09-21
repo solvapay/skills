@@ -37,6 +37,8 @@ Built-in UI is the checkout / account / topup widget, mounted only when the user
 - **Read exactly one** [references/languages/](references/languages/) file — the row you picked. Never open a second. Comparison lives only in the matrix below.
 - Never scaffold until `scripts/check-toolchain.mjs --language <id>` prints `ok`.
 - Never treat a scaffolder `⚠️` install line as success — it is a soft warning in every language.
+- Always use `responseMode: 'json'` on stateless edge runtimes (Cloudflare Workers, Deno, Supabase Edge).
+- Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
 - Always confirm `SOLVAPAY_PRODUCT_REF` after `solvapay init`. Under `--yes` / non-TTY, auto-pick is not final.
 - If the model is usage-based, verify the product has that plan before handoff.
 - **Deploy-existing = scaffolding only** except paywall-wiring tasks — [references/existing-server.md](references/existing-server.md).
@@ -59,23 +61,28 @@ Shared env: `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`
 
 ## Gotchas
 
-- Paid handlers use the language's respond helper — never raw `content` arrays.
+- Paid and free-capped handlers use the language's respond helper — never raw `content` arrays. Unlimited-free tools (`ctx.server.registerTool`) hand-roll the envelope.
+- `ctx.registerPayable(name, config)` and `ctx.registerFree(name, config)` take **exactly two arguments**.
+- `registerFree` **requires identity**. Unidentified callers fail with `identity_required` — there is no anonymous bucket. Unlimited-free (`registerTool`) is the only kind that skips auth. Free-capped is TypeScript-only.
+- `@solvapay` is not a valid package — use subpaths (`@solvapay/mcp`, `@solvapay/mcp/fetch`, etc.).
 - Published `create-solvapay` `--tool-name` is camelCase (`helloTool`). Rename the MCP identifier to snake_case in source after scaffold (`tool-design.md`).
-- OpenAPI `scaffold.mjs` copies `templates/mcp/_base/package.json` verbatim. `@solvapay/mcp@0.3.0` requires `@solvapay/server "^1.4.0 || ^2.0.0"` but the template pins `^1.1.0` — `npm install` ERESOLVE. Edit pins to `@solvapay/mcp` 0.4.1, `@solvapay/react` 2.2.1, `@solvapay/server` 2.5.0. `--legacy-peer-deps` is not the fix.
+- Every `create-solvapay` run prints `create-solvapay vX.Y.Z`. If that lags the [published version](https://www.npmjs.com/package/create-solvapay), run `npx clear-npx-cache` and re-invoke with `@latest`.
+- The in-tree TypeScript template pins an unpublished train (including `@solvapay/server-wasm`). A checkout-resolved scaffolder requires `--dev` so manifests rewrite to path deps — [references/languages/toolchain-gate.md](references/languages/toolchain-gate.md).
 - OpenAPI `describe.mjs` needs a **local** spec file; skip binary/multipart ops (`tier: "skip"`).
+- Empty or relative OpenAPI `servers` must be resolved before scaffold. Confirm the upstream base URL, and watch for path-prefix outliers.
 - `selections.json` stays **outside** the scaffold target.
 - Don't scaffold into an unrelated app root without asking where the MCP server should live.
 
 ## Mandatory read order
 
 1. This SKILL.md — routing, language + input mode.
-2. [references/tool-design.md](references/tool-design.md) — shared contract (`account` viewer, `activate_plan`).
+2. [references/tool-design.md](references/tool-design.md) — shared contract (`account` viewer, `activate_plan`, `registerPayable` / `registerFree`).
 3. **Exactly one** `references/languages/<id>.md` from the matrix.
 4. [references/languages/toolchain-gate.md](references/languages/toolchain-gate.md) — before scaffold.
 5. One mode guide: [references/from-openapi/guide.md](references/from-openapi/guide.md) **or** [references/from-scratch/guide.md](references/from-scratch/guide.md) **or** [references/existing-server.md](references/existing-server.md).
 6. Intent-driven OpenAPI: also [references/from-openapi/intent-driven.md](references/from-openapi/intent-driven.md) and [references/from-openapi/scaffold.md](references/from-openapi/scaffold.md).
 
-Do not write a payable registration until steps 1–3 are loaded.
+Do not write a payable / free-capped registration until steps 1–3 are loaded.
 
 ## Confirmation level (G0 — ask once)
 

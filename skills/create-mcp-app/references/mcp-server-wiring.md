@@ -31,7 +31,7 @@ This guide is for SDK-based MCP server integrations where you self-host the serv
 - Install `@solvapay/mcp` for the batteries-included factory:
 
   ```bash
-  npm install @solvapay/mcp @solvapay/server
+  npm install @solvapay/mcp @solvapay/mcp-core @solvapay/server
   ```
 
 - A product created in SolvaPay Console with at least one plan
@@ -47,7 +47,7 @@ Three runtime-specific factories are exposed via subpaths:
 - `@solvapay/mcp/fetch` — `createSolvaPayMcpFetch` — single `(req: Request) => Promise<Response>` handler for Cloudflare Workers, Deno, Supabase Edge Functions, Bun. Also exposes `createOAuthFetchRouter` if you want to assemble the bridge yourself.
 - `@solvapay/mcp/express` — Express middleware variant.
 
-Register paid tools through the `additionalTools` hook — the factory has no `tools` array. `registerPayable` applies the paywall, so you never wrap the handler yourself.
+Register paid tools through the `additionalTools` hook — the factory has no `tools` array. `registerPayable` applies the paywall, so you never wrap the handler yourself. Destructure `{ registerPayable, registerFree }` when you also ship a capped preview.
 
 ```typescript
 // src/server.ts (Cloudflare Worker / Deno / Supabase Edge / Bun)
@@ -66,7 +66,14 @@ const handler = createSolvaPayMcpFetch({
   // Edge-safe alternative to `htmlPath`; one of the two is required.
   readHtml: async () => mcpAppHtml,
   responseMode: 'json',
-  additionalTools: ({ registerPayable }) => {
+  additionalTools: ({ registerPayable, registerFree }) => {
+    registerFree('preview_price_chart', {
+      description: 'Seeded price-chart preview.',
+      schema: { ticker: z.string().min(1) },
+      annotations: { readOnlyHint: true, idempotentHint: true },
+      limit: { meter: 'free-previews', cap: 5, scope: 'rolling_window', windowDays: 30 },
+      handler: async ({ ticker }, ctx) => ctx.respond(await previewPriceChart(ticker)),
+    })
     registerPayable('predict_price_chart', {
       description: 'Return a seeded price chart for a ticker.',
       schema: { ticker: z.string().min(1) },
@@ -111,20 +118,20 @@ export const productRef = process.env.SOLVAPAY_PRODUCT_REF!
 
 export const solvaPay = createSolvaPay({ apiClient })
 
-export const payable = solvaPay.payable({ product: productRef })
+export const payable = solvaPay.payable({ productRef })
 ```
 
 ## Wrap tool handlers
 
 ### getCustomerRef helper
 
-The adapter needs a function to extract customer identity from tool arguments. The `_auth` field is injected by the HTTP layer (see [OAuth bridge setup](#oauth-bridge-setup)).
+The adapter reads customer identity from MCP `extra.authInfo`, not from tool arguments. The factory OAuth bridge stamps `extra.authInfo.extra.customer_ref` (and `extra.http.authInfo.extra.customer_ref` under SDK v2). Use `defaultGetCustomerRef` — do not inject `_auth` into tool args.
 
 ```typescript
-const getCustomerRef = (args: Record<string, unknown>) => {
-  const auth = args?._auth as { customer_ref?: string } | undefined
-  return auth?.customer_ref || 'anonymous'
-}
+import { defaultGetCustomerRef, type McpToolExtra } from '@solvapay/mcp-core'
+
+const getCustomerRef = (_args: Record<string, unknown>, extra?: McpToolExtra) =>
+  defaultGetCustomerRef(extra) ?? 'anonymous'
 ```
 
 ### Wrapping pattern
@@ -248,14 +255,21 @@ async function resolveCustomerRef(authHeader?: string): Promise<string | null> {
 }
 ```
 
-### Inject auth into tool arguments
+### Pass identity on MCP extra, not tool arguments
 
-In your HTTP handler, before passing the request to the MCP framework, inject the customer ref:
+The factory OAuth bridge already stamps `authInfo.extra.customer_ref` from the bearer. On a hand-rolled transport, build the same `authInfo` with `buildAuthInfoFromBearer` and hand it to the MCP transport — `defaultGetCustomerRef` / `payable.mcp()` read it from `extra`, not from `arguments`.
 
 ```typescript
-if (request.body?.method === 'tools/call') {
-  request.body.params.arguments._auth = { customer_ref: customerRef }
-}
+import { buildAuthInfoFromBearer } from '@solvapay/mcp-core'
+
+const authInfo = buildAuthInfoFromBearer(request.headers.get('authorization'))
+if (!authInfo) return unauthorized()
+
+// fetch-style transport (createMcpHandler from @modelcontextprotocol/server)
+return mcpHandler.fetch(request, { authInfo })
+
+// Express transport: set req.auth before transport.handleRequest(req, res, body)
+// req.auth = authInfo
 ```
 
 For unauthenticated requests, return 401 with:

@@ -62,18 +62,19 @@ matches the run:
 # standard (stable) — what end users get
 npm install create-solvapay
 
-# --dev / internal testing — pulls the preview build. Use it when the
-# skill docs describe a scaffolder feature that is not on @latest yet.
+# --dev / internal testing — pulls the preview build so the scaffolder
+# matches `solvapay@preview` against api-dev, and so skill docs that
+# mention a scaffolder feature not yet on @latest resolve correctly.
 npm install create-solvapay@preview
 ```
 
 Installing stable (`@latest`) while running `--dev` is the trap that bites:
-a preview-only `upstreamAuth.kind` or flag the skill docs mention can fail
-deep in `validateSelections` with a confusing "`upstreamAuth.kind` must be
-one of …" error. `resolve-scaffolder.mjs` warns when it detects a stable
-build under a dev backend, and the wrappers now provide that dev signal
-when `--dev` is passed. Pinning `@preview` at install time avoids the mismatch
-entirely.
+api-dev needs the preview CLI and scaffolder in lockstep, and a preview-only
+`upstreamAuth.kind` or flag can fail deep in `validateSelections` with a
+confusing "`upstreamAuth.kind` must be one of …" error. `resolve-scaffolder.mjs`
+warns when it detects a stable build under a dev backend, and the wrappers now
+provide that dev signal when `--dev` is passed. Pinning `@preview` at install
+time avoids the mismatch entirely.
 
 ## Project-local scripts
 
@@ -96,5 +97,5 @@ node scripts/test.mjs https://my-worker.example.com --spec path/to/openapi.json
 
 Recorded here so they stay tracked. Do not publish anything for them.
 
-1. Wire pin rewriting into the OpenAPI `scripts/mcp/scaffold.mjs` lane. `failOnNotPublished: true` exists only on the from-scratch path, so OpenAPI still copies `templates/mcp/_base/package.json` and emits the unsatisfiable `@solvapay/server ^1.1.0` tree.
+1. Wire pin rewriting into the OpenAPI `scripts/mcp/scaffold.mjs` lane. `failOnNotPublished: true` exists only on the from-scratch path; OpenAPI still copies `templates/mcp/ts/_base/package.json`, whose in-tree pins include unpublished packages such as `@solvapay/server-wasm`.
 2. `tools/init/src/language/versions.ts` fallbacks point at versions that do not exist on npm (`@solvapay/mcp` 1.0.0, `server` 3.0.0, `react` 3.0.0, `server-wasm` 0.2.0). The registry lane must keep failing loudly via `failOnNotPublished` rather than pinning those fallbacks.

@@ -11,30 +11,61 @@ Use webhooks to keep local state in sync with SolvaPay billing events.
 
 1. Configure webhook endpoint in SolvaPay Console.
 2. Read raw request body.
-3. Verify `x-solvapay-signature` with `SOLVAPAY_WEBHOOK_SECRET`.
+3. Verify the `sv-signature` header with `SOLVAPAY_WEBHOOK_SECRET` via `verifyWebhook`.
 4. Process event idempotently.
 5. Update database and invalidate caches.
 6. Return success quickly, move heavy side effects to async workers.
 
+`verifyWebhook({ body, signature, secret })` takes a **single object**, returns a typed `WebhookEvent`, and **throws** `SolvaPayError` on a missing, malformed, expired, or invalid signature. It is Node-only (`node:crypto`) — not exported from `@solvapay/server/edge`. On Edge / Deno / Workers use the `solvapayWebhook` factory from `@solvapay/server/fetch`.
+
 ## Common Events
 
+Purchase lifecycle:
+
 - `purchase.created`
+- `purchase.activated`
 - `purchase.updated`
+- `purchase.cancellation_scheduled`
 - `purchase.cancelled`
+- `purchase.reactivated`
+- `purchase.expired`
+- `purchase.plan_changed`
+
+Payments and checkout:
+
 - `payment.succeeded`
 - `payment.failed`
+- `checkout_session.completed`
+
+Credits and usage (when those flows are live):
+
+- `customer.credit.topped_up`
+- `customer.credit.exhausted`
+- `usage.charged`
+
+There is no `payment_intent.succeeded` / `payment_intent.failed` event type. The union is larger than this list — log unknown types and return 200.
 
 ## Next.js Pattern
 
 ```typescript
+import { NextResponse } from 'next/server'
 import { verifyWebhook } from '@solvapay/server'
 
-const payload = await request.text()
-const signature = request.headers.get('x-solvapay-signature')
-const ok = signature
-  ? verifyWebhook(payload, signature, { secret: process.env.SOLVAPAY_WEBHOOK_SECRET! })
-  : false
-if (!ok) return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+export async function POST(request: Request) {
+  const body = await request.text()
+  const signature = request.headers.get('sv-signature') ?? ''
+  try {
+    const event = verifyWebhook({
+      body,
+      signature,
+      secret: process.env.SOLVAPAY_WEBHOOK_SECRET!,
+    })
+    await handleWebhookEvent(event)
+    return NextResponse.json({ received: true })
+  } catch {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+  }
+}
 ```
 
 ## Express Pattern
@@ -44,39 +75,48 @@ import express from 'express'
 import { verifyWebhook } from '@solvapay/server'
 
 const app = express()
-app.post('/api/webhooks/solvapay', express.raw({ type: 'application/json' }), async (req, res) => {
-  const signature = req.headers['x-solvapay-signature'] as string | undefined
-  const payload = req.body.toString()
-  if (!signature || !verifyWebhook(payload, signature, { secret: process.env.SOLVAPAY_WEBHOOK_SECRET! })) {
-    return res.status(401).json({ error: 'Invalid signature' })
-  }
-  const event = JSON.parse(payload)
-  await handleWebhookEvent(event)
-  return res.json({ received: true })
-})
+app.post(
+  '/api/webhooks/solvapay',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const signature = String(req.headers['sv-signature'] ?? '')
+    const body = req.body.toString()
+    try {
+      const event = verifyWebhook({
+        body,
+        signature,
+        secret: process.env.SOLVAPAY_WEBHOOK_SECRET!,
+      })
+      await handleWebhookEvent(event)
+      return res.json({ received: true })
+    } catch {
+      return res.status(401).json({ error: 'Invalid signature' })
+    }
+  },
+)
 ```
 
 ## Event-to-Action Matrix
 
 | Event | Typical action |
 | --- | --- |
-| `purchase.created` | grant access and initialize usage state (also fires on plan switch) |
-| `purchase.updated` | update access tier/limits (also fires on reactivation — `cancelledAt` cleared) |
-| `purchase.cancelled` | schedule downgrade or revoke at period end |
-| `purchase.expired` | revoke access (also fires when plan switch expires old purchase) |
+| `purchase.created` | grant access and initialize usage state |
+| `purchase.activated` | purchase moved to `active` (paid); grant access |
+| `purchase.updated` | refresh access tier/limits |
+| `purchase.cancellation_scheduled` | recurring cancel-at-period-end; show pending-cancel state, access continues until `endDate` |
+| `purchase.cancelled` | immediate cancel (status `cancelled`); revoke access |
+| `purchase.reactivated` | clear pending cancel; restore `autoRenew` |
+| `purchase.expired` | revoke access |
+| `purchase.plan_changed` | move the customer onto the new plan; drop the old purchase |
 | `payment.succeeded` | record payment and clear payment retry flags |
 | `payment.failed` | mark account at risk and notify customer |
+| `checkout_session.completed` | refresh access after hosted checkout |
 
 ## Reactivation and Plan Switching Events
 
-**Reactivation**: when `reactivateRenewal` undoes a pending cancellation, a `purchase.updated`
-event fires. The purchase object has `cancelledAt: null` and `autoRenew: true`.
+**Reactivation**: `reactivateRenewal` emits `purchase.reactivated` (not `purchase.updated`). The purchase has `cancelledAt: null` and `autoRenew: true`.
 
-**Plan switching**: when `activatePlan` switches a customer to a different plan, two events fire:
-- `purchase.expired` for the old purchase (immediate expiration)
-- `purchase.created` for the new purchase on the requested plan
-
-Handle both events to keep local access state accurate during plan switches.
+**Plan switching**: `activatePlan` onto a different plan emits `purchase.expired` for the superseded purchase and `purchase.plan_changed` for the new one (the new purchase also emits `purchase.created`). Key handlers off `purchase.plan_changed` so you do not double-apply a switch.
 
 ## Idempotency Strategy
 

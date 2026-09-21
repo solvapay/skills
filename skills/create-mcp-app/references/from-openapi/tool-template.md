@@ -6,7 +6,7 @@ Rationale (why arrow wrapper, why single environment, etc.) lives in [design-not
 
 ## Entrypoint shape
 
-`src/worker.ts` exports a `fetch` that calls `createSolvaPayMcpFetch` with `mode: 'json-stateless'` and `hideToolsByAudience: ['ui']`, then threads the Workers `env` into generated tools via `additionalTools: ctx => registerTools(ctx, env)`. `src/tools/index.ts` exports the matching `registerTools(ctx, env)`; scaffold appends one import + one `register{OperationId}(ctx, env)` call per generated operation.
+`src/worker.ts` exports a `fetch` that calls `createSolvaPayMcpFetch` with `responseMode: 'json'` and `hideToolsByAudience: ['ui']`, then threads the Workers `env` into generated tools via `additionalTools: ctx => registerTools(ctx, env)`. `src/tools/index.ts` exports the matching `registerTools(ctx, env)`; scaffold appends one import + one `register{OperationId}(ctx, env)` call per generated operation.
 
 ## Tool file shape
 
@@ -45,15 +45,44 @@ export function registerGetPetById(ctx: AdditionalToolsContext, env: Env) {
 
 `c.respond(payload, { text })` packages `payload` into `structuredContent` for capable hosts and `text` into `content[0].text` for text-only hosts.
 
-### Free tool
+### Free-capped tool
 
-Same imports and same `upstreamFetchJson` call shape. Three differences:
+Same imports, same `upstreamFetchJson` call, same `c.respond` envelope as paid. Differences:
 
-- Use `ctx.server.registerTool(name, { inputSchema, annotations }, handler)` instead of `ctx.registerPayable(name, { schema, annotations, handler })` (note `inputSchema` vs `schema`).
+- Use `ctx.registerFree(name, { schema, annotations, limit, handler })` instead of `ctx.registerPayable`.
+- Pass `limit: { meter?, cap, scope, windowDays? }` from `selections.freeLimit`. Meter must match `/^free-[a-z0-9-]+$/`.
+- Identity is required. Do not use this for anonymous public tools.
+
+```ts
+export function registerListPets(ctx: AdditionalToolsContext, env: Env) {
+  ctx.registerFree('listPets', {
+    title: 'List pets',
+    description: 'GET /pets — preview, then a plan is required.',
+    schema: { status: z.string().optional() },
+    annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+    limit: { meter: 'free-previews', cap: 5, scope: 'rolling_window', windowDays: 30 },
+    handler: async (input, c) => {
+      const url = new URL('https://petstore.swagger.io/v2/pet/findByStatus')
+      if (input.status !== undefined) url.searchParams.set('status', String(input.status))
+      const data = await upstreamFetchJson<Pet[]>(url, {
+        method: 'GET',
+        headers: { authorization: `Bearer ${env.UPSTREAM_API_KEY}` },
+      })
+      return c.respond(data, { text: `Listed ${data.length} pets.` })
+    },
+  })
+}
+```
+
+### Unlimited-free tool
+
+Same imports and same `upstreamFetchJson` call shape. Three differences from paid / free-capped:
+
+- Use `ctx.server.registerTool(name, { inputSchema, annotations }, handler)` instead of `ctx.registerPayable` / `ctx.registerFree` (note `inputSchema` vs `schema`).
 - Handler signature is `async (args)` — no `c` callback.
 - Return shape is the hand-rolled dual envelope: `{ content: [{ type: 'text', text }], structuredContent: data }`.
 
-`ctx.respond` is exclusive to `registerPayable`; free tools always hand-roll the envelope.
+`c.respond` is exclusive to `registerPayable` and `registerFree`; unlimited-free tools always hand-roll the envelope.
 
 ### Success-status fallback
 
@@ -96,8 +125,8 @@ The thrown `UpstreamError` is **not caught** in the generated handler — both c
 
 | Path | Converter |
 | --- | --- |
-| Free | `@modelcontextprotocol/sdk` wraps into `{ isError: true, content: [{ type: 'text', text: error.message }] }` |
-| Paid | SolvaPay's `formatError` wraps into the same shape; customer is not charged for upstream failures |
+| Unlimited free | `@modelcontextprotocol/server` (`McpServer.registerTool`) wraps into `{ isError: true, content: [{ type: 'text', text: error.message }] }` |
+| Paid / free-capped | SolvaPay's `formatError` wraps into the same shape; the customer is not charged (and a free allowance is not decremented) for upstream failures |
 
 ## Who writes what to `.env`
 

@@ -23,7 +23,7 @@ Paywall wrappers around Express business handlers.
 ## Route protection pattern
 
 ```typescript
-const payable = solvaPay.payable({ product: 'prd_api' })
+const payable = solvaPay.payable({ productRef: 'prd_api' })
 app.post('/v1/generate', payable.http(generateHandler))
 ```
 

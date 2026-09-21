@@ -33,10 +33,9 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase @supabase/su
 
 ### Environment variables
 
-`npx -y solvapay@latest init` writes `SOLVAPAY_SECRET_KEY` to `.env`. Add the remaining variables:
+`npx -y solvapay@latest init` writes `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, and `SOLVAPAY_API_BASE_URL` to `.env`. Add auth-provider vars:
 
 ```env
-NEXT_PUBLIC_PRODUCT_REF=prd_...
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_JWT_SECRET=...
@@ -45,9 +44,11 @@ SUPABASE_JWT_SECRET=...
 | Variable | Purpose |
 | --- | --- |
 | `SOLVAPAY_SECRET_KEY` | server-only auth to SolvaPay API |
+| `SOLVAPAY_PRODUCT_REF` | default product used for hosted checkout (written by init) |
 | `SOLVAPAY_API_BASE_URL` | optional API host override |
-| `NEXT_PUBLIC_PRODUCT_REF` | default product used for hosted checkout |
 | Supabase vars | auth and token verification |
+
+Use `NEXT_PUBLIC_SOLVAPAY_PRODUCT_REF` only if the client genuinely needs the ref. Do not invent `NEXT_PUBLIC_PRODUCT_REF`.
 
 ### Verify
 
@@ -58,7 +59,7 @@ SUPABASE_JWT_SECRET=...
 
 ### Troubleshooting
 
-- Missing env errors → ensure `.env.local` exists and restart dev server.
+- Missing env errors → ensure `.env` exists (init writes there) and restart the dev server.
 - 401 on all API routes → verify JWT secret and auth middleware setup in Step 2.
 
 ## Step 2 — Authentication
@@ -67,7 +68,7 @@ Use Supabase JWT auth so server routes can map requests to one customer identity
 
 ### Recommended pattern
 
-- Use SolvaPay Next auth middleware helper to extract user id for `/api/*`.
+- Use `createSupabaseAuthMiddleware` from `@solvapay/next/middleware` to extract user id for `/api/*`.
 - Keep auth token handling server-side for all checkout / customer session routes.
 - Use `SolvaPayProvider` + Supabase adapter in client UI layer.
 
@@ -75,7 +76,7 @@ Use Supabase JWT auth so server routes can map requests to one customer identity
 
 - Middleware should set a stable user identifier for downstream API handlers.
 - Customer sync should run before first checkout for new users.
-- Keep an access check route (for example `/api/check-access`) available for UI refresh after checkout return.
+- Keep `GET /api/check-purchase` (the `checkPurchase` helper from `@solvapay/next`) available for UI refresh after checkout return.
 
 ### Verify
 
@@ -94,8 +95,9 @@ Create server routes that return hosted URLs, then redirect on the client.
 
 ### API routes
 
-- `POST /api/create-checkout-session` → `createCheckoutSession(...)` → `{ checkoutUrl }`
-- `POST /api/create-customer-session` → `createCustomerSession(...)` → `{ customerUrl }`
+- `POST /api/create-checkout-session` → `createCheckoutSession(...)` → `{ sessionId, checkoutUrl }`
+- `POST /api/create-customer-session` → `createCustomerSession(...)` → `{ sessionId, customerUrl }`
+- `GET /api/check-purchase` → `checkPurchase(request)` → `{ customerRef, purchases[] }`
 - `POST /api/cancel-renewal` → `cancelRenewal(request, { purchaseRef, reason? })` → purchase with `cancelledAt`
 - `POST /api/reactivate-renewal` → `reactivateRenewal(request, { purchaseRef })` → purchase with `cancelledAt` cleared
 - `POST /api/activate-plan` → `activatePlan(request, { productRef, planRef })` → `{ status, purchaseRef?, checkoutUrl? }` (free plans, credit activation, plan switching)
@@ -103,14 +105,20 @@ Create server routes that return hosted URLs, then redirect on the client.
 ### Route skeleton (hosted checkout)
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server'
 import { createCheckoutSession } from '@solvapay/next'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   const { productRef, planRef } = await request.json()
-  const result = await createCheckoutSession(request, { productRef, planRef })
-  return result instanceof NextResponse ? result : NextResponse.json(result)
+  return createCheckoutSession(request, { productRef, planRef })
 }
+```
+
+Access check (`app/api/check-purchase/route.ts`):
+
+```typescript
+import { checkPurchase } from '@solvapay/next'
+
+export const GET = (request: Request) => checkPurchase(request)
 ```
 
 ### Client flow
@@ -161,17 +169,15 @@ window.location.href = checkoutUrl
 Before handoff, emit a runnable verification artifact (curl block or test script) — not a prose summary:
 
 ```bash
-# Happy path — after sandbox checkout, access refresh returns granted
-curl -i -X POST http://localhost:3000/api/check-access \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"productRef":"'"$NEXT_PUBLIC_PRODUCT_REF"'"}'
-# Expect: { "hasAccess": true } (or equivalent granted payload)
+# Happy path — after sandbox checkout, access refresh returns purchases
+curl -i http://localhost:3000/api/check-purchase \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+# Expect: { "customerRef": "...", "purchases": [ ... ] }
 
 # Failure path — unauthenticated checkout blocked
 curl -i -X POST http://localhost:3000/api/create-checkout-session \
   -H "Content-Type: application/json" \
-  -d '{"productRef":"'"$NEXT_PUBLIC_PRODUCT_REF"'","planRef":"pln_..."}'
+  -d '{"productRef":"'"$SOLVAPAY_PRODUCT_REF"'","planRef":"pln_..."}'
 # Expect: HTTP/1.1 401
 ```
 

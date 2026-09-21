@@ -95,6 +95,40 @@ const mode = data.mode ?? 'one-to-one'
 if (mode === 'one-to-one') {
   if (!Array.isArray(data.operations) || data.operations.length === 0) {
     errors.push('operations: required non-empty array for one-to-one mode')
+  } else {
+    const FREE_METER = /^free-[a-z0-9-]+$/
+    for (const entry of data.operations) {
+      const id = entry?.operationId ?? '(missing operationId)'
+      const tier = entry?.tier
+      if (!['free', 'free-capped', 'paid', 'skip'].includes(tier)) {
+        errors.push(`operations.${id}.tier: invalid "${tier}"`)
+        continue
+      }
+      if (tier === 'free-capped') {
+        const limit = entry.freeLimit
+        if (!limit || typeof limit !== 'object') {
+          errors.push(`operations.${id}.freeLimit: required for tier free-capped`)
+          continue
+        }
+        if (typeof limit.cap !== 'number' || !Number.isInteger(limit.cap) || limit.cap < 1) {
+          errors.push(`operations.${id}.freeLimit.cap: positive integer required`)
+        }
+        if (!['rolling_window', 'lifetime'].includes(limit.scope)) {
+          errors.push(`operations.${id}.freeLimit.scope: rolling_window or lifetime`)
+        }
+        if (
+          limit.scope === 'rolling_window' &&
+          (typeof limit.windowDays !== 'number' || !Number.isInteger(limit.windowDays) || limit.windowDays < 1)
+        ) {
+          errors.push(`operations.${id}.freeLimit.windowDays: required when scope is rolling_window`)
+        }
+        if (limit.meter !== undefined && (typeof limit.meter !== 'string' || !FREE_METER.test(limit.meter))) {
+          errors.push(`operations.${id}.freeLimit.meter: must match ${FREE_METER}`)
+        }
+      } else if (entry.freeLimit !== undefined) {
+        errors.push(`operations.${id}.freeLimit: only valid with tier free-capped`)
+      }
+    }
   }
 }
 

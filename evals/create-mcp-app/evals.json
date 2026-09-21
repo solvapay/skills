@@ -11,8 +11,8 @@
       "assertions": [
         "src/tools/ contains action-verb intent files (manage_pet.ts, find_pet.ts, manage_order.ts, manage_user.ts or similar) — NOT tag-grouped files like pets.ts/users.ts/store.ts, and NOT one-file-per-operation (no addPet.ts, getPetById.ts, deletePet.ts, etc.)",
         "Paid tools (ctx.registerPayable) use c.respond(data, { text: narration }) — NOT raw return { content: [...] } from paid handlers",
-        "Free tools (ctx.server.registerTool) return { content: [{ type: 'text', text: <render-instruction narration> }], structuredContent: {...} } — they include a text narration alongside structuredContent, not raw content with no narration",
-        "Free vs paid tier assignment in tool files matches describe.mjs's suggestedTier output — GET/read operations registered with ctx.server.registerTool, mutations registered with ctx.registerPayable",
+        "Unlimited-free tools (ctx.server.registerTool) return { content: [{ type: 'text', text: <render-instruction narration> }], structuredContent: {...} }. Free-capped tools (ctx.registerFree) use c.respond like paid tools — NOT a hand-rolled envelope, and NOT registerTool",
+        "Tier assignment: mutations use ctx.registerPayable. GET/read operations use ctx.server.registerTool unless the user asked for a per-customer cap, in which case ctx.registerFree with a limit block (meter matching /^free-[a-z0-9-]+$/). describe.mjs suggestedTier stays free/paid/skip — a cap is an explicit upgrade, not inferred from the HTTP verb",
         "selections.json is NOT found anywhere inside ./petstore-mcp/ (security requirement — upstream API key would leak)",
         "The agent ran node scripts/describe.mjs against the spec (visible in transcript)",
         "The agent ran node scripts/scaffold.mjs to generate the project (visible in transcript)",
@@ -123,17 +123,17 @@
       "id": 7,
       "slug": "express-alternative-host",
       "prompt": "Task: i wanna set up a paid mcp server but were on node + express, not cloudflare — company doesnt use cloudflare. walk me through wiring solvapay in from scratch. i'll write the app.listen glue myself, just give me a server.ts that compiles and a package.json with the right deps under ./express-mcp/.",
-      "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` wired to `StreamableHTTPServerTransport`, with `createMcpOAuthBridge` from `@solvapay/mcp/express` mounted as middleware. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
+      "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` wired via `createMcpHandler` + `toNodeHandler`, with `createMcpOAuthBridge` from `@solvapay/mcp/express` mounted as middleware. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
       "files": [],
       "assertions": [
         "`./express-mcp/server.ts` imports `createSolvaPayMcpServer` from `@solvapay/mcp` AND `createMcpOAuthBridge` from `@solvapay/mcp/express` — NOT `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch` and NOT a nonexistent `createSolvaPayMcpExpress`",
-        "`./express-mcp/server.ts` uses `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` to bridge the MCP server to Express (req, res)",
-        "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`, and `express` as dependencies",
+        "`./express-mcp/server.ts` uses `createMcpHandler` from `@modelcontextprotocol/server` and `toNodeHandler` from `@modelcontextprotocol/node` to bridge the MCP server to Express — NOT `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk`",
+        "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/mcp-core`, `@solvapay/server`, `@modelcontextprotocol/server`, `@modelcontextprotocol/core`, `@modelcontextprotocol/node`, and `express` as dependencies",
         "Env vars are read via `process.env.SOLVAPAY_SECRET_KEY` etc. — NOT a Workers `Env` interface and NOT `env.SOLVAPAY_SECRET_KEY` from a Workers fetch signature",
         "No `wrangler.jsonc` is created (Cloudflare-specific; not applicable on Express)",
         "At least one paid tool is registered via `ctx.registerPayable(name, { title, description, schema, handler })` with the 2-arg shape, and its handler returns `c.respond(data, { text })`",
         "The agent did NOT run the OpenAPI agent path (`describe.mjs` / `scaffold.mjs` from `scripts/mcp/`) — there is no OpenAPI spec in this task",
-        "The `createSolvaPayMcpServer` call includes `mode: 'json-stateless'` — this option is required for stateless HTTP deployments on Node/Express and is only documented in references/hosting/alternatives.md; agents without that reference typically omit it or pass no mode",
+        "`createSolvaPayMcpServer` has no `responseMode` / `mode` option — transport is owned by `createMcpHandler`. The factory runs inside `createMcpHandler(() => createSolvaPayMcpServer(...))` so a fresh server is built per request",
         "`createMcpOAuthBridge(...)` is spread into `app.use()` using the spread operator (e.g. `app.use(...createMcpOAuthBridge(...))`) — the bridge returns an array of Express route handlers that must be spread; calling it as a single middleware (`app.use(createMcpOAuthBridge(...))`) is a pattern error only caught by reading alternatives.md"
       ]
     },
@@ -306,6 +306,30 @@
         "The agent read references/languages/ts.md (visible in transcript)",
         "The agent did NOT open references/languages/python.md, references/languages/ruby.md, references/languages/go.md, or references/languages/rust.md",
         "Paid tool uses ctx.registerPayable(name, { schema, handler }) and c.respond(data, { text })"
+      ]
+    },
+    {
+      "id": 19,
+      "slug": "extend-free-capped-preview-pet",
+      "prompt": "Setup: copy the directory at `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` into your working directory as `./petstore-mcp/` before starting — this represents an already-scaffolded MCP project. Task: add a free-capped preview_pet tool to my mcp server at `./petstore-mcp`. Five calls per 30 days, then a plan is required.",
+      "expected_output": "A new free-capped tool file under ./petstore-mcp/src/tools/. The tool calls ctx.registerFree with exactly 2 arguments: a string name and a config object with title/description/schema/limit/handler. Handler returns c.respond(data, { text }). limit.meter matches /^free-[a-z0-9-]+$/. src/tools/index.ts updated. No re-scaffolding. No ctx.server.registerTool for this tool.",
+      "files": [
+        "fixtures/petstore-mcp/package.json",
+        "fixtures/petstore-mcp/wrangler.jsonc",
+        "fixtures/petstore-mcp/tsconfig.json",
+        "fixtures/petstore-mcp/src/worker.ts",
+        "fixtures/petstore-mcp/src/tools/index.ts"
+      ],
+      "assertions": [
+        "The agent did NOT run npm create solvapay or scaffold.mjs (would re-scaffold the project)",
+        "A new tool file was created under ./petstore-mcp/src/tools/ (preview_pet.ts, previewPet.ts, or similar)",
+        "The new tool calls ctx.registerFree with EXACTLY 2 arguments: ctx.registerFree('<name>', { title, description, schema, limit, handler, annotations? }) — NOT ctx.server.registerTool, NOT ctx.registerPayable, NOT a 3-argument form",
+        "The limit block includes cap: 5, scope: 'rolling_window', windowDays: 30, and a meter matching /^free-[a-z0-9-]+$/",
+        "The tool's handler returns c.respond(data, { text: narration }) — NOT a hand-rolled { content: [...] } envelope",
+        "./petstore-mcp/src/tools/index.ts was updated to import and call the new tool's register function",
+        "The original ./petstore-mcp/package.json, wrangler.jsonc, and src/worker.ts were NOT overwritten or deleted",
+        "The new tool's annotations include openWorldHint: true",
+        "The agent did not treat this as an unlimited-free tool — there is NO ctx.server.registerTool call for preview_pet"
       ]
     }
   ]
