@@ -11,10 +11,10 @@ This guide is for SDK-based MCP server integrations where you self-host the serv
 - [Factory setup (recommended)](#factory-setup-recommended)
 - [SDK initialization](#sdk-initialization)
 - [Wrap tool handlers](#wrap-tool-handlers)
-- [Register virtual tools](#register-virtual-tools)
 - [OAuth bridge setup](#oauth-bridge-setup)
 - [Environment variables](#environment-variables)
 - [Verification checklist](#verification-checklist)
+- [Old patterns](#old-patterns)
 
 ## Guardrails
 
@@ -26,8 +26,8 @@ This guide is for SDK-based MCP server integrations where you self-host the serv
 
 ## Prerequisites
 
-- Run `npx -y solvapay@latest init` to authenticate, write `SOLVAPAY_SECRET_KEY` to
-  `.env`, and install base SDK packages.
+Credentials and `npx solvapay init`: [solvapay-init.md](solvapay-init.md).
+
 - Install `@solvapay/mcp` for the batteries-included factory:
 
   ```bash
@@ -49,45 +49,52 @@ Three runtime-specific factories are exposed via subpaths:
 
 Register paid tools through the `additionalTools` hook — the factory has no `tools` array. `registerPayable` applies the paywall, so you never wrap the handler yourself. Destructure `{ registerPayable, registerFree }` when you also ship a capped preview.
 
+On Cloudflare Workers, secrets arrive as `env.*` inside `fetch()`. Do not call `createSolvaPay(process.env...)` at module scope — `process.env` is empty there.
+
 ```typescript
-// src/server.ts (Cloudflare Worker / Deno / Supabase Edge / Bun)
+// src/worker.ts — Cloudflare Workers
 import { createSolvaPayMcpFetch } from '@solvapay/mcp/fetch'
 import { createSolvaPay } from '@solvapay/server'
 import { z } from 'zod'
 import mcpAppHtml from './assets/mcp-app.html'
 
-const solvaPay = createSolvaPay({ apiKey: process.env.SOLVAPAY_SECRET_KEY! })
+let cachedHandler: ((req: Request) => Promise<Response>) | undefined
 
-const handler = createSolvaPayMcpFetch({
-  solvaPay,
-  productRef: process.env.SOLVAPAY_PRODUCT_REF!,
-  publicBaseUrl: process.env.MCP_PUBLIC_BASE_URL!,
-  resourceUri: 'ui://my-app/mcp-app.html',
-  // Edge-safe alternative to `htmlPath`; one of the two is required.
-  readHtml: async () => mcpAppHtml,
-  responseMode: 'json',
-  additionalTools: ({ registerPayable, registerFree }) => {
-    registerFree('preview_price_chart', {
-      description: 'Seeded price-chart preview.',
-      schema: { ticker: z.string().min(1) },
-      annotations: { readOnlyHint: true, idempotentHint: true },
-      limit: { meter: 'free-previews', cap: 5, scope: 'rolling_window', windowDays: 30 },
-      handler: async ({ ticker }, ctx) => ctx.respond(await previewPriceChart(ticker)),
-    })
-    registerPayable('predict_price_chart', {
-      description: 'Return a seeded price chart for a ticker.',
-      schema: { ticker: z.string().min(1) },
-      annotations: { readOnlyHint: true, idempotentHint: true },
-      handler: async ({ ticker }, ctx) => ctx.respond(await predictPriceChart(ticker)),
-    })
-  },
-  // Keep UI-only transport tools out of the LLM's `tools/list`.
-  hideToolsByAudience: ['ui'],
-})
+function getHandler(env: Env) {
+  if (cachedHandler) return cachedHandler
+  cachedHandler = createSolvaPayMcpFetch({
+    solvaPay: createSolvaPay({ apiKey: env.SOLVAPAY_SECRET_KEY }),
+    productRef: env.SOLVAPAY_PRODUCT_REF,
+    publicBaseUrl: env.MCP_PUBLIC_BASE_URL,
+    resourceUri: 'ui://my-app/mcp-app.html',
+    // Edge-safe alternative to `htmlPath`; one of the two is required.
+    readHtml: async () => mcpAppHtml,
+    responseMode: 'json',
+    additionalTools: ({ registerPayable, registerFree }) => {
+      registerFree('preview_price_chart', {
+        description: 'Seeded price-chart preview.',
+        schema: { ticker: z.string().min(1) },
+        annotations: { readOnlyHint: true, idempotentHint: true },
+        limit: { meter: 'free-previews', cap: 5, scope: 'rolling_window', windowDays: 30 },
+        handler: async ({ ticker }, ctx) => ctx.respond(await previewPriceChart(ticker)),
+      })
+      registerPayable('predict_price_chart', {
+        description: 'Return a seeded price chart for a ticker.',
+        schema: { ticker: z.string().min(1) },
+        annotations: { readOnlyHint: true, idempotentHint: true },
+        handler: async ({ ticker }, ctx) => ctx.respond(await predictPriceChart(ticker)),
+      })
+    },
+    // Keep UI-only transport tools out of the LLM's `tools/list`.
+    hideToolsByAudience: ['ui'],
+  })
+  return cachedHandler
+}
 
-export default { fetch: handler } // Cloudflare Worker export
-// or: Deno.serve(handler)
+export default { fetch: (req: Request, env: Env) => getHandler(env)(req) }
 ```
+
+`process.env` (Node, Bun) or `Deno.env` at module scope is fine on those runtimes — initialise `createSolvaPay` once at the top of the module and pass the handler to `Deno.serve` or your HTTP framework. The lazy `getHandler(env)` pattern is Cloudflare Workers only. It initialises `createSolvaPay` once per isolate, reading `env.*` safely.
 
 `hideToolsByAudience` takes an array of audiences (or `{ audiences, bypassWhen }`), not a map of audience to tool names.
 
@@ -104,7 +111,7 @@ If you need full control (custom transport, legacy servers, bespoke auth), drop 
 
 ## SDK initialization
 
-Create a shared config module. All other files import from here.
+Create a shared config module on Node, Bun, or Deno, where `process.env` / `Deno.env` at module scope is fine. On Cloudflare Workers, keep this inside `getHandler(env)` and read `env.*`. All other files import from here.
 
 ```typescript
 import { createSolvaPay, createSolvaPayClient } from '@solvapay/server'
@@ -157,46 +164,6 @@ The adapter automatically:
 - Returns a structured paywall error with checkout URL when limits are exceeded
 
 No manual `PaywallError` handling is needed.
-
-## Register virtual tools
-
-Virtual tools provide self-service account management. They are **not** paywall-protected.
-
-| Tool | Description |
-| --- | --- |
-| `get_user_info` | Returns user profile and purchase status |
-| `account` | Billing viewer — checkout, account, or top-up (`view` param) |
-| `activate_plan` | Activate a plan by `planRef` |
-
-### Create and merge
-
-```typescript
-const virtualTools = solvaPay.getVirtualTools({
-  product: productRef,
-  getCustomerRef,
-})
-
-const allTools = [
-  ...virtualTools.map(t => ({
-    name: t.name,
-    description: t.description,
-    inputSchema: t.inputSchema,
-  })),
-  ...businessTools,
-]
-
-const virtualToolHandlers = Object.fromEntries(
-  virtualTools.map(t => [t.name, t.handler]),
-)
-
-const allHandlers = {
-  ...virtualToolHandlers,
-  create_task: payable.mcp(createTask, { getCustomerRef }),
-  get_task: payable.mcp(getTask, { getCustomerRef }),
-}
-```
-
-To exclude specific virtual tools, pass `exclude: ['account']` in the options.
 
 ## OAuth bridge setup
 
@@ -295,5 +262,50 @@ WWW-Authenticate: Bearer resource_metadata="<MCP_PUBLIC_BASE_URL>/.well-known/oa
 - [ ] `GET /.well-known/oauth-authorization-server` returns endpoints pointing to SolvaPay
 - [ ] Protected tool denies over-limit calls with a paywall error containing a checkout URL
 - [ ] Protected tool allows authenticated, in-limit calls and returns business logic result
-- [ ] Virtual tools (`get_user_info`, `account`, `activate_plan`) respond without paywall
-- [ ] Virtual tool handlers are NOT wrapped with `payable.mcp()`
+- [ ] Factory tools `account` and `activate_plan` respond without a paywall
+- [ ] `account` and `activate_plan` are NOT wrapped with `payable.mcp()`
+
+## Old patterns
+
+<details>
+<summary>Legacy hand-rolled servers: <code>getVirtualTools</code> / <code>get_user_info</code></summary>
+
+The factory path registers `account` and `activate_plan` for you. Use this only when a server predates the factory and still calls `getVirtualTools` by hand.
+
+Virtual tools provide self-service account management. They are **not** paywall-protected.
+
+| Tool | Description |
+| --- | --- |
+| `get_user_info` | Returns user profile and purchase status |
+| `account` | Billing viewer — checkout, account, or top-up (`view` param) |
+| `activate_plan` | Activate a plan by `planRef` |
+
+```typescript
+const virtualTools = solvaPay.getVirtualTools({
+  product: productRef,
+  getCustomerRef,
+})
+
+const allTools = [
+  ...virtualTools.map(t => ({
+    name: t.name,
+    description: t.description,
+    inputSchema: t.inputSchema,
+  })),
+  ...businessTools,
+]
+
+const virtualToolHandlers = Object.fromEntries(
+  virtualTools.map(t => [t.name, t.handler]),
+)
+
+const allHandlers = {
+  ...virtualToolHandlers,
+  create_task: payable.mcp(createTask, { getCustomerRef }),
+  get_task: payable.mcp(getTask, { getCustomerRef }),
+}
+```
+
+To exclude specific virtual tools, pass `exclude: ['account']` in the options.
+
+</details>

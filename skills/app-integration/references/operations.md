@@ -13,7 +13,6 @@ Procedure-oriented lookup for `@solvapay/*` API patterns. Read after stack guide
 - `@solvapay/server` — server SDK, paywall handlers, webhook verification
 - `@solvapay/server/fetch` — fetch-native handlers for Edge / Deno / Workers
 - `@solvapay/next` — Next.js route wrappers (`Promise<NextResponse>`)
-- `@solvapay/mcp` / `@solvapay/mcp/fetch` — MCP server adapter
 - `@solvapay/react` — UI provider, hooks, checkout components
 - `@solvapay/react-supabase` — Supabase auth adapter
 - `@solvapay/auth` — auth utilities

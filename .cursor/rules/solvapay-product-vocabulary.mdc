@@ -18,7 +18,7 @@ Do not mention the following SolvaPay product names in plans, skills, docs, mark
 
 ## What to suggest instead
 
-When a user's intent matches no-code MCP monetization (paste a server URL, gate tools without code, console setup), route to **Managed MCP** — the provider console path with docs at `/no-code-mcp/overview` and `/no-code-mcp/quick-start`. When they want to write MCP paywall code (greenfield worker, OpenAPI→MCP, SDK wiring), route to the code-based path (`solvapay/create-mcp-app` skill, `create-solvapay` package, or `solvapay/sdk-integration`).
+When a user's intent matches no-code MCP monetization (paste a server URL, gate tools without code, console setup), route to **Managed MCP** — the provider console path with docs at `/no-code-mcp/overview` and `/no-code-mcp/quick-start`. When they want to write MCP paywall code (greenfield worker, OpenAPI→MCP, existing server, factory wrap), route to `solvapay/create-mcp-app` (or the `create-solvapay` package). When they want paywalls, usage, webhooks, or billing UI in an existing app or API with no MCP server, route to `solvapay/app-integration`.
 
 ## Canonical product type names
 

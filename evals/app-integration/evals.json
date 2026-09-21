@@ -1,14 +1,14 @@
 {
-  "skill_name": "sdk-integration",
+  "skill_name": "app-integration",
   "evals": [
     {
       "id": 1,
       "slug": "nextjs-paywall-api",
       "prompt": "add solvapay paywall to my next app. i got next in package.json, need checkout + limits checks on /api/premium/*",
-      "expected_output": "Agent loads sdk-integration, detects Next.js stack, follows references/nextjs.md, runs npx solvapay init guidance, implements server-side paywall with hosted checkout path.",
+      "expected_output": "Agent loads app-integration, detects Next.js stack, follows references/nextjs.md, runs npx solvapay init guidance, implements server-side paywall with hosted checkout path.",
       "files": [],
       "assertions": [
-        "Agent reads sdk-integration SKILL.md and references/nextjs.md",
+        "Agent reads app-integration SKILL.md and references/nextjs.md",
         "Checkout session creation stays server-side",
         "SOLVAPAY_SECRET_KEY is not placed in NEXT_PUBLIC_* or client bundle",
         "Agent includes sandbox verification step (happy + failure path)"
@@ -30,10 +30,10 @@
       "id": 3,
       "slug": "negative-greenfield-mcp-handoff",
       "prompt": "scaffold a brand new paid mcp server from openapi on cloudflare workers into ./data-mcp",
-      "expected_output": "Agent routes to solvapay/create-mcp-app instead of implementing via sdk-integration alone.",
+      "expected_output": "Agent routes to solvapay/create-mcp-app instead of implementing via app-integration alone.",
       "files": [],
       "assertions": [
-        "Agent does NOT treat this as sdk-integration primary work",
+        "Agent does NOT treat this as app-integration primary work",
         "Handoff or explicit route to solvapay/create-mcp-app for greenfield MCP scaffold"
       ]
     },
@@ -63,14 +63,14 @@
     },
     {
       "id": 6,
-      "slug": "mcp-fetch-existing-server",
-      "prompt": "i already got a cloudflare worker mcp server with a search_docs tool. add the solvapay paywall to it, dont rescaffold the whole thing",
-      "expected_output": "Agent follows references/mcp-server.md for fetch-first wiring on an existing server.",
+      "slug": "nextjs-usage-events",
+      "prompt": "record solvapay usage events and check limits on my next.js api routes after each premium request. no mcp.",
+      "expected_output": "Agent follows references/nextjs.md and references/operations.md for server-side usage events and limits checks.",
       "files": [],
       "assertions": [
-        "Agent reads references/mcp-server.md",
-        "Agent does NOT run npm create solvapay or OpenAPI describe/scaffold as the primary path",
-        "Agent uses createSolvaPayMcpFetch or @solvapay/mcp/fetch pattern"
+        "Agent reads references/nextjs.md or references/operations.md",
+        "Usage events and limits checks stay server-side",
+        "Agent does not hand off primary work to solvapay/create-mcp-app"
       ]
     }
   ]
