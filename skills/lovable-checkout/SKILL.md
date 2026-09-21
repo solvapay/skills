@@ -37,7 +37,7 @@ Full guardrails for paste-in: [references/01-edge-and-secrets.md](references/01-
 - Multiple GoTrueClient instances cause auth bugs — singleton pattern (details: `02-provider-and-routes.md`).
 - `@solvapay/react/styles.css` must import **before** `./index.css` so Tailwind utilities can override primitives (details: `03-troubleshooting-and-sandbox.md`).
 - `requireProduct` matches the Console product **name** (case-insensitive), not the product ref (details: `03-troubleshooting-and-sandbox.md`).
-- MCP App UI errors mean wrong skill — use `solvapay/sdk-integration` or `solvapay/create-mcp-app`.
+- MCP App UI errors mean wrong skill — use `solvapay/create-mcp-app`.
 
 ## Mandatory read order
 

@@ -17,10 +17,10 @@
       "id": 2,
       "slug": "router-api-paywall",
       "prompt": "paywall my rest api with solvapay — express backend, no mcp involved.",
-      "expected_output": "Agent routes to solvapay/sdk-integration for REST/web paywall, not solvapay/create-mcp-app.",
+      "expected_output": "Agent routes to solvapay/app-integration for REST/web paywall, not solvapay/create-mcp-app.",
       "files": [],
       "assertions": [
-        "Handoff target is solvapay/sdk-integration, not solvapay/create-mcp-app",
+        "Handoff target is solvapay/app-integration, not solvapay/create-mcp-app",
         "Agent does not assume greenfield MCP scaffold or OpenAPI-to-MCP flow"
       ]
     },

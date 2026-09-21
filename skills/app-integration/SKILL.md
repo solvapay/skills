@@ -1,22 +1,21 @@
 ---
-name: sdk-integration
+name: app-integration
 description: >
-  Load when SolvaPay functionality needs to be coded into an app. Handles: billing UI
-  (buttons, plan status, React components) in React dashboards, web apps, or MCP server
-  UIs; paywalls, access gates, or usage limits on routes or handlers; SolvaPay fetch
-  handler or webhook setup; SDK integration across Next.js, React, Express, Supabase edge
-  functions, and MCP servers. Skip for greenfield MCP scaffolding, Lovable checkout, or
-  redirect-only checkout with no SDK code.
+  Load when SolvaPay functionality needs to be coded into an existing app or API. Handles: billing UI
+  (buttons, plan status, React components) in React dashboards and web apps; paywalls, access gates,
+  or usage limits on routes or handlers; SolvaPay fetch handler or webhook setup; SDK integration
+  across Next.js, React, Express, and Supabase edge functions. Skip for any MCP server work (new or
+  existing — use `solvapay/create-mcp-app`), Lovable checkout, or redirect-only checkout with no SDK code.
 metadata:
   version: "1.0.0"
 compatibility: >
-  Node.js >= 18 for npx solvapay init. Supports Next.js, React, Express, MCP (Workers/Edge/Deno),
+  Node.js >= 18 for npx solvapay init. Supports Next.js, React, Express,
   Supabase Edge Functions. Supabase CLI when using edge path. Network required for init.
 ---
 
-# SDK Integration
+# App integration
 
-Add SolvaPay to an existing TypeScript / JavaScript app via `@solvapay/*` packages.
+Add SolvaPay paywalls, usage, webhooks and billing UI to an existing TypeScript / JavaScript app or API.
 
 ## Guardrails
 
@@ -33,9 +32,8 @@ Add SolvaPay to an existing TypeScript / JavaScript app via `@solvapay/*` packag
 - `@solvapay/next` route wrappers return `Promise<NextResponse>` — update call sites (details: [references/nextjs.md](references/nextjs.md)).
 - Webhook signature verification needs the **raw request body**, not parsed JSON (details: [references/WEBHOOKS.md](references/WEBHOOKS.md)).
 - Deno import maps need trailing slashes on `@solvapay/` entries (details: [references/supabase-edge.md](references/supabase-edge.md)).
-- Virtual MCP UI tools ≠ `payable.mcp()` — different wiring paths (details: [references/mcp-server.md](references/mcp-server.md)).
 - Billing UI components do not grant access — server truth only.
-- Greenfield paid MCP scaffold → hand off to `solvapay/create-mcp-app`, not this skill.
+- Any MCP server (greenfield, existing, factory wrap) → `solvapay/create-mcp-app`.
 
 ## Mandatory read order
 
@@ -51,7 +49,7 @@ From `package.json` and project layout:
 - `next` → [references/nextjs.md](references/nextjs.md)
 - `react` without `next` → [references/react.md](references/react.md)
 - `express` → [references/express.md](references/express.md)
-- `@modelcontextprotocol/*` → [references/mcp-server.md](references/mcp-server.md)
+- `@modelcontextprotocol/*` or `@solvapay/mcp` present → stop, hand off to `solvapay/create-mcp-app`
 - `supabase/functions/` or Supabase without Next/Express → [references/supabase-edge.md](references/supabase-edge.md)
 
 If multiple match, ask which runtime is primary.
@@ -102,7 +100,7 @@ If multiple match, ask which runtime is primary.
 
 ## When NOT to use this skill
 
-- Greenfield paid MCP from OpenAPI/scratch → `solvapay/create-mcp-app`
+- Any MCP server (new or existing, including a factory wrap) → `solvapay/create-mcp-app`
 - Lovable paste-in checkout → `solvapay/lovable-checkout`
 - Minimal hosted checkout only on new web app → `solvapay/website-checkout`
 
@@ -126,5 +124,5 @@ If multiple match, ask which runtime is primary.
 
 - Operations: [references/operations.md](references/operations.md)
 - Env / init: [references/env-and-init.md](references/env-and-init.md)
-- Managed MCP product console (existing product only): [references/mcp-product-console.md](references/mcp-product-console.md)
+- Managed MCP API (bootstrap / configure plans on an existing Managed MCP product): [references/mcp-product-console.md](references/mcp-product-console.md)
 - Webhooks: [references/WEBHOOKS.md](references/WEBHOOKS.md)

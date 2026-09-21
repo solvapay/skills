@@ -2,7 +2,7 @@
 
 [![skills.sh](https://www.skills.sh/badge/solvapay/skills)](https://www.skills.sh/solvapay/skills)
 
-Agent skills for adding SolvaPay to any project: paid MCP servers, TypeScript SDK integration, hosted checkout, and Lovable paste-in checkout.
+Agent skills for adding SolvaPay to any project: paid MCP servers, app integration, hosted checkout, and Lovable paste-in checkout.
 
 ## Skills
 
@@ -10,15 +10,15 @@ Agent skills for adding SolvaPay to any project: paid MCP servers, TypeScript SD
 | --- | --- |
 | `solvapay` | Router — disambiguates vague intent and points at the right surface skill |
 | `solvapay/create-mcp-app` | Create or scaffold a paid MCP server on Cloudflare Workers (from OpenAPI or hand-written) |
-| `solvapay/sdk-integration` | TypeScript SDK paywall, checkout, usage, webhooks for Next.js / React / Express / MCP / Supabase Edge |
+| `solvapay/app-integration` | Paywalls, usage, webhooks, and billing UI for an existing TypeScript / JavaScript app or API (Next.js, React, Express, Supabase Edge). Formerly `sdk-integration` — `npx skills add solvapay/skills --skill sdk-integration` no longer resolves; install `--skill app-integration`. |
 | `solvapay/website-checkout` | Hosted checkout and customer portal for web apps |
 | `solvapay/lovable-checkout` | Paste-in preview-only checkout for Lovable (Vite + shadcn/ui + Supabase Edge) |
 
 ## What can it do?
 
 - "Scaffold a paid MCP server from this OpenAPI spec" → `solvapay/create-mcp-app`
-- "Add SolvaPay paywall to my Express API" → `solvapay/sdk-integration`
-- "Add usage metering to my MCP server" → `solvapay/sdk-integration`
+- "Add SolvaPay paywall to my Express API" → `solvapay/app-integration`
+- "Add usage metering to my MCP server" → `solvapay/create-mcp-app`
 - "Add hosted checkout to my Next.js site" → `solvapay/website-checkout`
 - "Paste SolvaPay checkout into my Lovable app" → `solvapay/lovable-checkout`
 - "I just want to add SolvaPay" (vague) → `solvapay` asks one disambiguation question, then routes
@@ -45,10 +45,6 @@ Every skill in this family uses the same retrieval chain:
 3. Direct docs.solvapay.com page fetch
 
 If MCP is unavailable, the skill continues with fallbacks. MCP setup is a recommended optional improvement.
-
-## Maintainer note: MCP server wiring
-
-`skills/create-mcp-app/references/mcp-server-wiring.md` is a vendored copy of `skills/sdk-integration/references/mcp-server.md`. When you change MCP paywall wiring guidance, update **both** files (or add a sync script later).
 
 ## Evals
 
@@ -119,7 +115,7 @@ skills/
 │   ├── SKILL.md
 │   ├── scripts/
 │   └── references/
-├── sdk-integration/                # routing id: solvapay/sdk-integration
+├── app-integration/                # routing id: solvapay/app-integration
 ├── website-checkout/               # routing id: solvapay/website-checkout
 └── lovable-checkout/               # routing id: solvapay/lovable-checkout
 ```

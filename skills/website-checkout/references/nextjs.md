@@ -183,4 +183,4 @@ curl -i -X POST http://localhost:3000/api/create-checkout-session \
 
 ## Note
 
-For usage metering, Express/MCP paths, or webhook-heavy flows, hand off to `solvapay/sdk-integration` (install separately).
+For usage metering, Express paths, or webhook-heavy flows, hand off to `solvapay/app-integration` (install separately). MCP server wiring → `solvapay/create-mcp-app`.

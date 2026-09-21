@@ -1,15 +1,12 @@
 ---
 name: create-mcp-app
 description: >
-  Use when the user is building a brand-new paid MCP server from zero — no existing server in play.
-  The two entry points: (1) the user has an OpenAPI or Swagger spec they want converted into
-  monetized MCP tools, or (2) they want to write the tools by hand on a fresh SolvaPay-wired
-  scaffold. Also use for the `npm create solvapay` CLI command with `--type mcp`. This skill covers
-  the full greenfield journey: spec parsing, tool authoring, Cloudflare Workers deployment, and
-  SolvaPay paywall setup on a new codebase. Also use when the user already has a running MCP
-  server and wants to add a paywall without rebuilding — stay on this skill and follow
-  references/existing-server.md. Skip for web checkout pages, Lovable flows, and SDK-only
-  integrations.
+  Use when any MCP server is monetized in code — new (OpenAPI or hand-written tools) or existing
+  (add a paywall, or wrap with the `@solvapay/mcp` factory). Also use for `npm create solvapay`
+  with `--type mcp`. Covers spec parsing, tool authoring, Cloudflare Workers deployment, and
+  SolvaPay paywall setup. For an existing server, follow references/existing-server.md and do not
+  rescaffold. Skip for web checkout pages, Lovable flows, and web/API paywalls with no MCP server
+  (`solvapay/app-integration`).
 metadata:
   version: "1.0.0"
 compatibility: >
@@ -19,7 +16,7 @@ compatibility: >
 
 # Create a Paid MCP App
 
-SolvaPay-monetized MCP server on Cloudflare Workers. OpenAPI auto-generation or hand-written tools.
+SolvaPay-monetized MCP server on Cloudflare Workers. New server (OpenAPI or hand-written tools) or an existing server wrapped with the `@solvapay/mcp` factory.
 
 > **Human at a terminal?** `npm create solvapay@latest <name> -- --type mcp` (use `@latest`). Ships from-openapi (one-to-one) and from-scratch modes, runs install + `solvapay init` in one pass.
 >
@@ -87,6 +84,7 @@ Before any other gate, ask how chatty you should be. See [references/hitl-conven
 | Has spec (agent) | [references/from-openapi/guide.md](references/from-openapi/guide.md) | `validate-selections.mjs` → scaffold → verify |
 | Hand-written / new | [references/from-scratch/guide.md](references/from-scratch/guide.md) | wrangler dev smoke |
 | Existing MCP server (add paywall) | [references/existing-server.md](references/existing-server.md) | tool invocation smoke |
+| Existing MCP server, factory wrap only | [references/existing-server.md](references/existing-server.md) — no scaffold | tool invocation smoke |
 
 **Inside an unrelated app repo:** if cwd is a Next.js app, backend, or monorepo without a paid-MCP server in scope, **stop and ask where the MCP server should live** before scaffolding (sibling dir or `apps/` / `packages/` subdirectory).
 

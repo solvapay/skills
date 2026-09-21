@@ -35,6 +35,6 @@
 2. Update `deno.json` to drop `@preview` suffixes.
 3. Rotate `SOLVAPAY_API_BASE_URL` to `https://api.solvapay.com`.
 4. Rotate `SOLVAPAY_SECRET_KEY` to `sk_live_...`.
-5. For production Next.js or full SDK flows, use `solvapay/website-checkout` or `solvapay/sdk-integration`.
+5. For production Next.js or full SDK flows, use `solvapay/website-checkout` or `solvapay/app-integration`. MCP App UI → `solvapay/create-mcp-app`.
 
 </details>

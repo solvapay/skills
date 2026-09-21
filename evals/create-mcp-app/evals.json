@@ -119,17 +119,17 @@
       "id": 7,
       "slug": "express-alternative-host",
       "prompt": "Task: i wanna set up a paid mcp server but were on node + express, not cloudflare — company doesnt use cloudflare. walk me through wiring solvapay in from scratch. i'll write the app.listen glue myself, just give me a server.ts that compiles and a package.json with the right deps under ./express-mcp/.",
-      "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` wired to `StreamableHTTPServerTransport`, with `createMcpOAuthBridge` from `@solvapay/mcp/express` mounted as middleware. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
+      "expected_output": "A Node + Express MCP server at `./express-mcp/` using `createSolvaPayMcpServer` from `@solvapay/mcp` bridged to Express via `createMcpHandler` (from `@modelcontextprotocol/server`) and `toNodeHandler` (from `@modelcontextprotocol/node`), with `createMcpOAuthBridge` from `@solvapay/mcp/express` spread into `app.use()`. Env vars via `process.env`. No `wrangler.jsonc`. One paid tool with correct `registerPayable` 2-arg shape and `c.respond` handler.",
       "files": [],
       "assertions": [
         "`./express-mcp/server.ts` imports `createSolvaPayMcpServer` from `@solvapay/mcp` AND `createMcpOAuthBridge` from `@solvapay/mcp/express` — NOT `createSolvaPayMcpFetch` from `@solvapay/mcp/fetch` and NOT a nonexistent `createSolvaPayMcpExpress`",
-        "`./express-mcp/server.ts` uses `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` to bridge the MCP server to Express (req, res)",
-        "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/sdk`, and `express` as dependencies",
+        "`./express-mcp/server.ts` bridges Express to the MCP server using `createMcpHandler` from `@modelcontextprotocol/server` and `toNodeHandler` from `@modelcontextprotocol/node` — NOT `StreamableHTTPServerTransport` from `@modelcontextprotocol/sdk` (that is SDK v1, removed in SDK v2); the MCP SDK v2 Node+Express wiring is only documented in references/hosting/alternatives.md",
+        "`./express-mcp/package.json` declares `@solvapay/mcp`, `@solvapay/server`, `@modelcontextprotocol/server`, `@modelcontextprotocol/core`, `@modelcontextprotocol/node`, and `express` as dependencies — NOT `@modelcontextprotocol/sdk` (SDK v1; SDK v2 splits this into separate `server`, `core`, and `node` packages)",
         "Env vars are read via `process.env.SOLVAPAY_SECRET_KEY` etc. — NOT a Workers `Env` interface and NOT `env.SOLVAPAY_SECRET_KEY` from a Workers fetch signature",
         "No `wrangler.jsonc` is created (Cloudflare-specific; not applicable on Express)",
         "At least one paid tool is registered via `ctx.registerPayable(name, { title, description, schema, handler })` with the 2-arg shape, and its handler returns `c.respond(data, { text })`",
         "The agent did NOT run the OpenAPI agent path (`describe.mjs` / `scaffold.mjs` from `scripts/mcp/`) — there is no OpenAPI spec in this task",
-        "The `createSolvaPayMcpServer` call includes `mode: 'json-stateless'` — this option is required for stateless HTTP deployments on Node/Express and is only documented in references/hosting/alternatives.md; agents without that reference typically omit it or pass no mode",
+        "The MCP route is mounted via `app.all('/mcp', (req, res) => { void handleMcp(req, res, req.body) })` — `req.body` is passed as the third argument to the `toNodeHandler`-returned handler because Express's call signature includes `next` and the handler must not treat `next` as pre-parsed body; this wiring detail is only documented in references/hosting/alternatives.md",
         "`createMcpOAuthBridge(...)` is spread into `app.use()` using the spread operator (e.g. `app.use(...createMcpOAuthBridge(...))`) — the bridge returns an array of Express route handlers that must be spread; calling it as a single middleware (`app.use(createMcpOAuthBridge(...))`) is a pattern error only caught by reading alternatives.md"
       ]
     },

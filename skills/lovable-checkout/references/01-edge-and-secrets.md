@@ -20,7 +20,7 @@ All three must be true:
 - Embedded in-page checkout at `/checkout` (`CheckoutLayout` + Payment Element — not SolvaPay Hosted Checkout).
 - OK with sandbox and api-dev during preview.
 
-For Next.js production checkout → `solvapay/website-checkout`. For MCP App UI → `solvapay/sdk-integration` or `solvapay/create-mcp-app`.
+For Next.js production checkout → `solvapay/website-checkout`. For MCP App UI → `solvapay/create-mcp-app`. For paywalls, usage, or webhooks in an existing app → `solvapay/app-integration`.
 
 ## Guardrails
 
