@@ -38,7 +38,8 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - Always hide UI-only virtual tools from text-only hosts with `hideToolsByAudience: ['ui']`.
 - Always confirm the resolved `SOLVAPAY_PRODUCT_REF` after `solvapay init`; under `--yes` / non-TTY, never treat an auto-picked product as final until the user confirms it belongs to this MCP.
 - If the requested business model is usage-based or metered, verify that the selected product has the intended usage-based plan before handoff. `selections.plans[]` is validated during scaffold but is not created by scaffold.
-- **Deploy-existing = scaffolding only.** On "deploy my existing server" tasks, add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`) and never open or edit `src/worker.ts` — not for imports, CORS, `Env`, the canonical template, or "stale API shape" patches. Note any API drift in the handoff as a follow-up. **Exception:** paywall-wiring tasks ("add SolvaPay paywall to my existing MCP server") do edit `src/worker.ts` — see [references/existing-server.md](references/existing-server.md).
+- **Deploy-existing = scaffolding only.** On "deploy my existing server" tasks, add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`) and never open or edit the HTTP entry file, whatever it is named — not for imports, CORS, `Env`, the canonical template, or "stale API shape" patches. Note any API drift in the handoff as a follow-up.
+- **Paywall wiring is separate.** Tasks that add a SolvaPay paywall to an existing MCP server do edit the HTTP entry file. See [references/existing-server.md](references/existing-server.md).
 
 ## Gotchas
 
