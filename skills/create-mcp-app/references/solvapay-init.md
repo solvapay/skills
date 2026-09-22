@@ -7,7 +7,7 @@ No script — delegate to the SolvaPay CLI's browser-auth flow. This module wire
 | State | Use this module |
 | --- | --- |
 | Fresh scaffold, no `SOLVAPAY_SECRET_KEY` in `.env` yet | Yes — first-time setup. |
-| Switching from sandbox `sk_sand_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
+| Switching from sandbox `sk_sandbox_…` to live `sk_live_…` | No — that's the deploy step's go-live section (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)). Manual key swap in `.env` + redeploy; no CLI run needed. |
 
 ## Run
 
@@ -30,7 +30,7 @@ For agent runs, expect this command to pause for a human browser-auth click. Run
 
 The CLI:
 
-- Opens a browser, signs the user in (or creates an account), and writes the secret key for whichever environment is currently selected in the SolvaPay Console. A sandbox Console writes `sk_sand_…`. A live Console writes `sk_live_…` and the CLI prints a warning that real charges apply. Check the key prefix before `wrangler dev` or deploy. Switch the Console to sandbox and re-run init if a live key was not intended.
+- Opens a browser, signs the user in (or creates an account), and writes the secret key for whichever environment is currently selected in the SolvaPay Console. A sandbox Console writes `sk_sandbox_…`. A live Console writes `sk_live_…` and the CLI prints a warning that real charges apply. Check the key prefix before `wrangler dev` or deploy. Switch the Console to sandbox and re-run init if a live key was not intended.
 - Appends `SOLVAPAY_SECRET_KEY` to `.env` using its append-safe writer (does not clobber `SOLVAPAY_PRODUCT_REF` or `UPSTREAM_API_KEY` that scaffold already wrote).
 - Ensures `.env` is in `.gitignore` (scaffold also does this; CLI is the redundant guard).
 - Verifies the key against the SolvaPay API.
@@ -81,7 +81,7 @@ If the agent authored `selections.plans` during curate, `scaffold.mjs` pre-fligh
 
 | Pass | `.env` value | Set on deployed worker via |
 | --- | --- | --- |
-| First setup (sandbox) | `sk_sand_…` written by `solvapay init` when the Console is on sandbox | Auto-uploaded by `npm run deploy` on first deploy (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)) |
+| First setup (sandbox) | `sk_sandbox_…` written by `solvapay init` when the Console is on sandbox | Auto-uploaded by `npm run deploy` on first deploy (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)) |
 | Go-live | `sk_live_…` written manually by the user, replacing the sandbox value | `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then `npm run deploy` |
 
 Single worker, single secret slot. There is no `--env production`, no `.env.prod` — the template ships one environment by design.
@@ -90,7 +90,7 @@ Single worker, single secret slot. There is no `--env production`, no `.env.prod
 
 Recommend separate keys per environment and per project, even when one merchant account hosts them:
 
-- **Sandbox vs live** — use `sk_sand_…` for `wrangler dev` and any non-production deploy. Init follows the Console's current environment and prints a warning when it writes `sk_live_…`. Check the prefix before `wrangler dev` or deploy. Only swap to live during the documented go-live step.
+- **Sandbox vs live** — use `sk_sandbox_…` for `wrangler dev` and any non-production deploy. Init follows the Console's current environment and prints a warning when it writes `sk_live_…`. Check the prefix before `wrangler dev` or deploy. Only swap to live during the documented go-live step.
 - **One key per MCP server / product surface** — if the account hosts multiple MCP servers (or multiple products under one account), provision a separate secret key per project so a leak or revocation on one does not impact the others.
 - **Scope where available** — when the SolvaPay Console exposes per-product or per-environment scoping on a key, use the narrowest scope that still works for the worker. The default scope is fine for a single-product scaffold; tighten it when one account fans out to many surfaces.
 

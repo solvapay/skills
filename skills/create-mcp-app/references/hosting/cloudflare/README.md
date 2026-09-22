@@ -151,7 +151,7 @@ Then invoke the named recovery tool (e.g. `account` with `view: "checkout"`) fro
 
 ### `SOLVAPAY_SECRET_KEY is not set` at runtime
 
-`.env` was missing or the value wasn't picked up at deploy time. `npm run deploy` reads `.env` and uploads the secret on the first deploy; verify `.env` has a real `sk_sand_…` / `sk_live_…` value. If the Worker already has an older secret, run `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then redeploy.
+`.env` was missing or the value wasn't picked up at deploy time. `npm run deploy` reads `.env` and uploads the secret on the first deploy; verify `.env` has a real `sk_sandbox_…` / `sk_live_…` value. If the Worker already has an older secret, run `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then redeploy.
 
 ### OAuth discovery returns the placeholder `MCP_PUBLIC_BASE_URL`
 
