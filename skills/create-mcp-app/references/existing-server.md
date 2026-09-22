@@ -24,7 +24,7 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 ## Prerequisites
 
 - A running MCP server you control, built on the official MCP TypeScript SDK or an MCP-compatible framework.
-- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint. `@solvapay/mcp` peers on `@modelcontextprotocol/server@^2` + `@modelcontextprotocol/core@^2`; a server still on `@modelcontextprotocol/sdk` v1 must migrate to v2 first.
+- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint. `@solvapay/mcp` peers on `@modelcontextprotocol/server@^2` + `@modelcontextprotocol/core@^2`. Migrate only if the HTTP entry file imports `@modelcontextprotocol/sdk`. A leftover `@modelcontextprotocol/sdk` dependency next to `@modelcontextprotocol/server` is not a migration.
 - SolvaPay account with a secret key (`sk_...`) and a product ref (`prd_...`). If the product doesn't exist yet, pause and ask the user to create one in SolvaPay Console (https://app.solvapay.com).
 
 ## Audit
@@ -125,9 +125,15 @@ For each existing tool, decide:
 
 Apply the response-mode contract from [tool-design.md](tool-design.md): paid and free-capped tools return `ctx.respond(payload, { text: narration })` on success, and the factory emits the text-only gate narration on exhaustion automatically. Do not hand-roll a paywall response.
 
-## Optional: embed the SolvaPay widget
+## Embed the SolvaPay widget
 
-If you want the checkout / account / topup iframe to mount when users invoke intent tools (recommended on hosts with iframe support — Claude Desktop, ChatGPT Apps, MCP Inspector), ship the widget HTML alongside your server and pass `resourceUri` + `readHtml` to the factory.
+The factory requires `resourceUri` plus `readHtml` or `htmlPath`, and `apiBaseUrl`. Hosts with iframe support (Claude Desktop, ChatGPT Apps, MCP Inspector) mount whatever `readHtml` returns. Ship `src/mcp-app.tsx` from the Cloudflare templates so that HTML is the built widget.
+
+Required factory options:
+
+- `resourceUri` — `ui://<worker-slug>/mcp-app.html`
+- `readHtml` or `htmlPath` — one of the two
+- `apiBaseUrl` — `env.SOLVAPAY_API_BASE_URL ?? 'https://api.solvapay.com'`
 
 The widget itself is runtime-agnostic. Use the inline templates from [hosting/cloudflare/](hosting/cloudflare/) for:
 
@@ -138,7 +144,7 @@ The widget itself is runtime-agnostic. Use the inline templates from [hosting/cl
 
 Adapt the asset-loading pattern (Wrangler Text module rule on Workers) to your runtime — on Node, import the HTML as a string at build time; on Supabase Edge, bundle the HTML and read it with `Deno.readTextFile`. The widget renders only when the user deliberately invokes the `account` viewer; it is not a gate surface.
 
-If you don't want an embedded widget, skip this section entirely — the text-only paywall narration is fully functional on text-only hosts (CLI, terminal-based MCP clients).
+A stub `readHtml` (for example `<!doctype html><title>my-server</title>`) leaves an empty `account` frame. Only use a stub on hosts that are known text-only. Those hosts still get the text-only paywall narration.
 
 ## Verification
 
@@ -148,6 +154,7 @@ Use the checklist from [mcp-server-wiring.md](mcp-server-wiring.md), plus:
 - Existing paid tools return a text-only gate narration (no iframe) when the customer is out of balance.
 - Existing free-capped tools (`registerFree`) return data under the cap and a `limit_reached` gate after it. Unidentified callers fail with `identity_required`.
 - Intent tools (`account`, `activate_plan`) mount the widget when deliberately invoked (`account` only — `activate_plan` is mutator-only).
+- `account` sits behind `requireAuth`, so an anonymous call is HTTP 401. The "account is not paywalled" check needs a bearer token (`mcpjam oauth login`). The paywall check is the tool result, not the HTTP status.
 - Any pre-existing paywall / rate-limit / quota logic has been removed (`registerPayable` / `registerFree` is the gating mechanism).
 - `hideToolsByAudience: ['ui']` is set if any host in your traffic is text-only.
 

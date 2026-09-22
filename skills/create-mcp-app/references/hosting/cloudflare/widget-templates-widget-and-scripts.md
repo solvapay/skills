@@ -63,95 +63,16 @@ createRoot(rootEl).render(<McpApp app={app} applyContext={applyContext} />)
 
 ## `scripts/deploy.mjs`
 
-```js
-#!/usr/bin/env node
-/**
- * Deploy wrapper for the SolvaPay MCP Cloudflare Worker.
- *
- * `wrangler deploy` uploads the `vars` block from `wrangler.jsonc`
- * on every run. That file ships placeholder values so the config
- * can stay in git without leaking your real merchant / origin
- * settings. This script sources `.env` (gitignored) and passes the
- * overridable keys as `--var` flags to `wrangler deploy`.
- *
- * `SOLVAPAY_SECRET_KEY` is managed separately as a Worker secret
- * (`npx wrangler secret put SOLVAPAY_SECRET_KEY` — run once, persists
- * across deploys). It's listed in `.env` so `wrangler dev` can use
- * it for local testing; this script does NOT re-upload it on every
- * deploy.
- *
- * Pass-through: extra CLI args (e.g. `--dry-run`) are forwarded to
- * `wrangler deploy`.
- */
+Copy the scaffolder's deploy script. Do not paste a shorter one. It is the only deploy story: auth preflight before the widget build, workers.dev subdomain check, `npx wrangler deploy` (so `--var` is not swallowed the way `pnpm exec` / `npm exec` swallow it on npm 11), and `SOLVAPAY_SECRET_KEY` upload after the first successful deploy.
 
-import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
-import { resolve, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const here = dirname(fileURLToPath(import.meta.url))
-const projectRoot = resolve(here, '..')
-const dotEnvPath = resolve(projectRoot, '.env')
-
-const OVERRIDABLE_VARS = [
-  'SOLVAPAY_PRODUCT_REF',
-  'MCP_PUBLIC_BASE_URL',
-  'SOLVAPAY_API_BASE_URL',
-]
-
-function parseDotEnv(contents) {
-  const env = {}
-  for (const rawLine of contents.split(/\r?\n/)) {
-    const line = rawLine.trim()
-    if (!line || line.startsWith('#')) continue
-    const match = line.match(/^([A-Z_][A-Z0-9_]*)\s*=\s*(.*)$/i)
-    if (!match) continue
-    let [, key, value] = match
-    value = value.trim()
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1)
-    } else {
-      const commentIdx = value.search(/\s+#/)
-      if (commentIdx >= 0) value = value.slice(0, commentIdx).trim()
-    }
-    env[key] = value
-  }
-  return env
-}
-
-const localEnv = existsSync(dotEnvPath) ? parseDotEnv(readFileSync(dotEnvPath, 'utf8')) : {}
-
-if (!existsSync(dotEnvPath)) {
-  console.error(
-    [
-      '',
-      `⚠  ${dotEnvPath} not found — deploying with placeholder vars from wrangler.jsonc.`,
-      '   Copy .env.example to .env and fill in your SolvaPay values',
-      '   to override the committed placeholders at deploy time.',
-      '',
-    ].join('\n'),
-  )
-}
-
-const wranglerArgs = ['exec', 'wrangler', 'deploy']
-for (const name of OVERRIDABLE_VARS) {
-  const value = localEnv[name]
-  if (value) wranglerArgs.push('--var', `${name}:${value}`)
-}
-wranglerArgs.push(...process.argv.slice(2))
-
-const result = spawnSync('pnpm', wranglerArgs, {
-  cwd: projectRoot,
-  stdio: 'inherit',
-})
-
-process.exit(result.status ?? 1)
+```bash
+npm install create-solvapay
+cp node_modules/create-solvapay/templates/mcp/_base/scripts/deploy.mjs scripts/deploy.mjs
 ```
 
-If you use `npm` or `yarn` instead of `pnpm`, replace `spawnSync('pnpm', ...)` with your package manager's CLI name.
+The same file in the sdk repo is `packages/create-solvapay/templates/mcp/_base/scripts/deploy.mjs` ([solvapay-sdk](https://github.com/solvapay/solvapay-sdk/blob/main/packages/create-solvapay/templates/mcp/_base/scripts/deploy.mjs)).
+
+On the first successful deploy the script uploads `SOLVAPAY_SECRET_KEY` from `.env` after the Worker exists. Later deploys skip that upload when the secret is already set. Rotate a key with `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then redeploy.
 
 ## `scripts/dev.mjs`
 
@@ -270,10 +191,10 @@ if (!NO_BANNER) setTimeout(() => { process.stdout.write('\n'); printBanner() }, 
 #      passes SOLVAPAY_PRODUCT_REF / MCP_PUBLIC_BASE_URL /
 #      SOLVAPAY_API_BASE_URL as `--var` overrides at deploy time.
 #
-# SOLVAPAY_SECRET_KEY is NOT re-uploaded on each deploy — it lives on
-# the Worker as a proper secret via `npx wrangler secret put SOLVAPAY_SECRET_KEY`
-# (run once; persists across deploys). If you later edit this value,
-# run `npx wrangler secret put SOLVAPAY_SECRET_KEY` again before redeploying.
+# scripts/deploy.mjs uploads SOLVAPAY_SECRET_KEY on the first successful
+# deploy and skips the upload when the Worker already has it. If you later
+# edit this value, run `npx wrangler secret put SOLVAPAY_SECRET_KEY` before
+# redeploying.
 # Kept here so `wrangler dev` can read it for local testing.
 #
 # Copy this file to `.env` and fill in your real values. The copy is
@@ -281,7 +202,7 @@ if (!NO_BANNER) setTimeout(() => { process.stdout.write('\n'); printBanner() }, 
 
 # The SolvaPay secret key for your merchant account. Never commit.
 # Dashboard -> API Keys -> secret key (sk_…).
-SOLVAPAY_SECRET_KEY=sk_test_your_key_here
+SOLVAPAY_SECRET_KEY=sk_sandbox_your_key_here
 
 # Product ref the paywall gates on. Create one in the dashboard
 # under Products and copy its `prd_…` ID.
