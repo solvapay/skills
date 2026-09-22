@@ -24,7 +24,9 @@ If the project already has `src/worker.ts` calling `createSolvaPayMcpFetch` or `
 - If the product is usage-based or metered, the intended plan exists on that product. Scaffold docs can describe plans, but the plan must be created or verified in SolvaPay before handoff.
 - If using a custom domain, a Cloudflare zone you control.
 
-**Pre-flight check:** run `wrangler whoami` before anything else. It confirms you are logged in and prints your account name and the `*.workers.dev` subdomain your Workers will be published under. That subdomain becomes your `MCP_PUBLIC_BASE_URL` when you don't have a custom domain (e.g. `https://petstore-mcp.<subdomain>.workers.dev`).
+**Pre-flight check:** run `npx wrangler whoami` before anything else. It confirms you are logged in and prints your account name and the `*.workers.dev` subdomain your Workers will be published under. That subdomain becomes your `MCP_PUBLIC_BASE_URL` when you don't have a custom domain (e.g. `https://petstore-mcp.<subdomain>.workers.dev`).
+
+A fresh Cloudflare account has no workers.dev subdomain until you open **Workers & Pages** in the dashboard (`https://dash.cloudflare.com/?to=/:account/workers-and-pages`). Opening that page creates the subdomain. A free plan is enough; a paid plan is not required.
 
 ## Step 2 — Scaffold
 
@@ -74,7 +76,7 @@ cp .env.example .env
 
 Edit `.env` with real values for `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`. Keep `SOLVAPAY_API_BASE_URL` blank unless you're pointing at a non-production API origin (skill authors / internal testing: use preview tooling and pass `--dev` to `npm create solvapay@preview` or `npx -y solvapay@preview init` to set this to `https://api-dev.solvapay.com` automatically).
 
-`npm run deploy` (Step 8) uploads `SOLVAPAY_SECRET_KEY` from `.env` to Cloudflare Worker Secrets automatically on the first deploy. The local `.env` keeps the secret available to `wrangler dev`; the deployed Worker reads it from Cloudflare's secret store after that.
+`npm run deploy` (Step 8) uploads `SOLVAPAY_SECRET_KEY` from `.env` to Cloudflare Worker Secrets on the first successful deploy, after the Worker exists, and skips the upload when the secret is already set. The local `.env` keeps the secret available to `wrangler dev`; the deployed Worker reads it from Cloudflare's secret store after that.
 
 If you later edit a secret in `.env`, refresh the Worker secret explicitly before redeploying:
 
@@ -127,7 +129,7 @@ Pre-flight (deploy-existing especially): `npx wrangler whoami` confirms auth and
 pnpm run deploy
 ```
 
-This runs `scripts/deploy.mjs`, which sources your local `.env` and forwards `SOLVAPAY_PRODUCT_REF` / `MCP_PUBLIC_BASE_URL` / `SOLVAPAY_API_BASE_URL` as `--var` overrides to `wrangler deploy`. `SOLVAPAY_SECRET_KEY` is deliberately **not** re-uploaded on every deploy — it lives in the Cloudflare secret store from Step 5. Use `npx wrangler secret put SOLVAPAY_SECRET_KEY` when rotating or correcting the key.
+This runs `scripts/deploy.mjs` (the scaffolder script — see [widget-templates-widget-and-scripts.md](widget-templates-widget-and-scripts.md#scriptsdeploymjs)). It checks `npx wrangler whoami` before the widget build, sources `.env`, and forwards `SOLVAPAY_PRODUCT_REF` / `MCP_PUBLIC_BASE_URL` / `SOLVAPAY_API_BASE_URL` as `--var` overrides to `npx wrangler deploy`. On the first successful deploy it uploads `SOLVAPAY_SECRET_KEY` from `.env`; later deploys skip that upload when the secret is already set. Use `npx wrangler secret put SOLVAPAY_SECRET_KEY` when rotating or correcting the key.
 
 Verify:
 
@@ -149,7 +151,7 @@ Then invoke the named recovery tool (e.g. `account` with `view: "checkout"`) fro
 
 ### `SOLVAPAY_SECRET_KEY is not set` at runtime
 
-`.env` was missing or the value wasn't picked up at deploy time. `npm run deploy` reads `.env` and uploads the secret on the first deploy; verify `.env` has a real `sk_test_…` / `sk_live_…` value. If the Worker already has an older secret, run `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then redeploy.
+`.env` was missing or the value wasn't picked up at deploy time. `npm run deploy` reads `.env` and uploads the secret on the first deploy; verify `.env` has a real `sk_sand_…` / `sk_live_…` value. If the Worker already has an older secret, run `npx wrangler secret put SOLVAPAY_SECRET_KEY`, then redeploy.
 
 ### OAuth discovery returns the placeholder `MCP_PUBLIC_BASE_URL`
 

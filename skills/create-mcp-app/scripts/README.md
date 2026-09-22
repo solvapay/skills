@@ -67,6 +67,12 @@ warns when it detects a stable build under a dev backend, and the wrappers now
 provide that dev signal when `--dev` is passed. Pinning `@preview` at install
 time avoids the mismatch entirely.
 
+The inverse is also warned: a `-preview` scaffolder with no dev signal
+(`SOLVAPAY_API_BASE_URL` not pointing at api-dev) is a preview build on the
+production path. Reinstall with `npm install create-solvapay@latest`. Do not
+leave a stale `scripts/node_modules/create-solvapay` checkout in the skill
+directory — resolution can pick that preview build ahead of `@latest`.
+
 ## Project-local scripts
 
 After scaffolding (`npm create solvapay@latest -- --type mcp`), these live in the **generated project**:

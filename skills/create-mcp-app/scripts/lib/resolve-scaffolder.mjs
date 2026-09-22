@@ -6,6 +6,31 @@ import { fileURLToPath } from 'node:url'
 const require = createRequire(import.meta.url)
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+function warnIfPreviewOnProd(mcpDir) {
+  const apiBase = process.env.SOLVAPAY_API_BASE_URL ?? ''
+  const devSignal = /api-dev\.solvapay\.com/.test(apiBase)
+  if (devSignal) return
+  try {
+    const pkgPath = join(mcpDir, '../../package.json')
+    if (!existsSync(pkgPath)) return
+    const { version } = require(pkgPath)
+    if (version && /-preview/.test(version)) {
+      console.warn(
+        `⚠ create-solvapay@${version} is a preview build, and there is no dev backend signal. ` +
+          'A preview scaffolder on the production path can emit the wrong package set. ' +
+          'Reinstall with: npm install create-solvapay@latest',
+      )
+    }
+  } catch {
+    // best-effort advisory only — never block resolution on it
+  }
+}
+
+function warnAboutResolvedBuild(mcpDir) {
+  warnIfStableUnderDev(mcpDir)
+  warnIfPreviewOnProd(mcpDir)
+}
+
 /**
  * Warn when a stable (`@latest`) create-solvapay is resolved while a dev
  * signal is present. Dev mode is meant to run the `@preview` dist-tag
@@ -45,7 +70,7 @@ export function resolveScaffolderDir() {
           'Point it at create-solvapay/scripts/mcp (see scripts/README.md).',
       )
     }
-    warnIfStableUnderDev(dir)
+    warnAboutResolvedBuild(dir)
     return dir
   }
 
@@ -53,7 +78,7 @@ export function resolveScaffolderDir() {
     const pkg = require.resolve('create-solvapay/package.json')
     const dir = join(dirname(pkg), 'scripts/mcp')
     if (existsSync(join(dir, 'describe.mjs'))) {
-      warnIfStableUnderDev(dir)
+      warnAboutResolvedBuild(dir)
       return dir
     }
   } catch {
@@ -64,7 +89,10 @@ export function resolveScaffolderDir() {
     __dirname,
     '../../../../../solvapay-sdk/packages/create-solvapay/scripts/mcp',
   )
-  if (existsSync(join(sibling, 'describe.mjs'))) return sibling
+  if (existsSync(join(sibling, 'describe.mjs'))) {
+    warnAboutResolvedBuild(sibling)
+    return sibling
+  }
 
   throw new Error(
     'Could not find create-solvapay scaffolder scripts (describe.mjs / scaffold.mjs).\n' +

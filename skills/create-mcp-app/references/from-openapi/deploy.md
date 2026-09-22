@@ -179,20 +179,20 @@ When the user has verified the sandbox worker behaves correctly:
 
 ### Gate G9 — go-live key swap (always fires, overrides `auto`)
 
-This is the single point where the worker switches from sandbox (`sk_test_…`) to production (`sk_live_…`). Even at `auto` confirmation level, G9 **always** fires — `auto` does not collapse this gate. Real money starts moving on the next deploy.
+This is the single point where the worker switches from sandbox (`sk_sand_…`) to production (`sk_live_…`). Even at `auto` confirmation level, G9 **always** fires — `auto` does not collapse this gate. Real money starts moving on the next deploy.
 
 ```
 GateId: G9
-Prompt: Swap SOLVAPAY_SECRET_KEY from sk_test_... to sk_live_... and redeploy? Real charges will start on the next paid tool call.
+Prompt: Swap SOLVAPAY_SECRET_KEY from sk_sand_... to sk_live_... and redeploy? Real charges will start on the next paid tool call.
 Options:
   - goLive: Go live — upload the live key as a Worker secret and redeploy
-  - stay:   Stay on sandbox — keep sk_test_... for now
+  - stay:   Stay on sandbox — keep sk_sand_... for now
 ```
 
 On `G9:stay`, do nothing — the worker keeps serving with the sandbox key. On `G9:goLive`, proceed:
 
 1. Generate a live key (`sk_live_…`) in the SolvaPay Console under **API Keys**.
-2. Replace `SOLVAPAY_SECRET_KEY=sk_test_…` with `SOLVAPAY_SECRET_KEY=sk_live_…` in `.env`.
+2. Replace `SOLVAPAY_SECRET_KEY=sk_sand_…` with `SOLVAPAY_SECRET_KEY=sk_live_…` in `.env`.
 3. The first-deploy auto-upload only runs when no `SOLVAPAY_SECRET_KEY` is present on the worker. Since one is already there, push the new value explicitly, then redeploy:
 
    ```bash

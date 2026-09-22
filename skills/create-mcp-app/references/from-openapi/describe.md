@@ -15,6 +15,7 @@ Use one of:
 
 ```bash
 npm install create-solvapay
+( cd node_modules/create-solvapay/scripts/mcp && npm install )
 # or set SCAFFOLDER_SCRIPTS_DIR to a local create-solvapay/scripts/mcp checkout
 ```
 
@@ -27,6 +28,10 @@ node scripts/describe.mjs path/to/openapi.json --no-probe
 ```
 
 Accepts `.json`, `.yaml`, or `.yml`. Use the absolute path or one relative to the working directory. Swagger 2.0 documents are accepted — the canonical server URL is derived from `host` + `basePath` + `schemes`.
+
+OpenAPI 3.1.x patch versions (for example `3.1.2`) are normalised to `3.1.1` before parsing. If describe still rejects the version, copy the spec locally and set the `openapi` field to `3.1.1`.
+
+If a spec URL returns HTML, follow redirects and look for the spec link in the page (`openapi.json`, `swagger.json`, or a raw document URL). Point describe at that document.
 
 ## What it prints
 

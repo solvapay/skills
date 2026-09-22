@@ -28,7 +28,7 @@ If you cannot recite the two-argument `registerPayable(name, { title, descriptio
 
 | Use intent-driven when | Use one-to-one when |
 | --- | --- |
-| Spec has 10+ ops with obvious resource groupings (CRUD on `pets`, `orders`, etc.) | Spec is small (< 8 ops) or read-only |
+| Spec has 10+ ops with obvious resource groupings (CRUD on `pets`, `orders`, etc.) | Spec is small (<= 8 ops or read-only) |
 | LLM consumers are the primary audience (tool catalogue should be small + goal-shaped) | Programmatic / SDK-style consumers who already know the operationIds |
 | Multiple ops share most parameters and only differ by verb | Each op has a meaningfully distinct schema |
 | An LLM agent is in the loop to design and author the intent schemas | You want a faithful 1:1 export with no design work, or no agent is available |
