@@ -53,7 +53,7 @@ Drop these into any authenticated view to render a complete self-service billing
 
 ## Activation + PAYG semantics
 
-When `activatePlan` is called on a usage-based (PAYG) plan, the server now activates eagerly at zero balance (`status: 'activated'`, `creditBalance: 0`) instead of returning `topup_required`. The user can start calling paid features immediately and pay per use; top-up becomes an optional follow-up flow via `createTopupPaymentIntent`. Free plans are unchanged (`activated`), and recurring/hybrid plans still return `topup_required` / `payment_required` when the customer has no credits and no card on file.
+When `activatePlan` is called on a usage-based (PAYG) plan, the server activates at zero balance (`status: 'activated'`, `creditBalance: 0`). The user can start calling paid features immediately and pay per use from prepaid credits; top-up is an optional follow-up via `createTopupPaymentIntent`. Free plans return `activated`. Paid recurring and hybrid plans return `payment_required` at activation — the upfront charge must be collected first. Usage on a recurring plan is paid from prepaid credits, and a zero balance shows up as `topup_required` when usage is attempted, not at activation. `createTopupPaymentIntent` is the recovery path.
 
 ## Verification Checklist
 
