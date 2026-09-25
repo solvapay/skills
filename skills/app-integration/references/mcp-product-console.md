@@ -28,8 +28,9 @@ const result = await solvaPay.bootstrapMcpProduct({
       options: [
         { kind: 'billingCycle', interval: 'month' },
         { kind: 'charge', per: 'flat', amountMinor: 0, currency: 'USD' },
-        // Included allowance per cycle; 0 means unlimited.
-        { kind: 'entitlement', feature: 'included_units', value: 100 },
+        { kind: 'charge', per: 'unit', amountMinor: 0, currency: 'USD', meter: 'requests' },
+        // Included requests per cycle; cap 0 means unlimited.
+        { kind: 'limit', cap: 100, scope: 'billing_period', meter: 'requests', onExceed: 'block' },
       ],
     },
     {
@@ -39,6 +40,9 @@ const result = await solvaPay.bootstrapMcpProduct({
       options: [
         { kind: 'billingCycle', interval: 'month' },
         { kind: 'charge', per: 'flat', amountMinor: 2000, currency: 'USD' },
+        { kind: 'charge', per: 'unit', amountMinor: 2, currency: 'USD', meter: 'requests' },
+        // Past the included cap, each request is paid from prepaid credits.
+        { kind: 'limit', cap: 1000, scope: 'billing_period', meter: 'requests', onExceed: 'top_up' },
       ],
     },
   ],
@@ -50,6 +54,13 @@ const result = await solvaPay.bootstrapMcpProduct({
 ```
 
 Response includes `product.reference`, `mcpServer.mcpProxyUrl`, `planMap`, and (when auto-discovery ran) `autoMappedTools` / `toolsAutoMapped`.
+
+### Limit rules
+
+- `onExceed` is `block` or `top_up`. Don't emit `charge`. The API still accepts `charge` and stores it as `top_up`.
+- Usage is never billed to the card. Past the cap it is paid from prepaid credits, and a per-unit rate with no limit is paid from credits starting at the first request. At zero balance the request is denied with `topup_required`.
+- A `block` limit can't carry a positive per-unit rate on that meter. Pair `block` with a zero-rate unit charge, or use `top_up`.
+- There is no `rollover` option. Unused included usage does not carry over.
 
 Docs topic: `bootstrap mcp product`, `create a Managed MCP product`.
 
