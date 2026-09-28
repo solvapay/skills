@@ -41,7 +41,6 @@ Credits and usage (when those flows are live):
 
 - `customer.credit.topped_up`
 - `customer.credit.exhausted`
-- `usage.charged`
 
 There is no `payment_intent.succeeded` / `payment_intent.failed` event type. The union is larger than this list — log unknown types and return 200.
 
