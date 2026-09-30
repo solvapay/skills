@@ -179,4 +179,4 @@ You hand-rolled a paywall response or wrapped a virtual tool with `payable.mcp()
 
 ### Widget doesn't mount when I call `account`
 
-Verify the MCP host supports iframe resources (Claude Desktop, ChatGPT Apps, MCP Inspector do; pure terminal clients don't). On unsupported hosts the `account` viewer returns the bootstrap payload in `structuredContent` for programmatic use.
+Claude and ChatGPT render the UI inline; Claude Code and Grok are text-only. On text-only hosts the `account` viewer returns the bootstrap payload in `structuredContent` for programmatic use. On Claude the payment step hands off to hosted checkout — the "This host doesn't allow embedded payments" screen is expected. Source of truth: [What each MCP host can render](https://docs.solvapay.com/mcp-hosts/overview).

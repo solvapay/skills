@@ -50,6 +50,7 @@ Drop these into any authenticated view to render a complete self-service billing
 - **`<LaunchCustomerPortalButton />`** — opens the hosted customer portal in a new tab. Pre-fetches `createCustomerSession` on hover so the portal link is ready on click.
 - **`usePaymentMethod()`** — `{ paymentMethod, loading, refetch }` where `paymentMethod` is `{ kind: 'card', brand, last4, expMonth, expYear, reusable } | { kind: 'none' }`. The card brand/last4 are mirrored onto the Customer by the `payment.succeeded` webhook, so this hook is free to poll and needs no Stripe round-trip. `reusable` distinguishes a chargeable saved card from a card that is only on file — check it before offering an off-session action such as auto-recharge.
 - **`useMerchant()`** — `{ merchant, loading }` where `merchant` is the result of `GET /v1/sdk/merchant` (`name`, `iconUrl`, `logoUrl`, `termsUrl`, `privacyUrl`). Use in checkout and mandate copy.
+- **`useUsage()`** — usage snapshot `{ meterRef, total, used: number | null, remaining, percentUsed, periodStart, periodEnd }`. `used` is `null` when the response did not measure consumption; render a placeholder, not `0`. Do not read consumption off `purchase.usage` — that field carries only `periodStart` and `periodEnd`.
 
 ## Activation + PAYG semantics
 

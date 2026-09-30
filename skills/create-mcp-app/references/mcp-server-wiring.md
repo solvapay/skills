@@ -137,6 +137,8 @@ export const payable = solvaPay.payable({ productRef })
 
 The adapter reads customer identity from MCP `extra.authInfo`, not from tool arguments. The factory OAuth bridge stamps `extra.authInfo.extra.customer_ref` (and `extra.http.authInfo.extra.customer_ref` under SDK v2). Use `defaultGetCustomerRef` — do not inject `_auth` into tool args.
 
+`'anonymous'` is the `payable.mcp()` sentinel only. The factory's `account` and checkout tools treat it as signed out (`customer: null`, `checkoutUrl: null`). Never fabricate a ref to obtain a checkout URL.
+
 ```typescript
 import { defaultGetCustomerRef, type McpToolExtra } from '@solvapay/mcp-core'
 

@@ -39,11 +39,15 @@ Docs topic: `customer session create`.
 1. Before expensive operation, check access/limits for `customerRef` + `productRef`.
 2. On block, return 402 with upgrade/checkout guidance.
 
+`used`, `remaining`, and `limit` come from the limits check. The SDK purchase's `usage` carries only `periodStart` and `periodEnd`.
+
 Docs topic: `limits check usage limits`.
 
 ### When user needs usage metering
 
 1. After successful execution, record usage event for customer + product.
+
+`used`, `remaining`, and `limit` come from the limits check. The SDK purchase's `usage` carries only `periodStart` and `periodEnd`.
 
 Docs topic: `usage record event`.
 
