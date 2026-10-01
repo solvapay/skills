@@ -52,7 +52,7 @@ node scripts/verify.mjs https://my-worker.<account>.workers.dev \
 | `oauthAuthorizationServer` | `/.well-known/oauth-authorization-server` returns `{ issuer, authorization_endpoint, token_endpoint }`. | Never skipped. |
 | `toolsList` | Either: (a) `tools/list` (anonymous, or with `--credentials-file` bearer token) succeeds and includes the two intent tools (`account`, `activate_plan`) with no UI-only tools leaked, OR (b) the worker returns `401` with a well-formed `WWW-Authenticate: Bearer resource_metadata="…"` challenge (the SDK default — `requireAuth: true`). | Never skipped. |
 | `paywallGate` | Calling any non-intent tool with empty args returns text-only narration in `content[0].text`, the narration names a recovery intent tool (`account` with `view` or `activate_plan`), and `_meta.ui` is absent on the gate. | `skipped` when no candidate tool returns a gate, OR when `toolsList` couldn't enumerate the catalog (worker requires bearer auth and no `--credentials-file` passed). |
-| `merchantBootstrap` | Calling `account` (`{ view: 'account', mode: 'text' }`) with a real bearer token returns a non-error envelope that does not narrate a `bootstrap`/`Provider not found` failure — i.e. the deployed worker can reach its SolvaPay merchant. | `skipped` when `--credentials-file` is not supplied. |
+| `merchantBootstrap` | Calling `account` (`{ view: 'account', mode: 'text' }`) with a real bearer token returns a non-error envelope that does not narrate a `bootstrap`/`Provider not found` failure — i.e. the deployed worker can reach its SolvaPay merchant. The text summary includes `Signed in as: <email> · <ref>`; use that line to confirm the bearer maps to a customer and quote the ref in the handoff. | `skipped` when `--credentials-file` is not supplied. |
 
 `paywallGate` reports `skipped` (not `failed`) when no tool returns a gate. It only fails when a tool **does** return a gate but the shape is wrong (text missing, iframe leaked into the gate, intent tool not named in the narration).
 
@@ -78,7 +78,7 @@ For agent handoff, translate the JSON into a short verification summary:
 ```markdown
 - **Contract checks:** oauthProtectedResource passed; oauthAuthorizationServer passed; toolsList passed
 - **Paid gate status:** paywallGate passed / skipped / failed
-- **Merchant bootstrap:** passed / skipped; skipped means no human OAuth credentials file was used
+- **Merchant bootstrap:** passed / skipped (skipped means no human OAuth credentials file); when passed, quote `Signed in as: <email> · <ref>`
 - **Upstream smoke:** test.mjs passed / skipped / failed; include whether intent tools were tested manually
 ```
 
