@@ -1,6 +1,6 @@
 # MCP Apps UI (custom graphical widgets)
 
-Add custom React UI inside MCP host sandboxes (Claude Desktop, ChatGPT Apps, MCP Inspector) on top of the server + paywall wiring from this skill.
+Add custom React UI inside MCP host sandboxes on top of the server + paywall wiring from this skill. Claude and ChatGPT render the UI inline; Claude Code and Grok are text-only. On Claude the payment step hands off to hosted checkout — the "This host doesn't allow embedded payments" screen is expected.
 
 ## When to use
 
@@ -32,6 +32,9 @@ import { createMcpAppAdapter } from '@solvapay/react/mcp'
 `createMcpAppAdapter` wires the host postMessage transport so checkout and account calls reach your server without browser `fetch` to SolvaPay APIs.
 
 The adapter has no tool per hook. Purchase, merchant, product, plans, payment method, balance, usage, and limits all arrive on the `account` viewer's bootstrap payload and seed the provider caches, so hooks resolve on first paint. The adapter only calls a tool to write, or to fetch history (`get_history`), which is not on bootstrap.
+
+- `customer.nextAction` is present only when the last `checkLimits` blocked. Route to top-up on `nextAction === 'topup'`, never on `balance.credits === 0`. `isCreditBased` tells you whether credits would help at all.
+- `customer.email` and `customer.name` are the signed-in identity. `customer` is `null` for anonymous callers.
 
 ## Display modes
 
@@ -68,6 +71,7 @@ Drop into authenticated MCP app views:
 - **`usePaymentMethod()`** — `{ kind: 'card', brand, last4, reusable, ... } | { kind: 'none' }`. Check `reusable` before offering an off-session action such as auto-recharge.
 - **`useMerchant()`** — merchant branding for checkout copy.
 - **`<McpPayingAs />`** — buyer identity, rendered inside the payment form. The MCP surfaces have no sidebar.
+- **`useUsage()`** — `{ meterRef, total, used: number | null, remaining, percentUsed, periodStart, periodEnd }`. `used` is `null` when the response did not measure consumption; render a placeholder, not `0`.
 
 Removed with the sidebar layout — do not import: `McpSellerDetailsCard`, `McpCustomerDetailsCard`, `McpAccountView.hideDetailCards`, `McpLimitReached`, `CloseButton`.
 
