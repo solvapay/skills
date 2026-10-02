@@ -1,6 +1,6 @@
 # MCP Apps UI (custom graphical widgets)
 
-Add custom React UI inside MCP host sandboxes on top of the server + paywall wiring from this skill. Claude and ChatGPT render the UI inline; Claude Code and Grok are text-only. On Claude the payment step hands off to hosted checkout — the "This host doesn't allow embedded payments" screen is expected. Source of truth: [What each MCP host can render](https://docs.solvapay.com/mcp-hosts/overview).
+Add custom React UI inside MCP host sandboxes on top of the server + paywall wiring from this skill. Claude and ChatGPT render the UI inline; Claude Code and Grok are text-only. On Claude the payment step hands off to hosted checkout — the "This host doesn't allow embedded payments" screen is expected.
 
 ## When to use
 
