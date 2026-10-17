@@ -7,6 +7,10 @@
     "validate": "find skills -name SKILL.md | while read -r f; do npx -y skills-reference validate \"$(dirname \"$f\")\" || exit 1; done",
     "dev:link": "node scripts/dev-link.mjs link",
     "dev:unlink": "node scripts/dev-link.mjs unlink",
-    "dev:status": "node scripts/dev-link.mjs status"
+    "dev:status": "node scripts/dev-link.mjs status",
+    "release:dry-run": "node scripts/build-skill-release.mjs --dry-run"
+  },
+  "devDependencies": {
+    "yaml": "^2.9.1"
   }
 }

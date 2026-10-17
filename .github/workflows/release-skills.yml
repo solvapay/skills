@@ -1,0 +1,77 @@
+name: Release skills
+
+# On a version tag (v1.2.3), pack every skill under skills/ into
+# <name>.tar.gz, generate an Agent Skills discovery index (schema 0.2.0)
+# whose digests are the SHA-256 of the uploaded archives, and publish both as
+# release assets. Pull requests run the same build and verify without
+# publishing.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'scripts/build-skill-release.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/release-skills.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and verify archives
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - name: Build archives and index
+        env:
+          # Tag builds point at the release; PR builds use a placeholder tag.
+          TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.0.0-dry-run' }}
+        run: node scripts/build-skill-release.mjs --tag "$TAG" --repo "$GITHUB_REPOSITORY" --out dist/release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skills-release
+          path: dist/release/
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: skills-release
+          path: dist/release
+      # Create the release as a draft, upload, then download the assets back
+      # and verify the downloaded bytes against index.json before publishing.
+      - name: Create draft release with assets
+        run: |
+          gh release create "$TAG" dist/release/*.tar.gz dist/release/index.json \
+            --repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes --verify-tag --draft
+      - name: Verify uploaded assets
+        run: |
+          mkdir -p dist/uploaded
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir dist/uploaded
+          node scripts/build-skill-release.mjs --verify dist/uploaded --tag "$TAG" --repo "$GITHUB_REPOSITORY"
+      - name: Publish release
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest

@@ -94,6 +94,20 @@ This runs `npx skills-reference validate` on every directory under `skills/` tha
 
 Each skill directory ships an `AGENTS.md -> SKILL.md` symlink. This is a compatibility shim for `AGENTS.md`-aware clients (Claude Code, OpenAI Codex, OpenHands) that look for `AGENTS.md` at the root of a project or skill. The agentskills.io spec only requires `SKILL.md`; the symlink is purely additive so the same directory works in both ecosystems.
 
+## Releases and the discovery index
+
+Pushing a `vX.Y.Z` tag runs [`.github/workflows/release-skills.yml`](.github/workflows/release-skills.yml). It packs each skill folder into `<name>.tar.gz` (folder contents at the archive root, so `SKILL.md` sits at the top), writes an [Agent Skills discovery index](https://schemas.agentskills.io/discovery/0.2.0/schema.json) (`index.json`) with each skill's frontmatter `description` and the SHA-256 of its archive, and attaches all of them to the release. The release is created as a draft, the uploaded assets are downloaded and re-verified, and only then published.
+
+Archives contain regular files only: the `skills` CLI rejects links in archives, so the `AGENTS.md` symlinks are left out.
+
+Build and verify locally without releasing:
+
+```bash
+npm run release:dry-run
+```
+
+Output goes to `dist/release/`. The latest index is always at `https://github.com/solvapay/skills/releases/latest/download/index.json`.
+
 ## Skill quality expectations
 
 A skill is considered complete when:
