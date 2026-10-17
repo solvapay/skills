@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pack each skill into <name>.tar.gz and write an Agent Skills discovery index
+// Build one release asset per skill and write an Agent Skills discovery index
 // (https://schemas.agentskills.io/discovery/0.2.0/schema.json) next to them,
 // then verify the result the way a client would.
 //
@@ -15,16 +15,22 @@
 //   --verify <dir>     skip the build and only verify an existing directory
 //   --dry-run          build into the output directory with the default tag
 //
-// Archives follow the discovery spec's "Archive Structure": the skill folder's
-// contents sit at the archive root (SKILL.md at the root, no wrapper
-// directory). That is also what `npx skills add <archive-url>` accepts: it
-// extracts and uses the root (or a single top-level directory). Archives hold
-// regular files only, because the skills CLI rejects any symlink or hard link
-// in a well-known archive. The AGENTS.md -> SKILL.md aliases are therefore left
-// out; any other symlink fails the build.
+// The index type is picked per skill, as the spec's "Distribution Guidance"
+// recommends:
+//   - skill-md: the folder holds only SKILL.md, published as <name>.md (release
+//     assets share one flat namespace, so the file can't be called SKILL.md).
+//   - archive: anything else, published as <name>.tar.gz.
+//
+// Archives follow the spec's "Archive Structure": the skill folder's contents
+// sit at the archive root (SKILL.md at the root, no wrapper directory). That is
+// also what `npx skills add <archive-url>` accepts: it extracts and uses the
+// root (or a single top-level directory). Archives hold regular files only,
+// because the skills CLI rejects any symlink or hard link in a well-known
+// archive. The AGENTS.md -> SKILL.md aliases are therefore left out of every
+// asset (and don't count towards the type); any other symlink fails the build.
 //
 // Archives are deterministic for a given commit: sorted entries, fixed
-// owner/mode, mtime from the commit, and a fixed gzip header.
+// owner/mode, mtime from the skill's last commit, and a fixed gzip header.
 
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -39,6 +45,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.json'
 // Index order. The router goes first so a client listing skills sees it first.
 const SKILLS = ['solvapay', 'create-mcp-app', 'app-integration', 'website-checkout', 'lovable-checkout']
+// Release asset extension per index type.
+const EXT = { 'skill-md': '.md', archive: '.tar.gz' }
 const NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/
 const DIGEST_RE = /^sha256:[a-f0-9]{64}$/
 const MAX_DESCRIPTION = 1024
@@ -64,7 +72,7 @@ if (errors.length) {
   for (const e of errors) console.error(`  - ${e}`)
   process.exit(1)
 }
-console.log('\n✓ archives and index verified')
+console.log('\n✓ assets and index verified')
 
 // ---------------------------------------------------------------------------
 
@@ -73,26 +81,29 @@ function build(out) {
   rmSync(out, { recursive: true, force: true })
   mkdirSync(out, { recursive: true })
 
-  const mtime = Number(process.env.SOURCE_DATE_EPOCH || git(['log', '-1', '--format=%ct']).trim())
   const dirty = git(['status', '--porcelain', '--', 'skills']).trim()
-  if (dirty) console.warn(`! skills/ has uncommitted changes; archives reflect the working tree:\n${dirty}\n`)
+  if (dirty) console.warn(`! skills/ has uncommitted changes; assets reflect the working tree:\n${dirty}\n`)
 
   const index = { $schema: SCHEMA, skills: [] }
   for (const name of SKILLS) {
     const files = skillFiles(name)
-    const tar = makeTar(files.map((f) => ({ ...f, mtime })))
-    const gz = gzip(tar)
-    writeFileSync(join(out, `${name}.tar.gz`), gz)
+    const type = artifactType(files)
+    // Last commit touching this skill, so an unchanged skill keeps its digest
+    // from release to release and clients can skip the download.
+    const mtime = Number(process.env.SOURCE_DATE_EPOCH || git(['log', '-1', '--format=%ct', '--', `skills/${name}`]).trim())
+    const asset = `${name}${EXT[type]}`
+    const bytes = type === 'skill-md' ? files[0].content : gzip(makeTar(files.map((f) => ({ ...f, mtime }))))
+    writeFileSync(join(out, asset), bytes)
 
-    const { description } = frontmatter(readFileSync(join(ROOT, 'skills', name, 'SKILL.md'), 'utf8'), name)
+    const { description } = frontmatter(readFileSync(join(ROOT, 'skills', name, 'SKILL.md'), 'utf8'), `skills/${name}/SKILL.md`)
     index.skills.push({
       name,
-      type: 'archive',
+      type,
       description,
-      url: `${baseUrl}/${name}.tar.gz`,
-      digest: sha256(gz),
+      url: `${baseUrl}/${asset}`,
+      digest: sha256(bytes),
     })
-    console.log(`packed ${name}.tar.gz  ${files.length} files  ${gz.length} bytes`)
+    console.log(`wrote ${asset.padEnd(24)} ${type.padEnd(8)}  ${files.length} files  ${bytes.length} bytes`)
   }
   writeFileSync(join(out, 'index.json'), JSON.stringify(index, null, 2) + '\n')
   console.log(`wrote ${join(out, 'index.json')}`)
@@ -108,80 +119,102 @@ function verify(dir) {
   if (!Array.isArray(index.skills)) return fail('skills is not an array')
   const listed = index.skills.map((s) => s.name)
   if (JSON.stringify(listed) !== JSON.stringify(SKILLS)) fail(`index lists [${listed}], expected [${SKILLS}]`)
-  const assets = readdirSync(dir).filter((f) => f.endsWith('.tar.gz')).sort()
-  const expectedAssets = SKILLS.map((n) => `${n}.tar.gz`).sort()
-  if (JSON.stringify(assets) !== JSON.stringify(expectedAssets)) fail(`archives on disk [${assets}], expected [${expectedAssets}]`)
+  // Exactly one asset per index entry, nothing else.
+  const assets = readdirSync(dir).filter((f) => f !== 'index.json').sort()
+  const expectedAssets = index.skills.map((s) => `${s.name}${EXT[s.type] ?? ''}`).sort()
+  if (JSON.stringify(assets) !== JSON.stringify(expectedAssets)) fail(`assets on disk [${assets}], expected [${expectedAssets}]`)
 
   for (const entry of index.skills) {
     const where = `skill ${JSON.stringify(entry.name)}`
     for (const key of ['name', 'type', 'description', 'url', 'digest']) {
       if (typeof entry[key] !== 'string' || !entry[key]) fail(`${where}: missing ${key}`)
     }
-    const { name, description, url, digest } = entry
+    const { name, type, description, url, digest } = entry
     if (typeof name !== 'string') continue
     if (name.length < 1 || name.length > 64 || !NAME_RE.test(name)) fail(`${where}: name must be 1-64 chars of a-z, 0-9 and single inner hyphens`)
-    if (entry.type !== 'archive') fail(`${where}: type is ${entry.type}, expected archive`)
+    if (!EXT[type]) {
+      fail(`${where}: type is ${JSON.stringify(type)}, expected skill-md or archive`)
+      continue
+    }
+    const repoFiles = existsSync(join(ROOT, 'skills', name)) ? skillFiles(name) : null
+    if (repoFiles && type !== artifactType(repoFiles)) {
+      fail(`${where}: type is ${type}, but skills/${name} should ship as ${artifactType(repoFiles)}`)
+    }
     if (typeof description === 'string' && description.length > MAX_DESCRIPTION) fail(`${where}: description is ${description.length} chars (max ${MAX_DESCRIPTION})`)
     if (!DIGEST_RE.test(digest ?? '')) fail(`${where}: digest must be sha256:<64 lowercase hex>`)
+    const asset = `${name}${EXT[type]}`
     try {
       const u = new URL(url)
       if (!['https:', 'http:'].includes(u.protocol)) fail(`${where}: url must be absolute http(s)`)
-      if (!u.pathname.endsWith(`/${name}.tar.gz`)) fail(`${where}: url should end in /${name}.tar.gz`)
-      if (!args['base-url'] && url !== `${baseUrl}/${name}.tar.gz`) fail(`${where}: url ${url} does not point at ${baseUrl}`)
+      if (!u.pathname.endsWith(`/${asset}`)) fail(`${where}: url should end in /${asset}`)
+      if (!args['base-url'] && url !== `${baseUrl}/${asset}`) fail(`${where}: url ${url} does not point at ${baseUrl}`)
     } catch {
       fail(`${where}: url ${JSON.stringify(url)} is not absolute`)
     }
 
-    const archivePath = join(dir, `${name}.tar.gz`)
-    if (!existsSync(archivePath)) {
-      fail(`${where}: missing ${archivePath}`)
+    const assetPath = join(dir, asset)
+    if (!existsSync(assetPath)) {
+      fail(`${where}: missing ${assetPath}`)
       continue
     }
-    const gz = readFileSync(archivePath)
-    if (sha256(gz) !== digest) fail(`${where}: digest ${digest} does not match archive bytes ${sha256(gz)}`)
+    const bytes = readFileSync(assetPath)
+    if (sha256(bytes) !== digest) fail(`${where}: digest ${digest} does not match ${asset} bytes ${sha256(bytes)}`)
 
     let files
-    try {
-      files = readTarGz(gz)
-    } catch (e) {
-      fail(`${where}: ${e.message}`)
-      continue
+    if (type === 'skill-md') {
+      files = new Map([['SKILL.md', bytes]])
+    } else {
+      try {
+        files = readTarGz(bytes)
+      } catch (e) {
+        fail(`${where}: ${e.message}`)
+        continue
+      }
     }
     const skillMd = files.get('SKILL.md')
     if (!skillMd) {
       fail(`${where}: archive has no SKILL.md at its root`)
       continue
     }
-    const fm = frontmatter(skillMd.toString('utf8'), name)
+    let fm
+    try {
+      fm = frontmatter(skillMd.toString('utf8'), type === 'skill-md' ? asset : `SKILL.md in ${asset}`)
+    } catch (e) {
+      fail(`${where}: ${e.message}`)
+      continue
+    }
     if (fm.name !== name) fail(`${where}: SKILL.md name is ${JSON.stringify(fm.name)}`)
     if (fm.description !== description) fail(`${where}: index description differs from SKILL.md frontmatter`)
 
-    // Archive must match the repo's skill folder byte for byte.
-    if (existsSync(join(ROOT, 'skills', name))) {
-      const expected = new Map(skillFiles(name).map((f) => [f.path, f.content]))
+    // The asset must match the repo's skill folder byte for byte.
+    if (repoFiles) {
+      const expected = new Map(repoFiles.map((f) => [f.path, f.content]))
       const got = [...files.keys()].sort()
       const want = [...expected.keys()].sort()
       if (JSON.stringify(got) !== JSON.stringify(want)) {
-        fail(`${where}: archive files differ from skills/${name} (extra: ${got.filter((p) => !expected.has(p))}; missing: ${want.filter((p) => !files.has(p))})`)
+        fail(`${where}: ${asset} files differ from skills/${name} (extra: ${got.filter((p) => !expected.has(p))}; missing: ${want.filter((p) => !files.has(p))})`)
       }
       for (const [p, content] of files) {
         if (expected.has(p) && !content.equals(expected.get(p))) fail(`${where}: ${p} differs from skills/${name}/${p}`)
       }
     }
 
-    // Cross-check with the system tar, which is what `npx skills add <url>`
-    // effectively does: extract, then look for SKILL.md at the root.
-    const tmp = mkdtempSync(join(tmpdir(), `skill-${name}-`))
-    try {
-      execFileSync('tar', ['-xzf', archivePath, '-C', tmp])
-      if (!existsSync(join(tmp, 'SKILL.md'))) fail(`${where}: system tar extraction has no root SKILL.md`)
-    } catch (e) {
-      fail(`${where}: system tar could not extract: ${e.message}`)
-    } finally {
-      rmSync(tmp, { recursive: true, force: true })
+    // Cross-check archives with the system tar, which is what
+    // `npx skills add <url>` effectively does: extract, then look for SKILL.md
+    // at the root.
+    if (type === 'archive') {
+      const tmp = mkdtempSync(join(tmpdir(), `skill-${name}-`))
+      try {
+        execFileSync('tar', ['-xzf', assetPath, '-C', tmp])
+        if (!existsSync(join(tmp, 'SKILL.md'))) fail(`${where}: system tar extraction has no root SKILL.md`)
+      } catch (e) {
+        fail(`${where}: system tar could not extract: ${e.message}`)
+      } finally {
+        rmSync(tmp, { recursive: true, force: true })
+      }
     }
 
-    console.log(`ok ${name}  ${files.size} files  ${digest}`)
+    console.log(`ok ${name.padEnd(18)} ${type.padEnd(8)}  ${files.size} files  ${digest}`)
   }
 }
 
@@ -198,6 +231,12 @@ function checkSkillList() {
   const extra = SKILLS.filter((n) => !tracked.includes(n))
   if (missing.length) throw new Error(`skills not in SKILLS list: ${missing.join(', ')}`)
   if (extra.length) throw new Error(`SKILLS lists folders without a tracked SKILL.md: ${extra.join(', ')}`)
+}
+
+// A folder holding only SKILL.md ships as a plain file, anything else as an
+// archive.
+function artifactType(files) {
+  return files.length === 1 && files[0].path === 'SKILL.md' ? 'skill-md' : 'archive'
 }
 
 // Tracked files of one skill folder, as { path, mode, content }.
@@ -221,12 +260,12 @@ function skillFiles(name) {
   return out.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
 }
 
-function frontmatter(text, name) {
+function frontmatter(text, label) {
   const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/)
-  if (!m) throw new Error(`skills/${name}/SKILL.md has no YAML frontmatter`)
+  if (!m) throw new Error(`${label} has no YAML frontmatter`)
   const data = parseYaml(m[1])
   if (typeof data?.name !== 'string' || typeof data?.description !== 'string') {
-    throw new Error(`skills/${name}/SKILL.md frontmatter needs string name and description`)
+    throw new Error(`${label} frontmatter needs string name and description`)
   }
   // Folded block scalars (`description: >`) keep a trailing newline.
   return { name: data.name, description: data.description.trim() }

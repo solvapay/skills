@@ -1,10 +1,10 @@
 name: Release skills
 
-# On a version tag (v1.2.3), pack every skill under skills/ into
-# <name>.tar.gz, generate an Agent Skills discovery index (schema 0.2.0)
-# whose digests are the SHA-256 of the uploaded archives, and publish both as
-# release assets. Pull requests run the same build and verify without
-# publishing.
+# On a version tag (v1.2.3), build one asset per skill under skills/
+# (<name>.md for a SKILL.md-only skill, <name>.tar.gz otherwise), generate an
+# Agent Skills discovery index (schema 0.2.0) whose digests are the SHA-256 of
+# the uploaded assets, and publish all of them as release assets. Pull
+# requests run the same build and verify without publishing.
 
 on:
   push:
@@ -23,15 +23,18 @@ permissions:
 
 jobs:
   build:
-    name: Build and verify archives
+    name: Build and verify assets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Archive mtimes come from each skill's last commit.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - run: npm ci
-      - name: Build archives and index
+      - name: Build assets and index
         env:
           # Tag builds point at the release; PR builds use a placeholder tag.
           TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.0.0-dry-run' }}
@@ -66,7 +69,7 @@ jobs:
       # and verify the downloaded bytes against index.json before publishing.
       - name: Create draft release with assets
         run: |
-          gh release create "$TAG" dist/release/*.tar.gz dist/release/index.json \
+          gh release create "$TAG" dist/release/* \
             --repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes --verify-tag --draft
       - name: Verify uploaded assets
         run: |

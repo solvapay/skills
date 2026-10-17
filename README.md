@@ -96,9 +96,16 @@ Each skill directory ships an `AGENTS.md -> SKILL.md` symlink. This is a compati
 
 ## Releases and the discovery index
 
-Pushing a `vX.Y.Z` tag runs [`.github/workflows/release-skills.yml`](.github/workflows/release-skills.yml). It packs each skill folder into `<name>.tar.gz` (folder contents at the archive root, so `SKILL.md` sits at the top), writes an [Agent Skills discovery index](https://schemas.agentskills.io/discovery/0.2.0/schema.json) (`index.json`) with each skill's frontmatter `description` and the SHA-256 of its archive, and attaches all of them to the release. The release is created as a draft, the uploaded assets are downloaded and re-verified, and only then published.
+Pushing a `vX.Y.Z` tag runs [`.github/workflows/release-skills.yml`](.github/workflows/release-skills.yml). It builds one release asset per skill, writes an [Agent Skills discovery index](https://schemas.agentskills.io/discovery/0.2.0/schema.json) (`index.json`) with each skill's frontmatter `description` and the SHA-256 of its asset, and attaches everything to the release. The release is created as a draft, the uploaded assets are downloaded and re-verified, and only then published.
 
-Archives contain regular files only: the `skills` CLI rejects links in archives, so the `AGENTS.md` symlinks are left out.
+The index type is picked per skill, following the spec's distribution guidance:
+
+| Skill folder holds | Index `type` | Release asset |
+| --- | --- | --- |
+| only `SKILL.md` (e.g. `solvapay`) | `skill-md` | `<name>.md`, the raw `SKILL.md` bytes |
+| anything else (`references/`, `scripts/`, …) | `archive` | `<name>.tar.gz`, folder contents at the archive root |
+
+Adding a first reference file to a single-file skill switches it to `archive` on the next release; there is nothing to configure. The `AGENTS.md` symlinks are left out of every asset and don't count towards the type, because the `skills` CLI rejects links in archives. Archives are deterministic: a skill that hasn't changed keeps the same digest across releases.
 
 Build and verify locally without releasing:
 
