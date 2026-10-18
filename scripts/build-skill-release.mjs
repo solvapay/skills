@@ -26,8 +26,7 @@
 // also what `npx skills add <archive-url>` accepts: it extracts and uses the
 // root (or a single top-level directory). Archives hold regular files only,
 // because the skills CLI rejects any symlink or hard link in a well-known
-// archive. The AGENTS.md -> SKILL.md aliases are therefore left out of every
-// asset (and don't count towards the type); any other symlink fails the build.
+// archive, so any symlink under skills/ fails the build.
 //
 // Archives are deterministic for a given commit: sorted entries, fixed
 // owner/mode, mtime from the skill's last commit, and a fixed gzip header.
@@ -44,7 +43,7 @@ import { parse as parseYaml } from 'yaml'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.json'
 // Index order. The router goes first so a client listing skills sees it first.
-const SKILLS = ['solvapay', 'create-mcp-app', 'app-integration', 'website-checkout', 'lovable-checkout']
+const SKILLS = ['solvapay', 'create-mcp-app', 'app-integration']
 // Release asset extension per index type.
 const EXT = { 'skill-md': '.md', archive: '.tar.gz' }
 const NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/
@@ -251,7 +250,6 @@ function skillFiles(name) {
     const abs = join(ROOT, path)
     if (mode === '120000') {
       const target = git(['cat-file', '-p', meta.split(' ')[1]])
-      if (rel === 'AGENTS.md' && target === 'SKILL.md') continue
       throw new Error(`${path} is a symlink to ${target}; the skills CLI rejects links in archives`)
     }
     if (mode !== '100644' && mode !== '100755') throw new Error(`${path} has unsupported git mode ${mode}`)

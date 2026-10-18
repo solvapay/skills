@@ -101,7 +101,7 @@ The index type is picked per skill, following the spec's distribution guidance:
 | only `SKILL.md` (e.g. `solvapay`) | `skill-md` | `<name>.md`, the raw `SKILL.md` bytes |
 | anything else (`references/`, `scripts/`, …) | `archive` | `<name>.tar.gz`, folder contents at the archive root |
 
-Adding a first reference file to a single-file skill switches it to `archive` on the next release; there is nothing to configure. The `AGENTS.md` symlinks are left out of every asset and don't count towards the type, because the `skills` CLI rejects links in archives. Archives are deterministic: a skill that hasn't changed keeps the same digest across releases.
+Adding a first reference file to a single-file skill switches it to `archive` on the next release; there is nothing to configure. Symlinks fail the build, because the `skills` CLI rejects links in archives. Archives are deterministic: a skill that hasn't changed keeps the same digest across releases.
 
 Build and verify locally without releasing:
 
