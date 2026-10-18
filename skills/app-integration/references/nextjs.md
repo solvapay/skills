@@ -15,7 +15,7 @@ npm install @solvapay/next @solvapay/react @solvapay/react-supabase
 ## Docs References (Topic-Based)
 
 - Topics: `nextjs guide`, `webhooks`, `testing`, `error handling`, `checkout sessions`, `customer sessions`.
-- Retrieval hint: resolve via MCP first; fallback to `llms.txt` topic lookup.
+- Retrieval hint: resolve topics via the SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`) first, fallback to `https://docs.solvapay.com/llms.txt`.
 
 ## Recommended Flow
 

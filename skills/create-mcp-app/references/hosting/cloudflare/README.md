@@ -74,7 +74,7 @@ Edit in place:
 cp .env.example .env
 ```
 
-Edit `.env` with real values for `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`. Keep `SOLVAPAY_API_BASE_URL` blank unless you're pointing at a non-production API origin (skill authors / internal testing: use preview tooling and pass `--dev` to `npm create solvapay@preview` or `npx -y solvapay@preview init` to set this to `https://api-dev.solvapay.com` automatically).
+Edit `.env` with real values for `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PRODUCT_REF`, `MCP_PUBLIC_BASE_URL`. Keep `SOLVAPAY_API_BASE_URL` blank unless SolvaPay gave you a different API origin.
 
 `npm run deploy` (Step 8) uploads `SOLVAPAY_SECRET_KEY` from `.env` to Cloudflare Worker Secrets on the first successful deploy, after the Worker exists, and skips the upload when the secret is already set. The local `.env` keeps the secret available to `wrangler dev`; the deployed Worker reads it from Cloudflare's secret store after that.
 

@@ -1,5 +1,7 @@
 # Next.js Hosted Checkout
 
+Hosted-checkout-only path of `solvapay/app-integration`. For paywalls, usage metering or webhooks on the same app, continue with [nextjs.md](nextjs.md) after this guide.
+
 ## Contents
 
 - Step 1 — Setup
@@ -20,7 +22,7 @@ Add SolvaPay hosted checkout and customer portal to Next.js App Router.
 ## Docs References (Topic-Based)
 
 - Topics: `installation`, `nextjs guide`, `core concepts`, `checkout sessions`, `customer sessions`, `webhooks`, `test in sandbox`.
-- Retrieval hint: resolve topics via MCP first, fallback to `llms.txt`.
+- Retrieval hint: resolve topics via the SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`) first, fallback to `https://docs.solvapay.com/llms.txt`.
 
 ## Step 1 — Setup
 
@@ -183,4 +185,4 @@ curl -i -X POST http://localhost:3000/api/create-checkout-session \
 
 ## Note
 
-For usage metering, Express paths, or webhook-heavy flows, hand off to `solvapay/app-integration` (install separately). MCP server wiring → `solvapay/create-mcp-app`.
+For usage metering, paywall middleware or webhook-heavy flows, continue with [nextjs.md](nextjs.md), [operations.md](operations.md) and [WEBHOOKS.md](WEBHOOKS.md). MCP server wiring → `solvapay/create-mcp-app`.

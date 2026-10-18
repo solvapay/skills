@@ -8,7 +8,7 @@ const { dev, args } = splitDevArgs(process.argv.slice(2))
 const HELP = `Usage: node scripts/describe.mjs [--dev] <openapi.json|openapi.yaml> [--no-probe]
 
 Thin wrapper around create-solvapay/scripts/mcp/describe.mjs.
-Use --dev only for internal testing against https://api-dev.solvapay.com.
+--dev is for solvapay/skills maintainers only (see CONTRIBUTING.md in that repo).
 `
 
 if (args.includes('--help') || args.includes('-h')) {

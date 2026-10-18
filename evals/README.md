@@ -11,8 +11,6 @@ Guides: [optimizing descriptions](https://agentskills.io/skill-creation/optimizi
 | `evals/solvapay/` | `solvapay` | `skills/solvapay/SKILL.md` |
 | `evals/create-mcp-app/` | `solvapay/create-mcp-app` | `skills/create-mcp-app/` |
 | `evals/app-integration/` | `solvapay/app-integration` | `skills/app-integration/` |
-| `evals/website-checkout/` | `solvapay/website-checkout` | `skills/website-checkout/` |
-| `evals/lovable-checkout/` | `solvapay/lovable-checkout` | `skills/lovable-checkout/` |
 
 ## Files per skill
 
@@ -41,9 +39,7 @@ Guides: [optimizing descriptions](https://agentskills.io/skill-creation/optimizi
 | --- | --- | --- |
 | Ambiguous onboarding | `solvapay` router | Any surface with clear stack + task |
 | Code-based MCP — `create-mcp-app` owns all of it (OpenAPI, scratch, existing server, factory wrap, `npm create solvapay --type mcp`) | `solvapay/create-mcp-app` | `app-integration`, checkout skills |
-| REST/web paywall, usage, webhooks, account UI (no MCP server) | `solvapay/app-integration` | `create-mcp-app`, checkout-only skills |
-| Web hosted checkout + return URL | `solvapay/website-checkout` | Full SDK path, Lovable stack, greenfield MCP |
-| Lovable paste-in (`@preview`, Supabase edge) | `solvapay/lovable-checkout` | Production Next.js website-checkout |
+| REST/web paywall, usage, webhooks, account UI, hosted checkout + return URL, customer portal (no MCP server) | `solvapay/app-integration` | `create-mcp-app`, Managed MCP (no code) |
 | Managed MCP (no code, paste server URL) | `solvapay` router → Managed MCP exit | `create-mcp-app`, `app-integration` (unless API bootstrap on existing product) |
 
 ## Output evals (`evals.json`)

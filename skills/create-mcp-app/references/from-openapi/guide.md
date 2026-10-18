@@ -16,18 +16,6 @@ The skill auto-loads and routes to the appropriate state-based module below (`de
 
 **Do not use `npm create solvapay@latest` from an agent context.** The published CLI cannot author `src/tools/*.ts` because that step requires an LLM — it only ever emits one-to-one tools (one file per spec operation), which is rarely the right shape for a host LLM to navigate when the spec has more than a handful of operations.
 
-**Internal dev mode:** use the wrapper path with preview tooling, not the public stable CLI:
-
-```bash
-npm install create-solvapay@preview
-node scripts/describe.mjs --dev /tmp/spec-<uuid>.json
-node scripts/scaffold.mjs --dev /tmp/spec-<uuid>.json /path/to/target \
-  --selections /tmp/selections-<uuid>.json
-npx -y solvapay@preview init --dev
-```
-
-The wrappers strip `--dev` before calling upstream scripts, set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` for preview/stable mismatch detection, and seed that value into the generated `.env` after scaffold. Never use `--dev` for end-user projects.
-
 ## Human shortcut (terminal users only)
 
 For humans at a terminal who already have a spec and explicitly want one-to-one tools, the published scaffolder runs the whole flow in one command:
@@ -96,7 +84,7 @@ sibling `solvapay-sdk` checkout, install the package in the skill directory:
 npm install create-solvapay
 ```
 
-For internal dev mode, replace the first command with `npm install create-solvapay@preview` and pass `--dev` to the wrappers. If you point `SCAFFOLDER_SCRIPTS_DIR` at a local checkout instead, install that checkout's helper deps once: `( cd "$SCAFFOLDER_SCRIPTS_DIR" && npm install )`.
+If you point `SCAFFOLDER_SCRIPTS_DIR` at a local checkout instead, install that checkout's helper deps once: `( cd "$SCAFFOLDER_SCRIPTS_DIR" && npm install )`.
 
 **Scaffolded project scripts** (`verify.mjs`, `test.mjs`) ship inside the generated project. Run them from the project root with `node scripts/<name>.mjs`. `verify.mjs` has no extra deps; `test.mjs` needs `( cd scripts && npm install )` once inside the project (see [test.md](test.md)).
 
