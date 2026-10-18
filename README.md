@@ -2,13 +2,14 @@
 
 [![skills.sh](https://www.skills.sh/badge/solvapay/skills)](https://www.skills.sh/solvapay/skills)
 
-Agent skills for adding SolvaPay to any project: paid MCP servers, and app integration (hosted checkout, paywalls, usage, webhooks, billing UI).
+Agent skills for SolvaPay, on both sides of a payment: adding SolvaPay to a project (paid MCP servers, and app integration with hosted checkout, paywalls, usage, webhooks and billing UI), and paying through SolvaPay when an agent meets a SolvaPay paywall.
 
 ## Skills
 
 | Skill id | Purpose |
 | --- | --- |
 | `solvapay` | Router — disambiguates vague intent and points at the right surface skill |
+| `solvapay/pay-with-solvapay` | The paying side: what a SolvaPay paywall response means (402, `paywallReason`), the account tools on SolvaPay MCP servers, top-up and auto-recharge, and the buy-side beta for agents that should pay for services themselves |
 | `solvapay/create-mcp-app` | Create or scaffold a paid MCP server on Cloudflare Workers (from OpenAPI or hand-written) |
 | `solvapay/app-integration` | Hosted checkout and customer portal, paywalls, usage, webhooks, and billing UI for an existing TypeScript / JavaScript app, API or website (Next.js, React, Express, Supabase Edge, Vite + Supabase). Formerly `sdk-integration`; also absorbs the retired `website-checkout` and `lovable-checkout` skills — `--skill website-checkout` and `--skill lovable-checkout` no longer resolve; install `--skill app-integration`. |
 
@@ -19,6 +20,7 @@ Agent skills for adding SolvaPay to any project: paid MCP servers, and app integ
 - "Add usage metering to my MCP server" → `solvapay/create-mcp-app`
 - "Add hosted checkout to my Next.js site" → `solvapay/app-integration`
 - "Add checkout to my Vite + Supabase (Lovable) app" → `solvapay/app-integration`
+- "This API returned 402 with a checkoutUrl" / "let my agent pay for APIs" → `solvapay/pay-with-solvapay`
 - "I just want to add SolvaPay" (vague) → `solvapay` asks one disambiguation question, then routes
 
 ## Installation
@@ -27,8 +29,8 @@ Pick the variant that matches the context.
 
 | Context | Command | Notes |
 | --- | --- | --- |
-| **Top-of-funnel** (README hero, marketing) | `npx skills add solvapay/skills` | Opens a multi-select prompt across all 3 skills. Best for human discovery. |
-| **Quickstart / "install everything"** | `npx skills add solvapay/skills --all -y` | Installs all 3 to every detected agent, no prompts. Optional convenience. |
+| **Top-of-funnel** (README hero, marketing) | `npx skills add solvapay/skills` | Opens a multi-select prompt across all 4 skills. Best for human discovery. |
+| **Quickstart / "install everything"** | `npx skills add solvapay/skills --all -y` | Installs all 4 to every detected agent, no prompts. Optional convenience. |
 | **Surface-specific** (e.g. a docs page for one product) | `npx skills add solvapay/skills --skill create-mcp-app -y` | Install just one skill. Routing id is `solvapay/<surface>`; CLI `--skill` uses the flat folder name. |
 | **Power user / CI** | `npx skills add solvapay/skills --all -g -y` | Non-interactive global install. |
 
@@ -126,6 +128,8 @@ A skill is considered complete when:
 ```
 skills/
 ├── solvapay/                       # Router (routing id: solvapay)
+│   └── SKILL.md
+├── pay-with-solvapay/              # routing id: solvapay/pay-with-solvapay (single SKILL.md)
 │   └── SKILL.md
 ├── create-mcp-app/                 # routing id: solvapay/create-mcp-app
 │   ├── SKILL.md

@@ -1,0 +1,102 @@
+[
+  {
+    "query": "the weather api i'm calling just returned 402 with a checkoutUrl in the body, what do i do",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "mcp tool says access denied requires pro plan, can you sort it",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "got paywallReason topup_required from a tool call, what does that mean",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "my agent keeps getting payment_required from this solvapay api, how do i fix it",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "i ran out of credits on a usage based tool, how do i top up",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "can you set it up so my agent can pay for apis itself within a budget i set",
+    "should_trigger": true,
+    "split": "train"
+  },
+  {
+    "query": "tool result says activation_required, should i just retry",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "how do i keep this paid mcp funded so it doesnt stop overnight",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "limit_reached on the free allowance of a search tool, what are my options",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "want my agents to have spending limits and pay for services, does solvapay do that",
+    "should_trigger": true,
+    "split": "validation"
+  },
+  {
+    "query": "make my express api return 402 with a checkout link when the user hasnt paid",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "add a paywall to my mcp tools with solvapay",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "scaffold a paid mcp server from this openapi spec",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "set up auto recharge for my customers in my next.js app",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "which solvapay product should i use for my saas",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "monetize my mcp server with no code, just paste the url",
+    "should_trigger": false,
+    "split": "train"
+  },
+  {
+    "query": "handle solvapay webhooks for credit top ups in my backend",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "add a top up button to my react billing page",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "stripe returned a 402 card declined on my checkout, how do i debug it",
+    "should_trigger": false,
+    "split": "validation"
+  },
+  {
+    "query": "build a customer portal so my subscribers can upgrade their plan",
+    "should_trigger": false,
+    "split": "validation"
+  }
+]

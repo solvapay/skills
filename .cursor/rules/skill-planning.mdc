@@ -22,7 +22,7 @@ Design coherent units — like functions:
 - Too narrow → multiple skills load for one task
 - Too broad → hard to activate; agent follows irrelevant instructions
 
-In this repo, the three-skill family uses a **router** (`solvapay`) plus two **self-contained surface skills** as flat siblings under `skills/`: `create-mcp-app` and `app-integration` (routing ids: `solvapay/<surface>`). `website-checkout` and `lovable-checkout` were retired in October 2026 and folded into `app-integration` (hosted-checkout path, Supabase Edge path). Each skill links only to files inside its own folder. The router routes by **routing id** (e.g. `solvapay/create-mcp-app`), never `../sibling/...` paths. Install: `npx skills add solvapay/skills --skill create-mcp-app -y` (flat CLI name). Install all: `npx skills add solvapay/skills --all -y`.
+In this repo, the skill family uses a **router** (`solvapay`) plus three **self-contained skills** as flat siblings under `skills/`: `create-mcp-app` and `app-integration` for the building side, and `pay-with-solvapay` for the paying side (routing ids: `solvapay/<surface>`). `website-checkout` and `lovable-checkout` were retired in October 2026 and folded into `app-integration` (hosted-checkout path, Supabase Edge path). Each skill links only to files inside its own folder. The router routes by **routing id** (e.g. `solvapay/create-mcp-app`), never `../sibling/...` paths. Install: `npx skills add solvapay/skills --skill create-mcp-app -y` (flat CLI name). Install all: `npx skills add solvapay/skills --all -y`.
 
 ## Directory structure
 
