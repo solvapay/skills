@@ -90,6 +90,27 @@ npm run validate
 
 This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md` (router + two flat surface skills).
 
+## Releases and the discovery index
+
+Pushing a `vX.Y.Z` tag runs [`.github/workflows/release-skills.yml`](.github/workflows/release-skills.yml). It builds one release asset per skill, writes an [Agent Skills discovery index](https://schemas.agentskills.io/discovery/0.2.0/schema.json) (`index.json`) with each skill's frontmatter `description` and the SHA-256 of its asset, and attaches everything to the release. The release is created as a draft, the uploaded assets are downloaded and re-verified, and only then published.
+
+The index type is picked per skill, following the spec's distribution guidance:
+
+| Skill folder holds | Index `type` | Release asset |
+| --- | --- | --- |
+| only `SKILL.md` (e.g. `solvapay`) | `skill-md` | `<name>.md`, the raw `SKILL.md` bytes |
+| anything else (`references/`, `scripts/`, …) | `archive` | `<name>.tar.gz`, folder contents at the archive root |
+
+Adding a first reference file to a single-file skill switches it to `archive` on the next release; there is nothing to configure. Symlinks fail the build, because the `skills` CLI rejects links in archives. Archives are deterministic: a skill that hasn't changed keeps the same digest across releases.
+
+Build and verify locally without releasing:
+
+```bash
+npm run release:dry-run
+```
+
+Output goes to `dist/release/`. The latest index is always at `https://github.com/solvapay/skills/releases/latest/download/index.json`.
+
 ## Skill quality expectations
 
 A skill is considered complete when:

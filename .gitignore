@@ -7,3 +7,6 @@ evals/**/iteration-*/
 eval-workspaces/
 eval-results/
 *-workspace/
+
+# Release build output (scripts/build-skill-release.mjs)
+dist/
