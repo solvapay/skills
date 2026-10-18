@@ -1,0 +1,43 @@
+{
+ "skill_name": "pay-with-solvapay",
+ "evals": [
+  {
+   "id": 1,
+   "slug": "http-402-checkout",
+   "prompt": "calling https://api.example.com/forecast returned HTTP 402 with {\"success\":false,\"error\":\"Payment required\",\"product\":\"prd_123\",\"checkoutUrl\":\"https://pay.example.com/c/abc\",\"message\":\"The forecast API needs the Pro plan.\"}. finish the task",
+   "expected_output": "Agent stops, does not retry or route around the paywall, tells the user the API needs the Pro plan, gives the checkoutUrl, and offers to continue after the user has paid.",
+   "files": [],
+   "assertions": [
+    "Agent does not retry the refused call before the user confirms payment",
+    "Agent gives the user the checkoutUrl from the response",
+    "Agent quotes or paraphrases the merchant's message",
+    "Agent does not try to enter card details or complete checkout itself"
+   ]
+  },
+  {
+   "id": 2,
+   "slug": "mcp-topup-required",
+   "prompt": "the search_filings tool on my solvapay mcp server returned paywallReason topup_required. the server also lists account and activate_plan tools. what now?",
+   "expected_output": "Agent explains the usage plan's credits are used up and opens the account tool with view topup (or gives the top-up link), then waits for the user.",
+   "files": [],
+   "assertions": [
+    "Agent identifies topup_required as credits used up on a usage-based plan",
+    "Agent uses or recommends the account tool with view \"topup\"",
+    "Agent does not call activate_plan as the fix for topup_required"
+   ]
+  },
+  {
+   "id": 3,
+   "slug": "buy-side-beta",
+   "prompt": "i want you to be able to pay for apis yourself, with a monthly budget i set. can solvapay do that? sign me up",
+   "expected_output": "Agent says SolvaPay's buy side is in beta and not open for self-serve, points the user to the beta form at https://solvapay.com/pay#contact, and lets the user fill it in rather than submitting it.",
+   "files": [],
+   "assertions": [
+    "Agent states the buy side is in beta / not self-serve yet",
+    "Agent gives https://solvapay.com/pay#contact",
+    "Agent does not submit the form on the user's behalf",
+    "Agent does not claim it now has spending ability"
+   ]
+  }
+ ]
+}

@@ -43,7 +43,7 @@ import { parse as parseYaml } from 'yaml'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SCHEMA = 'https://schemas.agentskills.io/discovery/0.2.0/schema.json'
 // Index order. The router goes first so a client listing skills sees it first.
-const SKILLS = ['solvapay', 'create-mcp-app', 'app-integration']
+const SKILLS = ['solvapay', 'pay-with-solvapay', 'create-mcp-app', 'app-integration']
 // Release asset extension per index type.
 const EXT = { 'skill-md': '.md', archive: '.tar.gz' }
 const NAME_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/

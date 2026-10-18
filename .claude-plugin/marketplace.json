@@ -11,11 +11,12 @@
   "plugins": [
     {
       "name": "solvapay-skills",
-      "description": "Skills for SolvaPay: paid MCP apps, app integration with hosted checkout.",
+      "description": "Skills for SolvaPay: paid MCP apps, app integration with hosted checkout, and paying through SolvaPay paywalls.",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/solvapay",
+        "./skills/pay-with-solvapay",
         "./skills/create-mcp-app",
         "./skills/app-integration"
       ]

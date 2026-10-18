@@ -71,6 +71,18 @@
         "Agent does not route to solvapay/app-integration for billing UI inside an MCP host",
         "Agent does not scaffold or write code after the handoff"
       ]
+    },
+    {
+      "id": 7,
+      "slug": "router-paying-side",
+      "prompt": "an mcp tool i use says i need a pro plan and gave me a solvapay link, and honestly i'd like my agent to just handle paying for stuff like this. help",
+      "expected_output": "Agent routes to solvapay/pay-with-solvapay (paying side), not to a build surface, and stops after the handoff.",
+      "files": [],
+      "assertions": [
+        "Handoff target is solvapay/pay-with-solvapay",
+        "Agent does not route to solvapay/app-integration or solvapay/create-mcp-app",
+        "Agent does not implement anything after the handoff"
+      ]
     }
   ]
 }
