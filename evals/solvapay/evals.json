@@ -35,6 +35,42 @@
         "Agent points at the provider console and/or no-code-mcp docs — not solvapay/create-mcp-app",
         "Agent does not mention MCP Pay or start scaffolding a Cloudflare Workers MCP server"
       ]
+    },
+    {
+      "id": 4,
+      "slug": "router-hosted-checkout",
+      "prompt": "i want a subscribe button on my next.js site that sends people to a solvapay checkout page and unlocks the app when they come back",
+      "expected_output": "Agent routes to solvapay/app-integration (hosted-checkout path) and stops; it does not look for a separate checkout skill.",
+      "files": [],
+      "assertions": [
+        "Handoff target is solvapay/app-integration",
+        "Agent does not name website-checkout or any skill id other than solvapay/app-integration",
+        "Agent does not write route code after the handoff"
+      ]
+    },
+    {
+      "id": 5,
+      "slug": "router-vite-supabase",
+      "prompt": "my app was built in lovable (vite + supabase). add solvapay so premium reports are paid",
+      "expected_output": "Agent routes to solvapay/app-integration (Supabase Edge path) and stops; it does not send the user to preview packages or a dev backend.",
+      "files": [],
+      "assertions": [
+        "Handoff target is solvapay/app-integration",
+        "Agent does not mention @preview packages, api-dev.solvapay.com, or a Lovable-specific skill",
+        "Agent does not implement edge functions after the handoff"
+      ]
+    },
+    {
+      "id": 6,
+      "slug": "router-mcp-host-billing-ui",
+      "prompt": "add a manage-account / upgrade widget inside my mcp server so claude desktop users can top up credits",
+      "expected_output": "Agent routes to solvapay/create-mcp-app (references/mcp-apps-ui.md), not app-integration.",
+      "files": [],
+      "assertions": [
+        "Handoff target is solvapay/create-mcp-app",
+        "Agent does not route to solvapay/app-integration for billing UI inside an MCP host",
+        "Agent does not scaffold or write code after the handoff"
+      ]
     }
   ]
 }

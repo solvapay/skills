@@ -19,17 +19,6 @@ using `SCAFFOLDER_SCRIPTS_DIR` or a sibling `solvapay-sdk` checkout:
 npm install create-solvapay
 ```
 
-For internal dev-mode testing against `https://api-dev.solvapay.com`, use preview tooling and pass `--dev` to the wrappers:
-
-```bash
-npm install create-solvapay@preview
-node scripts/describe.mjs --dev path/to/openapi.json
-node scripts/scaffold.mjs --dev path/to/openapi.json ./target --selections /tmp/selections.json
-npx -y solvapay@preview init --dev
-```
-
-The wrappers strip `--dev` before invoking upstream scripts, set `SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com` for the run, and `scaffold.mjs --dev` writes that value into the generated `.env` after a successful scaffold.
-
 ## Resolution order
 
 Wrappers resolve `create-solvapay/scripts/mcp/` via:
@@ -47,31 +36,14 @@ scaffolder directory's deps once:
 # or: ( cd solvapay-sdk/packages/create-solvapay/scripts/mcp && npm install )
 ```
 
-### Stable vs preview (`--dev`)
+### Stable build only
 
-When resolving via the local npm package (option 2), pick the dist-tag that
-matches the run:
-
-```bash
-# standard (stable) — what end users get
-npm install create-solvapay
-
-# --dev / internal testing — pulls the preview build so the scaffolder
-# matches `solvapay@preview` against api-dev.
-npm install create-solvapay@preview
-```
-
-Installing stable (`@latest`) while running `--dev` is the trap that bites:
-api-dev needs the preview CLI and scaffolder in lockstep. `resolve-scaffolder.mjs`
-warns when it detects a stable build under a dev backend, and the wrappers now
-provide that dev signal when `--dev` is passed. Pinning `@preview` at install
-time avoids the mismatch entirely.
-
-The inverse is also warned: a `-preview` scaffolder with no dev signal
-(`SOLVAPAY_API_BASE_URL` not pointing at api-dev) is a preview build on the
-production path. Reinstall with `npm install create-solvapay@latest`. Do not
-leave a stale `scripts/node_modules/create-solvapay` checkout in the skill
-directory — resolution can pick that preview build ahead of `@latest`.
+When resolving via the local npm package (option 2), install the stable build
+(`npm install create-solvapay`). `resolve-scaffolder.mjs` warns if it finds a
+`-preview` scaffolder on the production path; reinstall with
+`npm install create-solvapay@latest` and remove any stale
+`scripts/node_modules/create-solvapay` in the skill directory, because
+resolution can pick it ahead of `@latest`.
 
 ## Project-local scripts
 

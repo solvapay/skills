@@ -52,7 +52,7 @@ npm run deploy
 
 Only run the commands for keys that exist in your `.env`. A future template CLI should grow a safer shortcut such as `npm run deploy -- --sync-secrets` or `npm run deploy -- --refresh-secret UPSTREAM_API_HEADERS`; until then, use `wrangler secret put` explicitly.
 
-When `.env` carries `SOLVAPAY_API_BASE_URL` (either seeded by preview tooling with `--dev` or set manually), `deploy.mjs` forwards it as a `--var` override and the preflight `GET /v1/sdk/merchant` hits the same origin. No extra step — one knob, one source of truth.
+When `.env` carries `SOLVAPAY_API_BASE_URL`, `deploy.mjs` forwards it as a `--var` override and the preflight `GET /v1/sdk/merchant` hits the same origin. No extra step — one knob, one source of truth.
 
 Before invoking `wrangler deploy`, the script prints the resolved workers.dev URL and asks `[Y/n]`. Press Enter to accept. Decline (`n`) to abort and follow the printed instructions — either rename the account-wide workers.dev subdomain in the Cloudflare dashboard (affects every Worker on the account), or attach a `custom_domain` route (see Step 2). Pass `--yes` (or set `SOLVAPAY_DEPLOY_YES=1`) to skip the prompt; it's also skipped automatically when `wrangler.jsonc` has a `custom_domain` route or stdin is not a TTY.
 

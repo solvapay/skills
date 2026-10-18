@@ -15,7 +15,7 @@ npm install @solvapay/react
 ## Docs References (Topic-Based)
 
 - Topics: `react guide`, `auth adapter`, `checkout sessions`, `customer sessions`, `limits`, `webhooks`.
-- Retrieval hint: resolve React + API topics via MCP, fallback to `llms.txt`.
+- Retrieval hint: resolve topics via the SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`) first, fallback to `https://docs.solvapay.com/llms.txt`.
 
 ## Recommended Flow
 

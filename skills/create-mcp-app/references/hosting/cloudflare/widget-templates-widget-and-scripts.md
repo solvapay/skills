@@ -215,11 +215,8 @@ MCP_PUBLIC_BASE_URL=http://localhost:8787
 
 # SolvaPay API origin. Omit / leave blank to use production
 # (https://api.solvapay.com — this is what src/worker.ts falls back
-# to). Set explicitly if you need a different environment. The
-# recommended way to populate this for internal testing is to use preview
-# tooling and pass `--dev` to `npm create solvapay@preview` /
-# `npx -y solvapay@preview init`, which writes the dev URL here for you.
-# SOLVAPAY_API_BASE_URL=https://api-dev.solvapay.com
+# to). Set explicitly only if SolvaPay gave you a different origin.
+# SOLVAPAY_API_BASE_URL=
 ```
 
 ## `.gitignore`

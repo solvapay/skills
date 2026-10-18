@@ -2,7 +2,7 @@
 
 [![skills.sh](https://www.skills.sh/badge/solvapay/skills)](https://www.skills.sh/solvapay/skills)
 
-Agent skills for adding SolvaPay to any project: paid MCP servers, app integration, hosted checkout, and Lovable paste-in checkout.
+Agent skills for adding SolvaPay to any project: paid MCP servers, and app integration (hosted checkout, paywalls, usage, webhooks, billing UI).
 
 ## Skills
 
@@ -10,17 +10,15 @@ Agent skills for adding SolvaPay to any project: paid MCP servers, app integrati
 | --- | --- |
 | `solvapay` | Router — disambiguates vague intent and points at the right surface skill |
 | `solvapay/create-mcp-app` | Create or scaffold a paid MCP server on Cloudflare Workers (from OpenAPI or hand-written) |
-| `solvapay/app-integration` | Paywalls, usage, webhooks, and billing UI for an existing TypeScript / JavaScript app or API (Next.js, React, Express, Supabase Edge). Formerly `sdk-integration` — `npx skills add solvapay/skills --skill sdk-integration` no longer resolves; install `--skill app-integration`. |
-| `solvapay/website-checkout` | Hosted checkout and customer portal for web apps |
-| `solvapay/lovable-checkout` | Paste-in preview-only checkout for Lovable (Vite + shadcn/ui + Supabase Edge) |
+| `solvapay/app-integration` | Hosted checkout and customer portal, paywalls, usage, webhooks, and billing UI for an existing TypeScript / JavaScript app, API or website (Next.js, React, Express, Supabase Edge, Vite + Supabase). Formerly `sdk-integration`; also absorbs the retired `website-checkout` and `lovable-checkout` skills — `--skill website-checkout` and `--skill lovable-checkout` no longer resolve; install `--skill app-integration`. |
 
 ## What can it do?
 
 - "Scaffold a paid MCP server from this OpenAPI spec" → `solvapay/create-mcp-app`
 - "Add SolvaPay paywall to my Express API" → `solvapay/app-integration`
 - "Add usage metering to my MCP server" → `solvapay/create-mcp-app`
-- "Add hosted checkout to my Next.js site" → `solvapay/website-checkout`
-- "Paste SolvaPay checkout into my Lovable app" → `solvapay/lovable-checkout`
+- "Add hosted checkout to my Next.js site" → `solvapay/app-integration`
+- "Add checkout to my Vite + Supabase (Lovable) app" → `solvapay/app-integration`
 - "I just want to add SolvaPay" (vague) → `solvapay` asks one disambiguation question, then routes
 
 ## Installation
@@ -29,8 +27,8 @@ Pick the variant that matches the context.
 
 | Context | Command | Notes |
 | --- | --- | --- |
-| **Top-of-funnel** (README hero, marketing) | `npx skills add solvapay/skills` | Opens a multi-select prompt across all 5 skills. Best for human discovery. |
-| **Quickstart / "install everything"** | `npx skills add solvapay/skills --all -y` | Installs all 5 to every detected agent, no prompts. Optional convenience. |
+| **Top-of-funnel** (README hero, marketing) | `npx skills add solvapay/skills` | Opens a multi-select prompt across all 3 skills. Best for human discovery. |
+| **Quickstart / "install everything"** | `npx skills add solvapay/skills --all -y` | Installs all 3 to every detected agent, no prompts. Optional convenience. |
 | **Surface-specific** (e.g. a docs page for one product) | `npx skills add solvapay/skills --skill create-mcp-app -y` | Install just one skill. Routing id is `solvapay/<surface>`; CLI `--skill` uses the flat folder name. |
 | **Power user / CI** | `npx skills add solvapay/skills --all -g -y` | Non-interactive global install. |
 
@@ -53,6 +51,8 @@ Regression specs for description triggering and output quality live at [`evals/`
 Per skill: `trigger-queries.json` (8–10 should-trigger + 8–10 should-not, train/validation split) and `evals.json` (output cases with `assertions`).
 
 ## Local development and testing
+
+Maintainer notes (versioning, dev backend, what must stay out of a skill) are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 For live editing, symlink every skill in this repo into the agent skill search
 paths (`~/.agents/skills/<name>` plus a `~/.claude/skills/<name>` mirror) so
@@ -88,11 +88,7 @@ To validate every skill against the [agentskills.io spec](https://agentskills.io
 npm run validate
 ```
 
-This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md` (router + four flat surface skills).
-
-## `AGENTS.md` symlinks
-
-Each skill directory ships an `AGENTS.md -> SKILL.md` symlink. This is a compatibility shim for `AGENTS.md`-aware clients (Claude Code, OpenAI Codex, OpenHands) that look for `AGENTS.md` at the root of a project or skill. The agentskills.io spec only requires `SKILL.md`; the symlink is purely additive so the same directory works in both ecosystems.
+This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md` (router + two flat surface skills).
 
 ## Releases and the discovery index
 
@@ -130,15 +126,15 @@ A skill is considered complete when:
 ```
 skills/
 ├── solvapay/                       # Router (routing id: solvapay)
-│   ├── SKILL.md
-│   └── AGENTS.md -> SKILL.md
+│   └── SKILL.md
 ├── create-mcp-app/                 # routing id: solvapay/create-mcp-app
 │   ├── SKILL.md
 │   ├── scripts/
 │   └── references/
-├── app-integration/                # routing id: solvapay/app-integration
-├── website-checkout/               # routing id: solvapay/website-checkout
-└── lovable-checkout/               # routing id: solvapay/lovable-checkout
+└── app-integration/                # routing id: solvapay/app-integration
+    ├── SKILL.md
+    ├── scripts/
+    └── references/                 # incl. hosted-checkout-nextjs.md, hosted-checkout-react.md
 ```
 
 Routing ids use the `solvapay/<surface>` namespace for handoffs. Each directory's `name` frontmatter matches the folder (e.g. `create-mcp-app`); `npx skills add --skill` uses that flat name.
