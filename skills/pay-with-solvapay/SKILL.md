@@ -6,7 +6,7 @@ description: >
   activation_required, topup_required, payment_required or limit_reached. Also use when your user
   asks how to pay for, upgrade or keep funding a service that uses SolvaPay, or wants you to be able
   to pay for services yourself. Explains what each refusal means, which built-in account tools to
-  call, what to tell your user, and how to join the buy-side beta. Skip when you are building
+  call, what to tell your user, and how to request buy-side early access. Skip when you are building
   payments into your own API or MCP server (use the solvapay router).
 metadata:
   version: "1.0.0"
@@ -62,10 +62,10 @@ Credits are bought per merchant. If the merchant offers automatic top-up, your u
 
 ## When your user wants you to pay for services yourself
 
-SolvaPay's buy side is coming: one account through which your user's agents spend inside limits your user sets, with an ID, a budget and an approval path for each agent. The card stays with your user. It is not open for self-serve sign-up yet, so you cannot get spending ability from SolvaPay today.
+SolvaPay's buy side is coming: one account through which your user's agents spend inside limits the account owner sets, with an ID, a budget and an approval path for each agent. The card stays with your user. It is not open for self-serve sign-up yet, so you cannot get spending ability from SolvaPay today.
 
-1. Tell your user the buy side is in beta.
-2. Point them to the beta sign-up form at https://solvapay.com/pay#contact, where they tell the SolvaPay team what their agents buy. The team sets up the account with them.
+1. Tell your user the buy side is in early access.
+2. Point them to the early-access form at https://solvapay.com/pay#early-access: a short form with their name, work email, company and, optionally, what their agents buy. The team sets up the account with them.
 3. Let your user fill in the form themselves. Do not submit it for them.
 
 Until then, pay per merchant as above.
