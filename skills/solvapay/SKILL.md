@@ -9,7 +9,7 @@ description: >
   single-surface intent plus implementation context (tech stack, command, or action verb) routes
   to that surface's dedicated skill instead.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # SolvaPay — Router
@@ -43,7 +43,7 @@ Walk these in order; the first "yes" wins:
 - Never expose `SOLVAPAY_SECRET_KEY` to client code or public env vars.
 - Never build custom card collection if hosted checkout satisfies requirements.
 - Always prefer official SolvaPay SDK helpers over ad-hoc raw HTTP calls.
-- Always prefer topic-based docs discovery (MCP or `llms.txt`), not hard-coded doc paths.
+- Always prefer topic-based docs discovery (the Docs MCP or `llms.txt`), not hard-coded doc paths.
 
 ## Gotchas
 
@@ -64,7 +64,7 @@ Walk these in order; the first "yes" wins:
 4. Run the [verification loop](#verification-loop).
 5. Emit the [handoff template](#handoff-template) or [Managed MCP exit](#managed-mcp-exit) and stop.
 
-Docs discovery (shared by all surface skills): SolvaPay Docs MCP → https://docs.solvapay.com/llms.txt → direct page fetch.
+Docs discovery (shared by all surface skills): SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`, HTTP transport, no auth) → https://docs.solvapay.com/llms.txt → direct page fetch.
 
 ## Intent matrix
 
@@ -107,7 +107,7 @@ Managed MCP has no skill — use the [Managed MCP exit](#managed-mcp-exit) inste
 ## Verification loop
 
 1. Confirm routing id matches one intent-matrix row, or the prompt is Managed MCP (console exit).
-2. Confirm the prompt is not a near-miss negative (see [evals/README.md](../../evals/README.md) boundary table).
+2. Confirm the prompt is not a near-miss negative: a sibling skill's keywords with no MCP server, no code, or no existing app behind them (see [Negative routing examples](#negative-routing-examples) and [Gotchas](#gotchas)).
 3. If mismatch → re-route or ask one clarifying question; do not hand off until pass.
 
 ## Handoff template
@@ -147,6 +147,3 @@ Use when the user wants no-code MCP monetization — paste a server URL, gate to
 - [ ] Install target skill if missing (skill surfaces only)
 - [ ] Emit handoff template or Managed MCP exit and stop — do not add code or implementation steps after
 
-## Dev mode (skill author / internal testing only)
-
-If the user explicitly tests against the SolvaPay dev backend, append `--dev` to CLI invocations (`npm create solvapay@latest`, `npx solvapay@latest init`). Never enable for end users.

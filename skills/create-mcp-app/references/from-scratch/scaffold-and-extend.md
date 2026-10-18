@@ -163,7 +163,7 @@ Before writing any tool code, read [../tool-design.md](../tool-design.md). It co
 
 ## Add a free-capped tool
 
-Same file layout as a paid tool. Use `ctx.registerFree` with a `limit` block. Identity is required; exhaustion emits the same paywall gate. Use `@solvapay/mcp@latest` (`@preview` only for `--dev` / api-dev).
+Same file layout as a paid tool. Use `ctx.registerFree` with a `limit` block. Identity is required; exhaustion emits the same paywall gate. Use `@solvapay/mcp@latest`.
 
 ```ts
 import { z } from 'zod'

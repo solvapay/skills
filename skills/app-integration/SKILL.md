@@ -48,6 +48,10 @@ Two entry points, same skill:
 - Billing UI components do not grant access — server truth only.
 - Any MCP server (greenfield, existing, factory wrap) → `solvapay/create-mcp-app`. Billing UI inside an MCP host app also belongs there.
 
+## Docs source
+
+Facts (signatures, plan fields, endpoints) come from the docs, not from memory: SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`, HTTP transport, no auth) → https://docs.solvapay.com/llms.txt → direct page fetch.
+
 ## Mandatory read order
 
 1. Stack guide from [Stack detection](#stack-detection) (read end-to-end before coding). For hosted checkout only, the hosted-checkout guide for the stack is enough.

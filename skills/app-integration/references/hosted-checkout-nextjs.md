@@ -22,7 +22,7 @@ Add SolvaPay hosted checkout and customer portal to Next.js App Router.
 ## Docs References (Topic-Based)
 
 - Topics: `installation`, `nextjs guide`, `core concepts`, `checkout sessions`, `customer sessions`, `webhooks`, `test in sandbox`.
-- Retrieval hint: resolve topics via MCP first, fallback to `llms.txt`.
+- Retrieval hint: resolve topics via the SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`) first, fallback to `https://docs.solvapay.com/llms.txt`.
 
 ## Step 1 — Setup
 

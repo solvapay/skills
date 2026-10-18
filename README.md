@@ -52,6 +52,8 @@ Per skill: `trigger-queries.json` (8–10 should-trigger + 8–10 should-not, tr
 
 ## Local development and testing
 
+Maintainer notes (versioning, dev backend, what must stay out of a skill) are in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 For live editing, symlink every skill in this repo into the agent skill search
 paths (`~/.agents/skills/<name>` plus a `~/.claude/skills/<name>` mirror) so
 edits are picked up without reinstalling:
@@ -88,10 +90,6 @@ npm run validate
 
 This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md` (router + two flat surface skills).
 
-## `AGENTS.md` symlinks
-
-Each skill directory ships an `AGENTS.md -> SKILL.md` symlink. This is a compatibility shim for `AGENTS.md`-aware clients (Claude Code, OpenAI Codex, OpenHands) that look for `AGENTS.md` at the root of a project or skill. The agentskills.io spec only requires `SKILL.md`; the symlink is purely additive so the same directory works in both ecosystems.
-
 ## Skill quality expectations
 
 A skill is considered complete when:
@@ -107,8 +105,7 @@ A skill is considered complete when:
 ```
 skills/
 ├── solvapay/                       # Router (routing id: solvapay)
-│   ├── SKILL.md
-│   └── AGENTS.md -> SKILL.md
+│   └── SKILL.md
 ├── create-mcp-app/                 # routing id: solvapay/create-mcp-app
 │   ├── SKILL.md
 │   ├── scripts/

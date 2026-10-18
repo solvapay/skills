@@ -8,7 +8,7 @@ description: >
   rescaffold. Skip for web checkout pages and web/API paywalls with no MCP server
   (`solvapay/app-integration`).
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 compatibility: >
   Designed for Cloudflare Workers. Requires Node.js >= 20 and npm. Alternative hosts
   (Supabase Edge, Deno, Bun, Node + Express) in references/hosting/alternatives.md.
@@ -20,7 +20,7 @@ SolvaPay-monetized MCP server on Cloudflare Workers. New server (OpenAPI or hand
 
 > **Human at a terminal?** `npm create solvapay@latest <name> -- --type mcp` (use `@latest`). Ships from-openapi (one-to-one) and from-scratch modes, runs install + `solvapay init` in one pass.
 >
-> **Agent?** `scripts/describe.mjs` + `scripts/scaffold.mjs` per [references/from-openapi/guide.md](references/from-openapi/guide.md). Intent-driven clustering and hand-tuned narration require an LLM — the CLI cannot author `src/tools/*.ts`. Internal dev runs use the same agent path with `--dev` and `create-solvapay@preview`.
+> **Agent?** `scripts/describe.mjs` + `scripts/scaffold.mjs` per [references/from-openapi/guide.md](references/from-openapi/guide.md). Intent-driven clustering and hand-tuned narration require an LLM — the CLI cannot author `src/tools/*.ts`.
 
 ## Scope
 
@@ -48,7 +48,7 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - `ctx.registerPayable(name, config)` and `ctx.registerFree(name, config)` take **exactly two arguments** — not `(toolDef, paymentConfig, handler)`.
 - Paid and free-capped handlers return `c.respond(data, { text: narration })` — never raw `content` arrays from those handlers. Unlimited-free tools (`ctx.server.registerTool`) hand-roll the envelope.
 - `registerFree` **requires identity**. Unidentified callers fail with `identity_required` — there is no anonymous bucket. Unlimited-free (`registerTool`) is the only kind that skips auth.
-- `free-capped` / `registerFree` ship on `@solvapay/mcp@latest`. Internal testing against api-dev: `create-solvapay@preview` / `solvapay@preview` with `--dev`.
+- `free-capped` / `registerFree` ship on `@solvapay/mcp@latest`.
 - Every `create-solvapay` run prints `create-solvapay vX.Y.Z`. If that lags the [published version](https://www.npmjs.com/package/create-solvapay), run `npx clear-npx-cache` and re-invoke with `@latest`.
 - Run `node scripts/describe.mjs` against a **local spec file** — fetch URLs to `/tmp/spec-*.json` first; don't pass URLs directly.
 - **Binary/multipart operations must be skipped.** After running `describe.mjs`, grep the original spec for `multipart/form-data`, `application/octet-stream`, `image/`, and `application/pdf` under `requestBody.content` and response `content`. For each matching operation (e.g. `uploadFile`, `uploadImage`), set `tier: "skip"` in `selections.json` — MCP tools return text, not file streams, so these can't be wrapped usefully.
@@ -56,6 +56,10 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - `selections.json` must live **outside** the scaffold target dir (e.g. `/tmp/selections-<uuid>.json`) — upstream API keys must not land in the project tree.
 - Don't scaffold into an unrelated app repo root without confirming where the MCP worker should live — it's its own deployable unit.
 - `scripts/describe.mjs` and `scripts/scaffold.mjs` in this skill are wrappers — see [scripts/README.md](scripts/README.md) for resolution order.
+
+## Docs source
+
+Facts (signatures, plan fields, endpoints) come from the docs, not from memory: SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`, HTTP transport, no auth) → https://docs.solvapay.com/llms.txt → direct page fetch.
 
 ## Mandatory read order
 
@@ -88,8 +92,6 @@ Before any other gate, ask how chatty you should be. See [references/hitl-conven
 | Existing MCP server, factory wrap only | [references/existing-server.md](references/existing-server.md) — no scaffold | tool invocation smoke |
 
 **Inside an unrelated app repo:** if cwd is a Next.js app, backend, or monorepo without a paid-MCP server in scope, **stop and ask where the MCP server should live** before scaffolding (sibling dir or `apps/` / `packages/` subdirectory).
-
-> **Dev mode (internal testing only).** Use preview tooling and append `--dev` when testing against api-dev: `npm create solvapay@preview <name> -- --type mcp --dev`, `node scripts/describe.mjs --dev ...`, `node scripts/scaffold.mjs --dev ...`, and `npx -y solvapay@preview init --dev`. Never for end users.
 
 **3. Host:** default Cloudflare → [references/hosting/cloudflare/README.md](references/hosting/cloudflare/README.md). Other hosts → [references/hosting/alternatives.md](references/hosting/alternatives.md). Optional custom MCP UI → [references/mcp-apps-ui.md](references/mcp-apps-ui.md).
 

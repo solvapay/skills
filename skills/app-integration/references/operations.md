@@ -92,4 +92,4 @@ Docs topic: `payment intents create`.
 
 ## Retrieval hints
 
-Resolve topics via SolvaPay Docs MCP → `llms.txt` → direct page fetch.
+Resolve topics via the SolvaPay Docs MCP (`https://docs.solvapay.com/mcp`, HTTP transport, no auth) → https://docs.solvapay.com/llms.txt → direct page fetch.
