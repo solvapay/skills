@@ -15,7 +15,7 @@
   { "query": "i need usage metering webooks on my next app asap boss is breathing down my neck", "should_trigger": false, "split": "train" },
   { "query": "fix solvapay webhook sig verification", "should_trigger": false, "split": "train" },
   { "query": "customer portal button react solvapay", "should_trigger": false, "split": "train" },
-  { "query": "paste solvapay checkout into my lovable app pls one shot", "should_trigger": false, "split": "validation" },
+  { "query": "add hosted checkout and a customer portal to my next site", "should_trigger": false, "split": "validation" },
   { "query": "paywall rest api solvapay sdk", "should_trigger": false, "split": "validation" },
   { "query": "one shot npm create solvapay my-mcp -- --type mcp", "should_trigger": false, "split": "validation" },
   { "query": "monetize mcp tools on cloudflare workers greenfield", "should_trigger": false, "split": "validation" }

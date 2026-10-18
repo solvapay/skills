@@ -16,7 +16,7 @@
   { "query": "usage events on my next api routes", "should_trigger": false, "split": "train" },
   { "query": "customer portal for my saas web app", "should_trigger": false, "split": "train" },
   { "query": "solvapay webhook handler express", "should_trigger": false, "split": "validation" },
-  { "query": "lovable vite checkout w my supabase", "should_trigger": false, "split": "validation" },
+  { "query": "hosted checkout redirect on my nextjs site", "should_trigger": false, "split": "validation" },
   { "query": "plan card in react dashboard", "should_trigger": false, "split": "validation" },
   { "query": "monetize mcp server no code hosted proxy", "should_trigger": false, "split": "validation" }
 ]

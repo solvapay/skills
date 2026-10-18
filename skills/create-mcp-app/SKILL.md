@@ -5,7 +5,7 @@ description: >
   (add a paywall, or wrap with the `@solvapay/mcp` factory). Also use for `npm create solvapay`
   with `--type mcp`. Covers spec parsing, tool authoring, Cloudflare Workers deployment, and
   SolvaPay paywall setup. For an existing server, follow references/existing-server.md and do not
-  rescaffold. Skip for web checkout pages, Lovable flows, and web/API paywalls with no MCP server
+  rescaffold. Skip for web checkout pages and web/API paywalls with no MCP server
   (`solvapay/app-integration`).
 metadata:
   version: "1.0.0"

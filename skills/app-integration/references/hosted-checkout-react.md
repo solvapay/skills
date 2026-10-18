@@ -1,4 +1,6 @@
-# React Website Checkout — Integration Procedure
+# React + Backend Hosted Checkout — Integration Procedure
+
+Hosted-checkout-only path of `solvapay/app-integration` for React apps without Next.js. For full SDK patterns continue with [react.md](react.md) and [express.md](express.md).
 
 ## Contents
 
@@ -10,7 +12,7 @@ React-only projects need a backend for SolvaPay secret operations.
 
 ## Procedure
 
-1. Confirm a backend exists (Express, Next API, etc.). If none → hand off to `solvapay/app-integration`.
+1. Confirm a backend exists (Express, Next API, Supabase Edge, etc.). If none, add one: the Express skeleton below, or [supabase-edge.md](supabase-edge.md).
 2. Implement backend routes (below).
 3. Keep `SOLVAPAY_SECRET_KEY` server-only.
 4. Frontend: send auth token to backend; redirect to hosted URLs; refresh access after return.
@@ -78,7 +80,7 @@ app.get('/api/check-purchase', async (req, res) => {
 })
 ```
 
-Adapt to your auth middleware. For full SDK patterns install `solvapay/app-integration`.
+Adapt to your auth middleware. For paywalls, usage and webhooks on the same backend see [express.md](express.md), [operations.md](operations.md) and [WEBHOOKS.md](WEBHOOKS.md).
 
 ## Required routes
 

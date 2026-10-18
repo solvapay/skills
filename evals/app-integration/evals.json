@@ -57,7 +57,7 @@
       "files": [],
       "assertions": [
         "Agent reads references/react.md",
-        "Handoff does NOT route primary work to solvapay/website-checkout",
+        "Handoff does NOT route primary work to another skill",
         "SOLVAPAY_SECRET_KEY is not exposed in client env vars"
       ]
     },
@@ -71,6 +71,44 @@
         "Agent reads references/nextjs.md or references/operations.md",
         "Usage events and limits checks stay server-side",
         "Agent does not hand off primary work to solvapay/create-mcp-app"
+      ]
+    },
+    {
+      "id": 7,
+      "slug": "nextjs-hosted-checkout-return-url",
+      "prompt": "add solvapay hosted checkout to my next 14 site. need a server route that creates a checkout session and a return page at /billing/return that refreshes access from server-side purchase state",
+      "expected_output": "Agent loads app-integration, takes the hosted-checkout-only path, runs npx solvapay init guidance, implements the server-side checkout session route per references/hosted-checkout-nextjs.md, return URL handler reads server truth.",
+      "files": [],
+      "assertions": [
+        "Agent reads references/hosted-checkout-nextjs.md",
+        "Checkout session is created on the server, not via client-side calls with the secret key",
+        "Return URL flow refreshes access from server-side check (not query params alone)",
+        "Agent does not wire usage metering or webhooks the user did not ask for",
+        "Verification loop includes sandbox happy path"
+      ]
+    },
+    {
+      "id": 8,
+      "slug": "react-spa-hosted-checkout",
+      "prompt": "react spa with vite frontend and a small express api — add solvapay hosted checkout redirect and a return page. no next.js in package.json",
+      "expected_output": "Agent follows references/hosted-checkout-react.md for the SPA + backend checkout session contract.",
+      "files": [],
+      "assertions": [
+        "Agent reads references/hosted-checkout-react.md",
+        "Agent does not assume App Router or references/nextjs.md as the only path",
+        "Checkout session creation is server-side on Express (or documented backend)"
+      ]
+    },
+    {
+      "id": 9,
+      "slug": "vite-supabase-checkout",
+      "prompt": "my app is vite + supabase (built in lovable). add a solvapay checkout and a paywall on the premium-report edge function",
+      "expected_output": "Agent follows references/supabase-edge.md: secret as an edge function secret, @solvapay/server/fetch handlers, no VITE_* secret.",
+      "files": [],
+      "assertions": [
+        "Agent reads references/supabase-edge.md",
+        "SOLVAPAY_SECRET_KEY is configured as a Supabase edge secret, never in VITE_* or .env shipped to the browser",
+        "Agent does not install @preview packages or point at api-dev.solvapay.com"
       ]
     }
   ]
