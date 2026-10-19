@@ -42,7 +42,7 @@ Guides: [optimizing descriptions](https://agentskills.io/skill-creation/optimizi
 | Code-based MCP — `create-mcp-app` owns all of it (OpenAPI, scratch, existing server, factory wrap, `npm create solvapay --type mcp`) | `solvapay/create-mcp-app` | `app-integration`, checkout skills |
 | REST/web paywall, usage, webhooks, account UI, hosted checkout + return URL, customer portal (no MCP server) | `solvapay/app-integration` | `create-mcp-app`, Managed MCP (no code) |
 | Managed MCP (no code, paste server URL) | `solvapay` router → Managed MCP exit | `create-mcp-app`, `app-integration` (unless API bootstrap on existing product) |
-| Paying side: a SolvaPay paywall refused the agent's call, top-up or upgrade at a merchant, buy-side beta | `solvapay/pay-with-solvapay` | `app-integration`, `create-mcp-app` (those build paywalls; this one gets past them) |
+| Paying side: a SolvaPay paywall refused the agent's call, top-up or upgrade at a merchant, buy-side early access | `solvapay/pay-with-solvapay` | `app-integration`, `create-mcp-app` (those build paywalls; this one gets past them) |
 
 ## Output evals (`evals.json`)
 

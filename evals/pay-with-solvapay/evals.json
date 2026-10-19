@@ -28,13 +28,13 @@
   },
   {
    "id": 3,
-   "slug": "buy-side-beta",
+   "slug": "buy-side-early-access",
    "prompt": "i want you to be able to pay for apis yourself, with a monthly budget i set. can solvapay do that? sign me up",
-   "expected_output": "Agent says SolvaPay's buy side is in beta and not open for self-serve, points the user to the beta form at https://solvapay.com/pay#contact, and lets the user fill it in rather than submitting it.",
+   "expected_output": "Agent says SolvaPay's buy side is in early access and not open for self-serve, points the user to the early-access form at https://solvapay.com/pay#early-access, and lets the user fill it in rather than submitting it.",
    "files": [],
    "assertions": [
-    "Agent states the buy side is in beta / not self-serve yet",
-    "Agent gives https://solvapay.com/pay#contact",
+    "Agent states the buy side is in early access / not self-serve yet",
+    "Agent gives https://solvapay.com/pay#early-access",
     "Agent does not submit the form on the user's behalf",
     "Agent does not claim it now has spending ability"
    ]
