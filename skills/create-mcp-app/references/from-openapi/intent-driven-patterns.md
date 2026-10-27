@@ -99,13 +99,14 @@ Use for CRUD-style resources. One tool, one mutating-paywall gate, branching by 
 import { z } from 'zod'
 import type { AdditionalToolsContext } from '@solvapay/mcp'
 import type { Env } from '../worker'
-import type { operations } from '../types/upstream'
+import type { components } from '../types/upstream'
 import { upstreamFetchJson, stringifyLossless } from '../lib/upstreamFetch'
 import { int64 } from '../lib/int64'
 
 const UPSTREAM_BASE = 'https://petstore.swagger.io/v2'
 
-type Pet = operations['addPet']['responses']['200']['content']['application/json']
+// addPet only declares a 405 response, so type the payload from the schema.
+type Pet = components['schemas']['Pet']
 
 export function registerManagePet(ctx: AdditionalToolsContext, env: Env) {
   ctx.registerPayable('manage_pet', {
