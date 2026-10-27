@@ -255,6 +255,7 @@ For Cloudflare Workers, the full server template is in [hosting/cloudflare/](hos
 - Do not skip annotations. `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint` are required, not optional.
 - Do not register a capped preview with `ctx.server.registerTool` plus a hand-rolled counter. That is `registerFree`.
 - Do not treat `registerFree` as anonymous. Unidentified callers fail with `identity_required`.
+- Do not type 64-bit integer IDs as `z.number()` or send them with plain `JSON.stringify`. Values above 2^53 are silently rounded and later calls hit the wrong record. Use the template's `int64` schema and `stringifyLossless` (see [from-openapi/intent-driven-patterns.md#large-integer-ids](from-openapi/intent-driven-patterns.md#large-integer-ids)).
 
 ### Wrong / right — three high-cost patterns
 
