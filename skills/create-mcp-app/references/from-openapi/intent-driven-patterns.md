@@ -55,6 +55,7 @@ import type { AdditionalToolsContext } from '@solvapay/mcp'
 import type { Env } from '../worker'
 import type { operations } from '../types/upstream'
 import { upstreamFetchJson } from '../lib/upstreamFetch'
+import { int64 } from '../lib/int64'
 
 const UPSTREAM_BASE = 'https://petstore.swagger.io/v2'
 
@@ -67,7 +68,7 @@ export function registerFindPet(ctx: AdditionalToolsContext, env: Env) {
       title: 'Find a pet by ID',
       description: 'Look up a single pet by its numeric ID. Returns the pet record or a not-found error.',
       inputSchema: {
-        petId: z.number().int().describe('Numeric ID of the pet to fetch.'),
+        petId: int64.describe('Numeric ID of the pet to fetch.'),
       },
       annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
     },
@@ -98,12 +99,14 @@ Use for CRUD-style resources. One tool, one mutating-paywall gate, branching by 
 import { z } from 'zod'
 import type { AdditionalToolsContext } from '@solvapay/mcp'
 import type { Env } from '../worker'
-import type { operations } from '../types/upstream'
-import { upstreamFetchJson } from '../lib/upstreamFetch'
+import type { components } from '../types/upstream'
+import { upstreamFetchJson, stringifyLossless } from '../lib/upstreamFetch'
+import { int64 } from '../lib/int64'
 
 const UPSTREAM_BASE = 'https://petstore.swagger.io/v2'
 
-type Pet = operations['addPet']['responses']['200']['content']['application/json']
+// addPet only declares a 405 response, so type the payload from the schema.
+type Pet = components['schemas']['Pet']
 
 export function registerManagePet(ctx: AdditionalToolsContext, env: Env) {
   ctx.registerPayable('manage_pet', {
@@ -112,7 +115,7 @@ export function registerManagePet(ctx: AdditionalToolsContext, env: Env) {
       'Mutate the merchant pet catalogue. `action: "create"` adds a new pet, `"update"` modifies an existing one, `"delete"` removes by ID. 1 credit per call.',
     schema: {
       action: z.enum(['create', 'update', 'delete']).describe('Which mutation to perform.'),
-      petId: z.number().int().optional().describe('Required for update and delete.'),
+      petId: int64.optional().describe('Required for update and delete.'),
       name: z.string().optional().describe('Required for create; optional for update.'),
       status: z.enum(['available', 'pending', 'sold']).optional(),
     },
@@ -135,7 +138,7 @@ export function registerManagePet(ctx: AdditionalToolsContext, env: Env) {
           const data = await upstreamFetchJson<Pet>(`${UPSTREAM_BASE}/pet`, {
             method: 'PUT',
             headers,
-            body: JSON.stringify({ id: input.petId, name: input.name, status: input.status }),
+            body: stringifyLossless({ id: input.petId, name: input.name, status: input.status }, new Set(['id'])),
           })
           return c.respond(data, { text: `Updated pet ${input.petId}.` })
         }
@@ -183,6 +186,7 @@ import type { AdditionalToolsContext } from '@solvapay/mcp'
 import type { Env } from '../worker'
 import type { operations } from '../types/upstream'
 import { upstreamFetchJson } from '../lib/upstreamFetch'
+import { int64 } from '../lib/int64'
 
 const UPSTREAM_BASE = 'https://petstore.swagger.io/v2'
 
@@ -195,7 +199,7 @@ export function registerPetDashboard(ctx: AdditionalToolsContext, env: Env) {
     description:
       'Fetches a pet plus the orders that reference it, in parallel. Use when the user wants a complete view rather than a single field.',
     schema: {
-      petId: z.number().int().describe('Pet to inspect.'),
+      petId: int64.describe('Pet to inspect.'),
     },
     annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
     handler: async ({ petId }, c) => {
@@ -235,6 +239,15 @@ When merging params across ops into one intent schema:
 
 The intent schema is the contract you're inviting the LLM to use. Optimise it for "what would a goal-driven user ask for", not "what does the upstream support".
 
+## Large integer IDs
+
+Petstore IDs are `int64`, and the live server hands out values like `9223372036854775271`. JavaScript numbers are only exact up to 2^53 - 1, so treat any `int64` field (grep the spec for `int64`) like this:
+
+- **Reading:** `upstreamFetchJson` returns integers beyond the safe range as exact decimal strings. Pass them through unchanged; the narration and `structuredContent` then carry the exact ID.
+- **Inputs:** type ID params with the template's `int64` schema (`import { int64 } from '../lib/int64'`), never `z.number().int()`. It accepts a safe integer or a digit string, and rejects unsafe numbers instead of rounding them.
+- **Path and query:** use the value as-is in the URL template; a digit string is already exact.
+- **Request bodies:** send bodies that carry int64 fields with `stringifyLossless(body, new Set(['id', 'petId']))`, listing the integer keys. It writes those digit strings back as bare JSON numbers and leaves other strings (phone numbers, zip codes) alone.
+
 ## Aggregator update
 
 After authoring `src/tools/manage_pet.ts`, edit `src/tools/index.ts`:
@@ -263,6 +276,7 @@ import type { AdditionalToolsContext } from '@solvapay/mcp'
 import type { Env } from '../worker'
 import type { operations } from '../types/upstream'
 import { upstreamFetchJson } from '../lib/upstreamFetch'
+import { int64 } from '../lib/int64'
 
 const UPSTREAM_BASE = 'https://petstore.swagger.io/v2'
 
@@ -276,7 +290,7 @@ export function registerFindPet(ctx: AdditionalToolsContext, env: Env) {
       title: 'Find a pet',
       description: 'Look up a single pet by ID, or filter all pets by status. Read-only.',
       inputSchema: {
-        petId: z.number().int().optional().describe('Fetch a specific pet by ID. Mutually exclusive with `status`.'),
+        petId: int64.optional().describe('Fetch a specific pet by ID. Mutually exclusive with `status`.'),
         status: z
           .enum(['available', 'pending', 'sold'])
           .optional()
@@ -286,7 +300,7 @@ export function registerFindPet(ctx: AdditionalToolsContext, env: Env) {
     },
     async ({ petId, status }) => {
       const headers = { authorization: `Bearer ${env.UPSTREAM_API_KEY}` }
-      if (typeof petId === 'number') {
+      if (petId !== undefined) {
         const data = await upstreamFetchJson<Pet>(
           `${UPSTREAM_BASE}/pet/${petId}`,
           { headers },

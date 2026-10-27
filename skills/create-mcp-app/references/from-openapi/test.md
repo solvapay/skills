@@ -71,6 +71,10 @@ When a tool returns `isError: true`, `test.mjs` surfaces the full multi-line err
 
 The common cause is the `servers[0]` mismatch trap — see [describe.md#server-probe](describe.md#server-probe) for diagnosis and fix.
 
+## Checking int64 IDs
+
+`test.mjs` calls each tool once, so it can't catch an ID that is rounded on the way back. When the spec has `int64` IDs (see [describe.md#64-bit-integer-ids](describe.md#64-bit-integer-ids)), run one create → read → update → delete through the tools by hand against a sandbox upstream. Compare the ID in the tool result with the raw upstream response body. A large ID ending in `…000` that the upstream doesn't have means it was rounded.
+
 ## Troubleshooting
 
 `test.mjs` only runs against a reachable worker, so the failure modes that bite first are tunnel-start ones — by the time the script reports a `failed` line you've already passed them. Three to know about:
