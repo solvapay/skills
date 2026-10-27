@@ -8,7 +8,7 @@ description: >
   rescaffold. Skip for web checkout pages and web/API paywalls with no MCP server
   (`solvapay/app-integration`).
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 compatibility: >
   Designed for Cloudflare Workers. Requires Node.js >= 20 and npm. Alternative hosts
   (Supabase Edge, Deno, Bun, Node + Express) in references/hosting/alternatives.md.
