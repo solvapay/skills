@@ -81,6 +81,17 @@ These are suggestions only. The user (via you) picks the final tier per operatio
 
 Common offenders: `uploadFile`, `uploadImage`, `downloadAttachment`, anything in a `/files` or `/upload` path.
 
+### 64-bit integer IDs
+
+JavaScript numbers are only exact up to 2^53 - 1. Upstreams with `format: int64` IDs can return larger values (the live Petstore hands out IDs like `9223372036854775271`), and plain `JSON.parse` / `JSON.stringify` round them silently, so follow-up calls hit the wrong record or a 404.
+
+After running `describe.mjs`, grep the spec for `int64` (`"format": "int64"` or `format: int64`). If an ID or foreign-key field uses it:
+
+- **One-to-one:** nothing to do. `scaffold.mjs` types `int64` params with the template's `int64` schema and sends bodies with integer properties through `stringifyLossless`.
+- **Intent-driven:** follow [intent-driven-patterns.md#large-integer-ids](intent-driven-patterns.md#large-integer-ids) when authoring the tools.
+
+`upstreamFetchJson` in the template already returns integers beyond the safe range as exact decimal strings, in both modes.
+
 ## Sample-input synthesis
 
 For each parameter and the JSON request body, `describe.mjs` picks the first defined source:
