@@ -80,7 +80,7 @@ Before any other gate, ask how chatty you should be. See [references/hitl-conven
 
 ## Routing
 
-**1. Existing paid-MCP project?** All of: `@solvapay/mcp` or `@solvapay/server` in `package.json`, `wrangler.jsonc`, and `src/worker.ts` with `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` → [references/from-scratch/scaffold-and-extend.md](references/from-scratch/scaffold-and-extend.md). Do not scaffold.
+**1. Existing paid-MCP project?** All of: `@solvapay/mcp` or `@solvapay/server` in `package.json`, `wrangler.jsonc`, and `src/worker.ts` with `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` → [references/from-scratch/scaffold-and-extend.md](references/from-scratch/scaffold-and-extend.md); with `createAgentMcpRoute` (`@solvapay/agents`) → the agent payments section of [references/existing-server.md](references/existing-server.md). Do not scaffold.
 
 **2. Greenfield — ask once:** *"OpenAPI/Swagger spec, or hand-written tools?"*
 
