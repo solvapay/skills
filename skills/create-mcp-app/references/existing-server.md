@@ -15,6 +15,7 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 - Audit
 - Pre-read
 - Pick your entrypoint
+- Agent payments: hosts sign in with SolvaPay (preview)
 - Wire the paywall
 - Apply the intent-driven audit to existing tools
 - Optional: embed the SolvaPay widget
@@ -74,6 +75,71 @@ Match your runtime to the right `@solvapay/mcp` subpath:
 | Framework-neutral / custom transport | `@solvapay/mcp` | `createSolvaPayMcpServer` |
 
 See [hosting/alternatives.md](hosting/alternatives.md) for the full matrix with platform docs links.
+
+## Agent payments: hosts sign in with SolvaPay (preview)
+
+Use this instead of the paywall below when the merchant sells to **agents**: Claude, ChatGPT, Cursor or a CLI agent pays per call from its owner's SolvaPay account, within a budget the owner set. The host signs its user in to SolvaPay by OAuth; the server never runs an OAuth server and never sees a card. Sandbox only, behind the merchant's `agent_payments` setting. Full guide: https://docs.solvapay.com/agents/oauth.
+
+Dependencies: `@solvapay/agents` and `jose`. No product ref: an agent call is priced by the merchant's estimate and cost.
+
+Env: `SOLVAPAY_SECRET_KEY`, `SOLVAPAY_PROVIDER_REF`, `SOLVAPAY_API_BASE_URL`, `SOLVAPAY_AGENT_ISSUER` (`https://api.solvapay.com/v1/agent`), `MCP_PUBLIC_URL` (the public URL of the MCP endpoint, path included). The merchant's catalog listing must have `mcpUrl` equal to `MCP_PUBLIC_URL`: that is how SolvaPay finds the merchant a host names.
+
+**Before**: one paid tool on the `@solvapay/mcp` paywall.
+
+```ts
+registerPayable(ctx, 'ask', {
+  description: 'Answers a question.',
+  inputSchema: { question: z.string() },
+  handler: async ({ question }) => ({ content: [{ type: 'text', text: await answer(question) }] }),
+})
+```
+
+**After**: the same tool on `createAgentMcpRoute`, priced per call by an estimate and the cost the upstream reports.
+
+```ts
+import { createAgentCalls, createAgentKeyVerifier, createAgentLayer, createAgentTokenVerifier, createSolvaPayAgentClient } from '@solvapay/agents'
+import { createAgentMcpRoute } from '@solvapay/agents/mcp'
+import { createRemoteJWKSet } from 'jose'
+
+const client = createSolvaPayAgentClient({ apiBaseUrl: env.SOLVAPAY_API_BASE_URL, secretKey: env.SOLVAPAY_SECRET_KEY })
+const route = createAgentMcpRoute({
+  issuer: env.SOLVAPAY_AGENT_ISSUER,
+  agentLayer: createAgentLayer({
+    verifyAgentToken: createAgentTokenVerifier({
+      issuer: env.SOLVAPAY_AGENT_ISSUER,
+      providerRef: env.SOLVAPAY_PROVIDER_REF,
+      resource: env.MCP_PUBLIC_URL,
+      keys: createRemoteJWKSet(new URL(`${env.SOLVAPAY_AGENT_ISSUER}/jwks.json`)),
+    }),
+    verifyAgentKey: createAgentKeyVerifier({ client }),
+  }),
+  calls: createAgentCalls({ client, maxWaitSeconds: 55, log }),
+  log,
+  mcpPath: '/mcp',
+  serverName: '<server-name>',
+  protectedResource: { resource: env.MCP_PUBLIC_URL },
+  tools: (_server, paid) =>
+    paid<{ question: string }>({
+      name: 'ask',
+      title: 'Ask',
+      description: 'Answers a question.',
+      inputSchema: { question: z.string() },
+      item: () => 'ask-v1',
+      estimate: () => ({ amount: '0.01', currency: 'USD' }),
+      prompt: args => args.question,
+      run: async ({ question }) => {
+        const { text, costUsd } = await answer(question)
+        return { status: 200, cost: { amount: costUsd, currency: 'USD' }, result: { content: [{ type: 'text', text }] } }
+      },
+    }),
+})
+
+export default { fetch: (req: Request) => route(req).then(r => r ?? new Response('Not found', { status: 404 })) }
+```
+
+What changes for the merchant: `run` returns what the call cost (or `null` when unknown) and SolvaPay charges that; a refusal (budget, approval, balance) comes back to the agent as a tool error the agent can read; `protectedResource` makes the route serve its OAuth metadata and send a host that has not signed in to SolvaPay. `tools` is also called with `call` `undefined` to list tools for such a host, so do not read `call.agent` while registering. Free tools go in `freeTools(server)`.
+
+Verify: `curl -s -X POST $MCP_PUBLIC_URL -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"ask","arguments":{}}}' -i` answers `401` with a `WWW-Authenticate` header naming `resource_metadata`.
 
 ## Cloudflare Workers: env bindings are per-request, not module-scope
 
