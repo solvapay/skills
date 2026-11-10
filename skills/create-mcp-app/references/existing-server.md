@@ -24,7 +24,7 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 ## Prerequisites
 
 - A running MCP server you control, built on the official MCP TypeScript SDK or an MCP-compatible framework.
-- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint. `@solvapay/mcp` peers on `@modelcontextprotocol/server@^2` + `@modelcontextprotocol/core@^2`. Migrate only if the HTTP entry file imports `@modelcontextprotocol/sdk`. A leftover `@modelcontextprotocol/sdk` dependency next to `@modelcontextprotocol/server` is not a migration.
+- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint. Install them at npm's latest. If the project already has `@solvapay/*` packages, run `npx -y solvapay@latest doctor` and run the upgrade command it prints before changing any code: old versions carry bugs that are already fixed. `@solvapay/mcp` peers on `@modelcontextprotocol/server@^2` + `@modelcontextprotocol/core@^2`. Migrate only if the HTTP entry file imports `@modelcontextprotocol/sdk`. A leftover `@modelcontextprotocol/sdk` dependency next to `@modelcontextprotocol/server` is not a migration.
 - SolvaPay account with a secret key (`sk_...`) and a product ref (`prd_...`). If the product doesn't exist yet, pause and ask the user to create one in SolvaPay Console (https://app.solvapay.com).
 
 ## Audit
@@ -163,7 +163,7 @@ Use the checklist from [mcp-server-wiring.md](mcp-server-wiring.md), plus:
 - [ ] Complete audit (runtime, transport, auth, tool count, paywall-today, widget needs)
 - [ ] Read [tool-design.md](tool-design.md)
 - [ ] Pick the right `@solvapay/mcp` subpath
-- [ ] Install deps and follow [mcp-server-wiring.md](mcp-server-wiring.md)
+- [ ] Install deps at npm's latest (or upgrade them, per `npx -y solvapay@latest doctor`) and follow [mcp-server-wiring.md](mcp-server-wiring.md)
 - [ ] Re-register paid tools via `registerPayable` / `payable.mcp`; free-capped via `registerFree`; remove custom gating
 - [ ] Wire `hideToolsByAudience: ['ui']`
 - [ ] Optional: embed the widget for intent tools

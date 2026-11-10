@@ -8,7 +8,7 @@ description: >
   rescaffold. Skip for web checkout pages and web/API paywalls with no MCP server
   (`solvapay/app-integration`).
 metadata:
-  version: "1.1.1"
+  version: "1.2.0"
 compatibility: >
   Designed for Cloudflare Workers. Requires Node.js >= 20 and npm. Alternative hosts
   (Supabase Edge, Deno, Bun, Node + Express) in references/hosting/alternatives.md.
@@ -40,6 +40,15 @@ The only UI this skill ships is SolvaPay's built-in checkout / account / topup w
 - If the requested business model is usage-based or metered, verify that the selected product has the intended usage-based plan before handoff. `selections.plans[]` is validated during scaffold but is not created by scaffold.
 - **Deploy-existing = scaffolding only.** On "deploy my existing server" tasks, add only deploy scaffolding (`scripts/deploy.mjs`, `wrangler.jsonc` `[vars]`, `.env`) and never open or edit the HTTP entry file, whatever it is named — not for imports, CORS, `Env`, the canonical template, or "stale API shape" patches. Note any API drift in the handoff as a follow-up.
 - **Paywall wiring is separate.** Tasks that add a SolvaPay paywall to an existing MCP server do edit the HTTP entry file. See [references/existing-server.md](references/existing-server.md).
+
+## Keep the SDK current
+
+A project keeps whatever `@solvapay/*` versions it was scaffolded, or copied, with. A project weeks behind ships SDK bugs that are already fixed, and `^0.4.x` ranges never reach 0.5.0. So:
+
+- **Run `npx -y solvapay@latest doctor`** right after scaffold, before every deploy, when you open an existing paid-MCP project (routing case 1, and [references/existing-server.md](references/existing-server.md)), and before reporting a SolvaPay bug. Its `@solvapay/*` versions check compares each installed package with npm (`latest`, or `preview` for a preview build).
+- **When it fails, run the upgrade command it prints.** That command pins exact versions. Then run the project's typecheck and tests before deploying. If an upgrade changes an API the project uses, fix the call sites; don't pin back to the old version.
+- **Scaffolded projects check this on deploy.** `npm run deploy` stops on outdated `@solvapay/*` packages. Pass `--allow-outdated` only when the user asks to ship those versions on purpose, and say so in the handoff.
+- Scaffolded projects include `.github/dependabot.yml`, which opens one weekly PR moving all `@solvapay/*` packages together. Keep it when you move the project into another repo.
 
 ## Gotchas
 
@@ -80,7 +89,7 @@ Before any other gate, ask how chatty you should be. See [references/hitl-conven
 
 ## Routing
 
-**1. Existing paid-MCP project?** All of: `@solvapay/mcp` or `@solvapay/server` in `package.json`, `wrangler.jsonc`, and `src/worker.ts` with `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` → [references/from-scratch/scaffold-and-extend.md](references/from-scratch/scaffold-and-extend.md). Do not scaffold.
+**1. Existing paid-MCP project?** All of: `@solvapay/mcp` or `@solvapay/server` in `package.json`, `wrangler.jsonc`, and `src/worker.ts` with `createSolvaPayMcpFetch` / `createSolvaPayMcpServer` → [references/from-scratch/scaffold-and-extend.md](references/from-scratch/scaffold-and-extend.md). Do not scaffold. Run `npx -y solvapay@latest doctor` first and upgrade any outdated `@solvapay/*` package (see Keep the SDK current).
 
 **2. Greenfield — ask once:** *"OpenAPI/Swagger spec, or hand-written tools?"*
 
@@ -114,9 +123,10 @@ Human CLI shortcut (terminal only): see the human block at the top of this file.
 
 ## Verification loop
 
-1. Run the mode's validator (verify script, `wrangler dev`, or guide checklist).
-2. On failure → mode-guide troubleshooting → fix → re-run until pass.
-3. Only then complete the handoff template.
+1. Run `npx -y solvapay@latest doctor`. Every check must pass, including `@solvapay/*` versions.
+2. Run the mode's validator (verify script, `wrangler dev`, or guide checklist).
+3. On failure → mode-guide troubleshooting → fix → re-run until pass.
+4. Only then complete the handoff template.
 
 ## Handoff template
 
@@ -131,6 +141,7 @@ Human CLI shortcut (terminal only): see the human block at the top of this file.
 - **Plan / metering status:** [free default / usage-based plan verified / needs user action]
 - **Sandbox:** [success path + gate path verified; note skipped checks explicitly]
 - **Paid-path verification:** [paywallGate / merchantBootstrap / upstream smoke: passed, skipped, or not run]
+- **SDK versions:** [doctor's `@solvapay/*` versions check passed / `--allow-outdated` used because …]
 - **Known gaps:** [if any]
 ```
 
@@ -140,5 +151,6 @@ Human CLI shortcut (terminal only): see the human block at the top of this file.
 - [ ] Route (existing vs greenfield, input mode, host)
 - [ ] Complete mode guide (OpenAPI: describe → validate → scaffold → author)
 - [ ] Run [references/solvapay-init.md](references/solvapay-init.md)
+- [ ] Run `npx -y solvapay@latest doctor`; upgrade outdated `@solvapay/*` packages
 - [ ] Run verification loop until pass
 - [ ] Complete handoff template

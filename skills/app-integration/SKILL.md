@@ -10,7 +10,7 @@ description: >
   Express, and Supabase edge functions. Skip for any MCP server work (new or existing — use
   `solvapay/create-mcp-app`).
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 compatibility: >
   Node.js >= 20 (@solvapay/server engine). Supports Next.js, React, Express,
   Supabase Edge Functions. Supabase CLI when using edge path. Network required for init
@@ -36,6 +36,7 @@ Two entry points, same skill:
 - Always verify access state from server truth after returning from checkout.
 - Always emit a **runnable** sandbox verification artifact before handoff — a `curl` block or test script covering happy path (200) and failure path (402 with `checkoutUrl`, or 401 unauthenticated). Prose summaries alone do not satisfy this guardrail.
 - Never treat UI unlock state as authoritative without server-side checks.
+- Always run `npx -y solvapay@latest doctor` before handoff, and before reporting a SolvaPay bug. When its `@solvapay/*` versions check fails, run the upgrade command it prints (exact pins), then re-run the project's tests. An app keeps whatever SDK it was set up with; a stale one ships bugs that are already fixed, and `^0.x` ranges never reach the next minor.
 
 ## Gotchas
 
@@ -91,12 +92,13 @@ If multiple match, ask which runtime is primary. If the request is only "add che
 
 ## Verification loop
 
-1. Run stack-specific dev flow.
-2. Happy path: hosted checkout redirect → return URL → access granted, or purchased customer → 200 from a protected route.
-3. Failure path: unauthenticated (401), declined payment, no purchase or over limit (402 with `checkoutUrl`).
-4. Verify server-side access matches UI after return; verify logs + checkout URL / error message.
-5. **Emit a runnable verification artifact** — copy-pasteable `curl` commands or a test script in `outputs/` (not a prose summary) covering the happy path and one failure path.
-6. Fix and re-test until pass.
+1. Run `npx -y solvapay@latest doctor`. Every check must pass, including `@solvapay/*` versions.
+2. Run stack-specific dev flow.
+3. Happy path: hosted checkout redirect → return URL → access granted, or purchased customer → 200 from a protected route.
+4. Failure path: unauthenticated (401), declined payment, no purchase or over limit (402 with `checkoutUrl`).
+5. Verify server-side access matches UI after return; verify logs + checkout URL / error message.
+6. **Emit a runnable verification artifact** — copy-pasteable `curl` commands or a test script in `outputs/` (not a prose summary) covering the happy path and one failure path.
+7. Fix and re-test until pass.
 
 ## Handoff template
 
