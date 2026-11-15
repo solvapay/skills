@@ -12,7 +12,7 @@ description: >
   asking to build it — single-surface intent plus implementation context (tech stack, command, or
   action verb) routes to that surface's dedicated skill instead.
 metadata:
-  version: "1.3.0"
+  version: "1.3.1"
 ---
 
 # SolvaPay — Router
@@ -30,7 +30,7 @@ SolvaPay adds usage-based billing, paywalls, and hosted checkout to apps and AI 
 | Paid MCP | Per-call or subscription billing on an MCP server in TypeScript (Cloudflare Workers), Python or Go (containers) | The product **is** MCP tools for AI agents and you want to **write code** (greenfield, OpenAPI→MCP in TypeScript, or paywalling an existing MCP server) | `solvapay/create-mcp-app` |
 | Managed MCP | SolvaPay-managed auth, paywall, and proxying for an MCP server you host | You want to monetize an MCP server **without code** — paste your server URL, configure plans in the console | [Managed MCP exit](#managed-mcp-exit) |
 | App integration | Hosted checkout + customer portal, gated endpoints, usage metering, webhooks, and billing UI in your own code | You own an app, API or website (Next.js, React, Express, Supabase Edge, Vite + Supabase, FastAPI or Starlette, Go `net/http`) and want SolvaPay wired into it — from a plain "subscribe → redirect to checkout" flow up to a full SDK integration | `solvapay/app-integration` |
-| Pay with SolvaPay | Nothing — you are the customer: get past a SolvaPay paywall, top up, upgrade, or request buy-side early access so an agent can pay | A call to someone else's API or MCP tool was refused by SolvaPay, or the user wants to pay for or keep funding a service that uses SolvaPay, or wants their agent to be able to pay | `solvapay/pay-with-solvapay` |
+| Pay with SolvaPay | Nothing — you are the customer: get past a SolvaPay paywall, top up, upgrade, or connect an agent so it can pay a merchant | A call to someone else's API or MCP tool was refused by SolvaPay, or the user wants to pay for or keep funding a service that uses SolvaPay, or wants their agent to be able to pay | `solvapay/pay-with-solvapay` |
 
 ## Decision tree
 
@@ -116,7 +116,7 @@ Default if still ambiguous: greenfield MCP in code → `solvapay/create-mcp-app`
 | --- | --- |
 | `solvapay/create-mcp-app` | Paid MCP in code (TypeScript, Python, Go) — greenfield server, OpenAPI→MCP, paywalling an existing MCP server, selling tools to agents |
 | `solvapay/app-integration` | Hosted checkout + customer portal, paywalls, usage, webhooks, billing UI and selling API calls to agents in an existing app, API or website (TypeScript, Python, Go backends) |
-| `solvapay/pay-with-solvapay` | The paying side: SolvaPay paywall responses, account tools, top-up and buy-side early access |
+| `solvapay/pay-with-solvapay` | The paying side: SolvaPay paywall responses, account tools, top-up and connecting an agent to pay |
 
 Install if missing: `npx skills add solvapay/skills --skill <flat-name> -y` (e.g. `create-mcp-app` for `solvapay/create-mcp-app`).
 

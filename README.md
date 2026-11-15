@@ -9,7 +9,7 @@ Agent skills for SolvaPay, on both sides of a payment: adding SolvaPay to a proj
 | Skill id | Purpose |
 | --- | --- |
 | `solvapay` | Router — disambiguates vague intent and points at the right surface skill |
-| `solvapay/pay-with-solvapay` | The paying side: what a SolvaPay paywall response means (402, `paywallReason`), the account tools on SolvaPay MCP servers, top-up and auto-recharge, and buy-side early access for agents that should pay for services themselves |
+| `solvapay/pay-with-solvapay` | The paying side: what a SolvaPay paywall response means (402, `paywallReason`), the account tools on SolvaPay MCP servers, top-up and auto-recharge, and connecting an agent so it can pay merchants itself (sandbox, test money) |
 | `solvapay/create-mcp-app` | Create or scaffold a paid MCP server in TypeScript (Cloudflare Workers; from OpenAPI or hand-written), Python or Go (containers; hand-written), add a paywall to an existing one, or sell its tools to agents |
 | `solvapay/app-integration` | Hosted checkout and customer portal, paywalls, usage, webhooks, and billing UI for an existing app, API or website (Next.js, React, Express, Supabase Edge, Vite + Supabase, FastAPI / Starlette, Go `net/http`), and selling API calls to agents. Formerly `sdk-integration`; also absorbs the retired `website-checkout` and `lovable-checkout` skills — `--skill website-checkout` and `--skill lovable-checkout` no longer resolve; install `--skill app-integration`. |
 
