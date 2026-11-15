@@ -5,6 +5,7 @@ on:
     paths:
       - 'skills/**'
       - 'package.json'
+      - 'scripts/check-language-headings.mjs'
       - '.github/workflows/validate-skills.yml'
   push:
     branches:
