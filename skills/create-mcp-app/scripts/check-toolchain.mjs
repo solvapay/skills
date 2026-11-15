@@ -12,7 +12,7 @@ import { spawnSync } from 'node:child_process'
 const HELP = `Usage: node scripts/check-toolchain.mjs --language <ts|python|go> [--skip-cli]
 
 Checks, one line each:
-  node      Node.js >= 20 (the SolvaPay CLI runs on it in every language)
+  node      Node.js >= 22 (the SolvaPay CLI runs on it in every language)
   npm       ts only
   python    Python >= 3.10 (python3, else python)            python only
   uv        uv on PATH                                       python only
@@ -83,7 +83,7 @@ function checks(language, skipCli) {
   const add = (name, ok, detail) => lines.push({ name, ok, detail })
 
   const node = parseVersion(process.versions.node)
-  add('node', atLeast(node, [20, 0]), `Node.js ${process.versions.node} (need >= 20, https://nodejs.org)`)
+  add('node', atLeast(node, [22, 0]), `Node.js ${process.versions.node} (need >= 22, https://nodejs.org)`)
 
   if (language === 'ts') {
     const npm = run('npm', ['--version'])

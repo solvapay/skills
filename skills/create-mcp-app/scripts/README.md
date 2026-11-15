@@ -15,7 +15,7 @@ All skill scripts support `--help`.
 
 `check-toolchain.mjs --language <ts|python|go>` prints one `ok` / `fail` line per check and exits 1 on any failure:
 
-- `node` — Node.js >= 20 (the SolvaPay CLI needs it in every language).
+- `node` — Node.js >= 22 (the SolvaPay CLI needs it in every language).
 - `npm` (ts), `uv` and Python >= 3.10 as uv finds it (python), Go >= 1.26 (go).
 - `cli` — `npx -y create-solvapay@latest --help` lists `--language`. Python and Go fail without it; TypeScript passes and you omit the flag. `--skip-cli` skips this check (offline).
 

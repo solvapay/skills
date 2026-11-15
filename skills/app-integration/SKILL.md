@@ -13,7 +13,7 @@ description: >
 metadata:
   version: "1.3.0"
 compatibility: >
-  Node.js >= 20 (@solvapay/server engine, and the SolvaPay CLI in every language). Supports
+  Node.js >= 22 (the SolvaPay CLI, in every language). Supports
   Next.js, React, Express, Supabase Edge Functions, Python >= 3.10 (Starlette, FastAPI) and
   Go >= 1.26 (net/http). Supabase CLI when using edge path. Network required for init and
   hosted checkout.

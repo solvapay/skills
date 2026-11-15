@@ -11,7 +11,7 @@ description: >
 metadata:
   version: "2.0.0"
 compatibility: >
-  TypeScript: Node.js >= 20 and npm, Cloudflare Workers by default (other hosts in
+  TypeScript: Node.js >= 22 and npm, Cloudflare Workers by default (other hosts in
   references/hosting/alternatives.md). Python: Python >= 3.10 and uv. Go: Go >= 1.26. Python and
   Go deploy as containers. Node.js is needed in every language for the SolvaPay CLI.
 ---

@@ -16,7 +16,7 @@ Do not scaffold while it prints `fail`. Then:
 
 | Language | Command | Produces |
 | --- | --- | --- |
-| TypeScript | `npm create solvapay@latest my-mcp -- --type mcp --language ts --no-openapi --tool-name get_item` | Cloudflare Workers project: `src/worker.ts`, `src/tools/<tool>.ts`, `wrangler.jsonc`, `scripts/deploy.mjs`, `verify.mjs`, `test.mjs` |
+| TypeScript | `npm create solvapay@latest my-mcp -- --type mcp --language ts --no-openapi` | Cloudflare Workers project: `src/worker.ts`, `src/tools/<tool>.ts`, `wrangler.jsonc`, `scripts/deploy.mjs`, `verify.mjs`, `test.mjs` |
 | Python | `npm create solvapay@latest my-mcp -- --type mcp --language python` | uv project: `pyproject.toml`, `server.py`, `tools.py`, `tests/test_tools.py`, `.env.example`, `Dockerfile`, `.github/dependabot.yml` |
 | Go | `npm create solvapay@latest my-mcp -- --type mcp --language go` | Go module: `go.mod`, `main.go`, `tools.go`, `tools_test.go`, `.env.example`, multi-stage `Dockerfile`, `.github/dependabot.yml` |
 

@@ -4,7 +4,7 @@ Plan-validate-execute for SDK setup before implementing routes.
 
 ## Init procedure
 
-1. Run `npx -y solvapay@latest init` (authenticates, writes `SOLVAPAY_SECRET_KEY`, installs base packages). It detects the language (`go.mod` → Go; `uv.lock` / `poetry.lock` / `pyproject.toml` / `requirements.txt` → Python; `package.json` → TypeScript); pass `--language ts|python|go` to choose, and always for Python and Go. Python with uv or Poetry gets an exact pin via `uv add` / `poetry add`; plain pip gets only a printed `python -m pip install 'solvapay[web]==<version>'` line to run yourself; Go gets `go get github.com/solvapay/solvapay-sdk/go@<version> && go mod tidy`. Two languages in one folder with no terminal, or an empty folder, fails asking for `--language`; Python or Go in an empty folder asks for `uv init` / `go mod init` first.
+1. Run `npx -y solvapay@latest init` (authenticates, writes `SOLVAPAY_SECRET_KEY`, installs base packages). It detects the language (`go.mod` → Go; `uv.lock` / `poetry.lock` / `pyproject.toml` / `requirements.txt` → Python; `package.json` → TypeScript); pass `--language ts|python|go` to choose, and always for Python and Go. Python with uv or Poetry gets an exact pin via `uv add` / `poetry add`; plain pip gets only a printed `python -m pip install 'solvapay[<features>]==<version>'` line (extras from `--features`) to run yourself; Go gets `go get github.com/solvapay/solvapay-sdk/go@<version>`. Two languages in one folder with no terminal, or an empty folder, fails asking for `--language`; Python or Go in an empty folder asks for `uv init` / `go mod init` first.
 2. Install stack-specific packages (`@solvapay/next`, `@solvapay/react`, etc.) if not added by init.
 3. Confirm product and plans exist in SolvaPay Console.
 

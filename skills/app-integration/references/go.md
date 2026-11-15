@@ -19,7 +19,7 @@ Go 1.26 or later, in a module (`go mod init <module>` first if there is no `go.m
 npx -y solvapay@latest init --language go
 ```
 
-`init` signs in through the browser, writes `SOLVAPAY_SECRET_KEY` and `SOLVAPAY_PRODUCT_REF` to `.env`, and runs `go get github.com/solvapay/solvapay-sdk/go@<version> && go mod tidy`.
+`init` signs in through the browser, writes `SOLVAPAY_SECRET_KEY` and `SOLVAPAY_PRODUCT_REF` to `.env`, and runs `go get github.com/solvapay/solvapay-sdk/go@<version>` (no `go mod tidy`: it would drop the requirement until your code imports the module).
 
 ```go
 import solvapay "github.com/solvapay/solvapay-sdk/go"

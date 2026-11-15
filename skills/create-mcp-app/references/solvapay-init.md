@@ -30,10 +30,10 @@ npx -y solvapay@latest init --language go --features mcp
 | Project | What init does about the SDK |
 | --- | --- |
 | TypeScript (`package.json`) | Installs / verifies the `@solvapay/*` packages with exact versions |
-| Python with uv (`uv.lock` or a uv `pyproject.toml`) | `uv add 'solvapay[mcp]==<version>'` |
-| Python with Poetry (`poetry.lock`) | `poetry add 'solvapay[mcp]==<version>'` |
-| Python with plain pip (`requirements.txt`) | Installs nothing. It prints the `python -m pip install 'solvapay[mcp]==<version>'` line: run it in the project's virtualenv and add the pin to `requirements.txt` yourself |
-| Go (`go.mod`) | `go get github.com/solvapay/solvapay-sdk/go@<version> && go mod tidy` |
+| Python with uv (`uv.lock`; a `pyproject.toml` with no lockfile counts as pip, so run `uv lock` first) | `uv add 'solvapay[<features>]==<version>'` |
+| Python with Poetry (`poetry.lock`) | `poetry add 'solvapay[<features>]==<version>'` |
+| Python with plain pip (`requirements.txt`) | Installs nothing. It prints the `python -m pip install 'solvapay[<features>]==<version>'` line: run it in the project's virtualenv and add the pin to `requirements.txt` yourself |
+| Go (`go.mod`) | `go get github.com/solvapay/solvapay-sdk/go@<version>` (run `go mod tidy` yourself once code imports it) |
 
 Failures to expect, each with a clear message:
 

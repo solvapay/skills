@@ -14,7 +14,7 @@ go mod tidy
 
 The scaffold: `go.mod` (requires `github.com/solvapay/solvapay-sdk/go` at a pinned version), `main.go`, `tools.go`, `tools_test.go`, `.env.example`, a multi-stage `Dockerfile`, `.github/dependabot.yml` (gomod). Go is from-scratch only: `--openapi` with `--language go` fails.
 
-Adding SolvaPay to an existing module: `npx -y solvapay@latest init --language go` writes `.env` and runs `go get github.com/solvapay/solvapay-sdk/go@<version> && go mod tidy`. In a folder without `go.mod`, run `go mod init <module>` first.
+Adding SolvaPay to an existing module: `npx -y solvapay@latest init --language go` writes `.env` and runs `go get github.com/solvapay/solvapay-sdk/go@<version>`; run `go mod tidy` once your code imports it. In a folder without `go.mod`, run `go mod init <module>` first.
 
 ## Imports
 

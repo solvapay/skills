@@ -14,7 +14,7 @@ uv sync
 
 The scaffold is a uv project: `pyproject.toml` (`solvapay[mcp]` pinned exactly, `uvicorn`, `python-dotenv`; dev group `pytest`), `server.py`, `tools.py`, `tests/test_tools.py`, `.env.example`, `Dockerfile`, `.github/dependabot.yml`. Python is from-scratch only: `--openapi` with `--language python` fails.
 
-Adding SolvaPay to an existing uv or Poetry project: run `npx -y solvapay@latest init --language python`. It writes `.env` and installs an exact pin with `uv add` or `poetry add`. With plain pip it only prints the `python -m pip install 'solvapay[mcp]==<version>'` line for you to run.
+Adding SolvaPay to an existing uv or Poetry project: run `npx -y solvapay@latest init --language python --features mcp`. It writes `.env` and installs an exact pin with `uv add` or `poetry add`. With plain pip it only prints the `python -m pip install 'solvapay[mcp]==<version>'` line for you to run.
 
 ## Imports
 
