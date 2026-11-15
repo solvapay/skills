@@ -2,13 +2,14 @@
   "name": "solvapay-skills",
   "version": "1.0.0",
   "private": true,
-  "description": "SolvaPay agent skills for paid MCP apps and app integration (paywalls, usage, webhooks, hosted checkout).",
+  "description": "SolvaPay agent skills for paid MCP apps and app integration (paywalls, usage, webhooks, hosted checkout) in TypeScript, Python and Go.",
   "scripts": {
-    "validate": "find skills -name SKILL.md | while read -r f; do npx -y skills-reference validate \"$(dirname \"$f\")\" || exit 1; done",
+    "validate": "find skills -name SKILL.md | while read -r f; do npx -y skills-reference validate \"$(dirname \"$f\")\" || exit 1; done && npm run check:languages",
     "dev:link": "node scripts/dev-link.mjs link",
     "dev:unlink": "node scripts/dev-link.mjs unlink",
     "dev:status": "node scripts/dev-link.mjs status",
-    "release:dry-run": "node scripts/build-skill-release.mjs --dry-run"
+    "release:dry-run": "node scripts/build-skill-release.mjs --dry-run",
+    "check:languages": "node scripts/check-language-headings.mjs"
   },
   "devDependencies": {
     "yaml": "^2.9.1"

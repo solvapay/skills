@@ -1,5 +1,7 @@
 # deploy — push to Cloudflare Workers
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Orchestration prose, no script. First deploy uploads missing Worker secrets from `.env`; later secret changes require explicit `npx wrangler secret put <NAME>` before redeploy. One worker, one environment, one secret slot.
 
 ## When to read this

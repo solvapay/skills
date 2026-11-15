@@ -1,5 +1,7 @@
 # Alternative Hosting for SolvaPay MCP
 
+> **TypeScript only.** Every runtime below runs the TypeScript SDK. Python and Go servers deploy as containers: [container.md](container.md).
+
 Decision matrix for deploying a SolvaPay MCP server on a runtime other than Cloudflare Workers. Cloudflare Workers is the recommended default with a full step-by-step in [cloudflare/](cloudflare/); this page routes you elsewhere when the runtime is constrained.
 
 ## Contents

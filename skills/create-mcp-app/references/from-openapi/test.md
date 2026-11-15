@@ -1,5 +1,7 @@
 # test — smoke harness
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Exercises each generated tool with sample inputs derived from the OpenAPI examples. Distinct from [verify.md](verify.md): verify checks the worker looks like an MCP server; test checks the tools actually do something.
 
 > **Warning**: `test.mjs` calls every non-`skip` tool once, including `POST` / `PUT` / `PATCH` / `DELETE` operations. Always run against a sandbox upstream or a sandbox account. To exclude specific mutating operations, mark them `tier: "skip"` in `selections.json` before scaffold; you can also temporarily comment out their `register*` call in `src/tools/index.ts`.

@@ -2,6 +2,10 @@
 
 Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already exists. Low-level wiring is in [mcp-server-wiring.md](mcp-server-wiring.md); this guide audits your server first.
 
+## Python or Go server?
+
+This guide is the TypeScript path. For a Python or Go MCP server, read the **Existing server** section of [languages/python.md](languages/python.md) or [languages/go.md](languages/go.md) (whichever SKILL.md picked), then come back for the audit below and the Verification section. In short: paid tools need the SDK's own server (`create_solvapay_mcp_server` in Python, `solvapay.NewMCPServer` in Go), so the existing tools move onto it. Run `npx -y solvapay@latest init --language python|go` to install the SDK and write `.env`, and verify with `npx -y solvapay@latest verify <url>`.
+
 ## When to read this
 
 - You have an MCP server you control (any runtime, any transport) and want to add a SolvaPay paywall.
@@ -40,7 +44,7 @@ Answer these before writing code:
 
 ## Pre-read
 
-Read [tool-design.md](tool-design.md) before wrapping any existing tool. It covers the three response modes, intent composition, the `_meta.ui.resourceUri` rule, and how `registerPayable` handles gate narration automatically — none of which you'll infer from your existing code.
+Read [tool-design.md](tool-design.md) and your language file before wrapping any existing tool. It covers the three response modes, intent composition, the `_meta.ui.resourceUri` rule, and how `registerPayable` handles gate narration automatically — none of which you'll infer from your existing code.
 
 ## File layout convention
 

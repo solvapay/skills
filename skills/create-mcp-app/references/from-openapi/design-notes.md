@@ -1,5 +1,7 @@
 # Design notes: create-mcp-app/from-openapi skill ↔ template
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Rationale for individual choices in the template + scaffold contract. Maintainer-facing; the routine happy-path agent doesn't load this. Pair with [tool-template.md](tool-template.md), which states *what* the contract is.
 
 ## Why the arrow wrapper

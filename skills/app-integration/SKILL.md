@@ -6,20 +6,22 @@ description: >
   browser redirects to SolvaPay's hosted payment page → returns with access unlocked) and the
   customer portal to manage, upgrade, or cancel a plan; billing UI (buttons, plan status, React
   components) in React dashboards and web apps; paywalls, access gates, or usage limits on routes
-  or handlers; SolvaPay fetch handler or webhook setup; SDK integration across Next.js, React,
-  Express, and Supabase edge functions. Skip for any MCP server work (new or existing — use
-  `solvapay/create-mcp-app`).
+  or handlers; SolvaPay fetch handler or webhook setup; selling API calls to agents; SDK
+  integration across Next.js, React, Express, Supabase edge functions, Python (FastAPI, Starlette,
+  `pyproject.toml`) and Go (`net/http`, `go.mod`) backends. Skip for any MCP server work (new or
+  existing — use `solvapay/create-mcp-app`).
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 compatibility: >
-  Node.js >= 20 (@solvapay/server engine). Supports Next.js, React, Express,
-  Supabase Edge Functions. Supabase CLI when using edge path. Network required for init
-  and hosted checkout.
+  Node.js >= 22 (the SolvaPay CLI, in every language). Supports
+  Next.js, React, Express, Supabase Edge Functions, Python >= 3.10 (Starlette, FastAPI) and
+  Go >= 1.26 (net/http). Supabase CLI when using edge path. Network required for init and
+  hosted checkout.
 ---
 
 # App integration
 
-Add SolvaPay hosted checkout, customer portal, paywalls, usage, webhooks and billing UI to an existing TypeScript / JavaScript app, API or website.
+Add SolvaPay hosted checkout, customer portal, paywalls, usage, webhooks and billing UI to an existing app, API or website. Backends in TypeScript / JavaScript, Python (Starlette, FastAPI) or Go (`net/http`); billing UI in React, which can call a backend in any of the three.
 
 Two entry points, same skill:
 
@@ -36,12 +38,14 @@ Two entry points, same skill:
 - Always verify access state from server truth after returning from checkout.
 - Always emit a **runnable** sandbox verification artifact before handoff — a `curl` block or test script covering happy path (200) and failure path (402 with `checkoutUrl`, or 401 unauthenticated). Prose summaries alone do not satisfy this guardrail.
 - Never treat UI unlock state as authoritative without server-side checks.
-- Always run `npx -y solvapay@latest doctor` before handoff, and before reporting a SolvaPay bug. When its `@solvapay/*` versions check fails, run the upgrade command it prints (exact pins), then re-run the project's tests. An app keeps whatever SDK it was set up with; a stale one ships bugs that are already fixed, and `^0.x` ranges never reach the next minor.
+- Always run `npx -y solvapay@latest doctor` before handoff, and before reporting a SolvaPay bug. It checks the SDK in every language it finds (`@solvapay/*` packages, the `solvapay` pin in `uv.lock` / `poetry.lock` / `requirements.txt`, `github.com/solvapay/solvapay-sdk/go` in `go.mod`). When the check fails, run the upgrade command it prints (exact pins), then re-run the project's tests. An app keeps whatever SDK it was set up with; a stale one ships bugs that are already fixed, and `^0.x` ranges never reach the next minor.
+- Always take the customer from your app's verified auth (session, token, framework dependency). Never from a request body, query string or `x-user-id` header.
 
 ## Gotchas
 
 - `@solvapay/next` route wrappers return `Promise<NextResponse>` — update call sites (details: [references/nextjs.md](references/nextjs.md)).
-- Webhook signature verification needs the **raw request body**, not parsed JSON (details: [references/WEBHOOKS.md](references/WEBHOOKS.md)).
+- Webhook signature verification needs the **raw request body**, not parsed JSON (details: [references/WEBHOOKS.md](references/WEBHOOKS.md); Python and Go in their stack guides).
+- FastAPI dependencies don't run for the mounted `solvapay.web.routes()` app: call the function behind `Depends(...)` from `get_user` (details: [references/python.md](references/python.md)).
 - Deno import maps need trailing slashes on `@solvapay/` entries (details: [references/supabase-edge.md](references/supabase-edge.md)).
 - Customer must exist in SolvaPay before a checkout session — sync/ensure step first (details: [references/hosted-checkout-nextjs.md](references/hosted-checkout-nextjs.md)).
 - Checkout succeeds but access unchanged → missing webhooks or stale client cache; refresh from server truth on the return URL. Durable access after redirect usually needs webhooks, not the return URL alone.
@@ -62,7 +66,7 @@ Facts (signatures, plan fields, endpoints) come from the docs, not from memory: 
 
 ## Stack detection
 
-From `package.json` and project layout:
+From the project's manifest and layout. Markers match the SolvaPay CLI: `go.mod` → Go; `uv.lock`, `poetry.lock`, `pyproject.toml` or `requirements.txt` → Python; `package.json` → TypeScript / JavaScript. A repo with a React frontend and a Python or Go backend matches two rows: use both (React guide for the UI, the backend's guide for the server).
 
 | Stack | Hosted checkout only | Full SDK integration |
 | --- | --- | --- |
@@ -70,14 +74,19 @@ From `package.json` and project layout:
 | `react` without `next` | [references/hosted-checkout-react.md](references/hosted-checkout-react.md) | [references/react.md](references/react.md) |
 | `express` | [references/hosted-checkout-react.md](references/hosted-checkout-react.md) (backend skeleton) | [references/express.md](references/express.md) |
 | `supabase/functions/` or Supabase without Next/Express (incl. Vite + Supabase) | [references/supabase-edge.md](references/supabase-edge.md) | [references/supabase-edge.md](references/supabase-edge.md) |
-| `@modelcontextprotocol/*` or `@solvapay/mcp` present | stop, hand off to `solvapay/create-mcp-app` | |
+| `pyproject.toml` / `requirements.txt` with `fastapi` or `starlette` | [references/python.md](references/python.md) (Hosted checkout section) | [references/python.md](references/python.md) |
+| `go.mod` with a `net/http` server (or a router that takes an `http.Handler`) | [references/go.md](references/go.md) (Hosted checkout section) | [references/go.md](references/go.md) |
+| Python on Django or Flask, Go on a framework without `http.Handler` | say these guides cover Starlette / FastAPI and `net/http` only; ask before adapting | |
+| `@modelcontextprotocol/*`, `@solvapay/mcp`, `mcp` (Python), `github.com/modelcontextprotocol/go-sdk`, or an MCP server in scope | stop, hand off to `solvapay/create-mcp-app` | |
+
+Selling API calls to AI agents that pay per call (preview, any language): [references/agent-payments.md](references/agent-payments.md).
 
 If multiple match, ask which runtime is primary. If the request is only "add checkout / upgrade / subscribe" with no paywall, metering or webhook work, take the hosted-checkout column.
 
 ## Integration procedure
 
-1. Detect stack from `package.json`.
-2. Run `npx -y solvapay@latest init`.
+1. Detect the stack from the manifest ([Stack detection](#stack-detection)).
+2. Run `npx -y solvapay@latest init` with the language: `--language ts|python|go` (always pass it for Python and Go, and when two languages share the folder). Python with plain pip: init only prints the `pip install` line; run it yourself.
 3. Read the matching guide end-to-end.
 4. Hosted checkout: implement the server checkout-session route, the customer-portal session route, the return-URL handler with access refresh, and gate premium views from server truth.
 5. Full SDK: read [references/operations.md](references/operations.md) before API calls, then wire paywall / limits / usage per stack patterns.
@@ -87,7 +96,7 @@ If multiple match, ask which runtime is primary. If the request is only "add che
 ## Env plan-validate-execute
 
 1. **Plan:** List required env vars (`SOLVAPAY_SECRET_KEY`, product refs, webhook secret).
-2. **Validate:** Run `node scripts/check-env.mjs` — no secrets in `NEXT_PUBLIC_*` / `VITE_*`.
+2. **Validate:** Run `node scripts/check-env.mjs` — no secrets in `NEXT_PUBLIC_*` / `VITE_*`. In a Python or Go project with no `package.json` it skips the Next/Vite config scan, checks only the env files and says so in `note`.
 3. **Execute:** Implement routes.
 
 ## Verification loop
@@ -104,7 +113,7 @@ If multiple match, ask which runtime is primary. If the request is only "add che
 
 ```markdown
 ## Integration handoff
-- **Stack:** [Next.js / Express / React + backend / Supabase Edge]
+- **Stack:** [Next.js / Express / React + backend (TS / Python / Go) / Supabase Edge / FastAPI / Starlette / Go net/http]
 - **Mode:** [hosted checkout only / full SDK]
 - **Auth model:** [Supabase JWT / session / …]
 - **Routes wired:** [checkout session / portal session / access check / paywalled routes / webhook]
@@ -132,8 +141,8 @@ If multiple match, ask which runtime is primary. If the request is only "add che
 
 ## Task progress
 
-- [ ] Detect stack from package.json and pick hosted-checkout-only or full SDK
-- [ ] Run `npx -y solvapay@latest init`
+- [ ] Detect the stack from the manifest and pick hosted-checkout-only or full SDK
+- [ ] Run `npx -y solvapay@latest init --language <ts|python|go>`
 - [ ] Read the matching guide end-to-end
 - [ ] Hosted checkout: checkout session route, portal session route, return-URL refresh, server-truth gating
 - [ ] Full SDK: read operations reference, then wire paywall / limits / usage routes
@@ -144,6 +153,9 @@ If multiple match, ask which runtime is primary. If the request is only "add che
 
 - Hosted checkout, Next.js: [references/hosted-checkout-nextjs.md](references/hosted-checkout-nextjs.md)
 - Hosted checkout, React + backend: [references/hosted-checkout-react.md](references/hosted-checkout-react.md)
+- Python (Starlette, FastAPI): [references/python.md](references/python.md)
+- Go (`net/http`): [references/go.md](references/go.md)
+- Selling API calls to agents (preview): [references/agent-payments.md](references/agent-payments.md)
 - Operations: [references/operations.md](references/operations.md)
 - Env / init: [references/env-and-init.md](references/env-and-init.md)
 - Managed MCP API (bootstrap / configure plans on an existing Managed MCP product): [references/mcp-product-console.md](references/mcp-product-console.md)

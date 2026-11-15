@@ -107,7 +107,7 @@
         "The agent ran `npm create solvapay` with `--type mcp --no-openapi` (or `pnpm/yarn create solvapay --no-openapi`) — not describe.mjs/scaffold.mjs from the OpenAPI agent path",
         "The project is rooted at `./haiku-mcp/` with `package.json`, `wrangler.jsonc`, and `src/worker.ts` calling `createSolvaPayMcpFetch` (or equivalent fetch-first factory)",
         "`src/tools/generate_haiku.ts` exists and exports `registerGenerateHaiku(ctx, env?)` (per the file-layout convention)",
-        "The scaffolder's placeholder tool (e.g. `helloTool`/`placeholder`/`hello`) is no longer registered — its file is deleted or replaced, and `src/tools/index.ts` does NOT import/call any leftover placeholder register function",
+        "The scaffolder's placeholder tool (e.g. `hello_tool`/`helloTool`/`placeholder`/`hello`) is no longer registered — its file is deleted or replaced, and `src/tools/index.ts` does NOT import/call any leftover placeholder register function",
         "`generate_haiku` is registered via `ctx.registerPayable('generate_haiku', { title, description, schema, handler, annotations? })` — the 2-arg shape, second arg a single config object",
         "The handler returns `c.respond({ lines: [...] }, { text: <narration with render instruction> })` — not raw content arrays, not iframe payloads",
         "The Zod schema validates `topic: z.string()` (required) and `mood: z.enum(['serene','melancholy','playful']).optional()`",
@@ -245,6 +245,83 @@
         "The original ./petstore-mcp/package.json, wrangler.jsonc, and src/worker.ts were NOT overwritten or deleted",
         "The new tool's annotations include openWorldHint: true",
         "The agent did not treat this as an unlimited-free tool — there is NO ctx.server.registerTool call for preview_pet"
+      ]
+    },
+    {
+      "id": 15,
+      "slug": "python-from-scratch",
+      "prompt": "Task: build me a paid mcp server in python into `./research-mcp`. one paid tool get_quote (takes a ticker symbol, returns symbol + price) and a free search tool capped at 20 calls per 30 days. use uv.",
+      "expected_output": "Agent loads solvapay/create-mcp-app, detects Python, reads references/tool-design.md and references/languages/python.md only (not ts.md or go.md), runs the toolchain check, scaffolds with `create-solvapay --type mcp --language python`, then replaces the placeholders: get_quote via `mcp.register_payable` with an async handler returning `ctx.respond(data, text=...)`, search via `mcp.register_free` with `FreeLimit(cap=20, scope=\"rolling_window\", window_days=30)`. Server built with `create_solvapay_mcp_server(solvapay=create_solvapay(), public_base_url=os.environ[\"PUBLIC_BASE_URL\"], ...)` and served from `mcp.http_app()`. Tests run with `uv run pytest`; host is a container.",
+      "files": [],
+      "assertions": [
+        "The agent loaded solvapay/create-mcp-app and read references/languages/python.md; it did NOT open references/languages/ts.md or references/languages/go.md (visible in transcript)",
+        "The agent ran `node scripts/check-toolchain.mjs --language python` (or an equivalent check of Python >= 3.10, uv and the CLI's --language support) before scaffolding",
+        "The agent ran `npm create solvapay` (or `npx create-solvapay`) with `--type mcp --language python` and no `--openapi`",
+        "The server uses `create_solvapay_mcp_server(...)` with `public_base_url` read from `PUBLIC_BASE_URL` (not hard-coded localhost) and serves `mcp.http_app()`",
+        "get_quote is registered with `mcp.register_payable(\"get_quote\", handler=..., ...)`; the handler is `async`, has a `ctx: ResponseContext` parameter, and returns `ctx.respond(data, text=<narration with a render instruction>)`",
+        "search is registered with `mcp.register_free(\"search\", handler=..., limit=FreeLimit(cap=20, scope=\"rolling_window\", window_days=30))` — not an uncounted `mcp.server.tool` plus a hand-rolled counter",
+        "No Python code imports `solvapay.facade`, `solvapay_mcp` or `register_payable_tool` from a retired module, and no tool takes the customer from a tool argument",
+        "The scaffold's placeholder tools are replaced or removed, and the tests were updated and run with `uv run pytest`",
+        "The handoff names the language (Python), a container host (references/hosting/container.md) and how the server was verified (`npx -y solvapay@latest verify <url>` or why it was not run)"
+      ]
+    },
+    {
+      "id": 16,
+      "slug": "go-from-scratch",
+      "prompt": "Task: new paid mcp server in go at `./reports-mcp`. one paid tool generate_report that takes a topic string and returns { topic, summary }. no openapi spec.",
+      "expected_output": "Agent loads solvapay/create-mcp-app, detects Go, reads references/tool-design.md and references/languages/go.md only, runs the toolchain check, scaffolds with `create-solvapay --type mcp --language go`, and registers generate_report with `server.RegisterPayable(\"generate_report\", solvapay.PaidTool{...})` whose Handler unmarshals the args and returns `rc.Respond(data, solvapay.RespondOptions{Text: &text})`. Server built with `solvapay.NewMCPServer(solvapay.MCPServerOptions{Client, PublicBaseURL, Name})` and served with `server.Handler()`. `go test ./...` passes.",
+      "files": [],
+      "assertions": [
+        "The agent loaded solvapay/create-mcp-app and read references/languages/go.md; it did NOT open references/languages/ts.md or references/languages/python.md",
+        "The agent ran `npm create solvapay` (or `npx create-solvapay`) with `--type mcp --language go` and no `--openapi`",
+        "main.go builds the client with `solvapay.NewClient(solvapay.Config{...})` and the server with `solvapay.NewMCPServer(solvapay.MCPServerOptions{...})` including `PublicBaseURL` from the environment, and serves `server.Handler()`",
+        "generate_report is registered with `server.RegisterPayable(\"generate_report\", solvapay.PaidTool{...})` with an `InputSchema` of `type: object` requiring `topic`, and the returned error is checked",
+        "The handler returns `rc.Respond(data, solvapay.RespondOptions{Text: &text})` with a render-instruction narration — not a hand-built `mcp.CallToolResult`",
+        "The scaffold's placeholder tools are replaced or removed and `go test ./...` (and `go vet ./...`) were run",
+        "The handoff names the language (Go), a container host and the verify result or why it was not run"
+      ]
+    },
+    {
+      "id": 17,
+      "slug": "python-existing-server-paywall",
+      "prompt": "Setup: copy `<skills-repo>/evals/create-mcp-app/fixtures/research-mcp-python/` to `./research-mcp/`. Task: this is my existing python mcp server. add a solvapay paywall: get_quote and company_brief should be paid, ping stays free. dont rescaffold.",
+      "expected_output": "Agent loads solvapay/create-mcp-app, detects Python from pyproject.toml, reads references/existing-server.md and references/languages/python.md (Existing server). It does not scaffold. It installs the SDK with `npx -y solvapay@latest init --language python` (or `uv add 'solvapay[mcp]'`), replaces `MCPServer(\"research\")` with `create_solvapay_mcp_server(solvapay=create_solvapay(), public_base_url=os.environ[\"PUBLIC_BASE_URL\"], name=\"research\")`, moves get_quote and company_brief to async `register_payable` handlers returning `ctx.respond(...)`, keeps ping as `@mcp.server.tool(...)`, and serves `mcp.http_app()`. It explains that every /mcp request now needs SolvaPay sign-in, including ping.",
+      "files": [
+        "fixtures/research-mcp-python/pyproject.toml",
+        "fixtures/research-mcp-python/server.py"
+      ],
+      "assertions": [
+        "The agent did NOT run `npm create solvapay`, `create-solvapay` or scaffold.mjs",
+        "The agent read references/languages/python.md (and not ts.md or go.md) and followed its Existing server section",
+        "The SDK was added with `npx -y solvapay@latest init --language python` or `uv add 'solvapay[mcp]...'`; `pyproject.toml` lists `solvapay[mcp]`",
+        "server.py builds the server with `create_solvapay_mcp_server(...)` and `public_base_url` from `PUBLIC_BASE_URL`, and serves `mcp.http_app()` instead of `server.streamable_http_app()`",
+        "get_quote and company_brief are registered with `mcp.register_payable(...)`; each handler is `async`, takes `ctx: ResponseContext` and returns `ctx.respond(...)`",
+        "ping is registered on the underlying server (`mcp.server.tool(...)`) and is not paywalled",
+        "The agent does NOT claim ping stays anonymous: it says /mcp now requires SolvaPay sign-in for every tool",
+        "No import of `mcp.server.fastmcp`, `solvapay.facade` or `solvapay_mcp`"
+      ]
+    },
+    {
+      "id": 18,
+      "slug": "go-container-deploy",
+      "prompt": "Setup: copy `<skills-repo>/evals/create-mcp-app/fixtures/quotes-mcp-go/` to `./quotes-mcp/`. Task: deploy my go paid mcp server at `./quotes-mcp` to google cloud run. dont change the server code.",
+      "expected_output": "Agent loads solvapay/create-mcp-app, detects Go, follows references/hosting/container.md: runs `npx -y solvapay@latest doctor`, keeps the existing Dockerfile, stores SOLVAPAY_SECRET_KEY in Secret Manager (`--set-secrets`), deploys with `gcloud run deploy <service> --source . --allow-unauthenticated`, then sets PUBLIC_BASE_URL to the Cloud Run service URL, keeps one instance (or session affinity), and verifies with `npx -y solvapay@latest verify <url>`. main.go and tools.go are unchanged.",
+      "files": [
+        "fixtures/quotes-mcp-go/go.mod",
+        "fixtures/quotes-mcp-go/main.go",
+        "fixtures/quotes-mcp-go/tools.go",
+        "fixtures/quotes-mcp-go/Dockerfile",
+        "fixtures/quotes-mcp-go/.env.example"
+      ],
+      "assertions": [
+        "The agent read references/hosting/container.md (not hosting/cloudflare/) and references/languages/go.md",
+        "./quotes-mcp/main.go and ./quotes-mcp/tools.go are byte-for-byte unchanged (deploy-existing = deploy scaffolding only)",
+        "The deploy command is `gcloud run deploy ... --source .` (using the project's Dockerfile) with unauthenticated invocations allowed",
+        "SOLVAPAY_SECRET_KEY is passed from Secret Manager (`--set-secrets` or equivalent), never as a plain `--set-env-vars` value, in the Dockerfile, or committed",
+        "PUBLIC_BASE_URL is set to the Cloud Run service URL (or the custom domain), not localhost, after the URL is known",
+        "The agent limits the service to one instance or enables session affinity, and says why (in-memory MCP sessions)",
+        "The agent runs `npx -y solvapay@latest doctor` before deploying and `npx -y solvapay@latest verify <url>` after (or states why either could not run)",
+        "The handoff names Go, Cloud Run and the server URL"
       ]
     }
   ]

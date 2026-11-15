@@ -1,5 +1,7 @@
 # MCP Server Paywall Integration
 
+> **TypeScript only.** Low-level `@solvapay/mcp` / `@solvapay/server` wiring. Python and Go: see the Existing server section of [languages/python.md](languages/python.md) or [languages/go.md](languages/go.md).
+
 Add paywall protection and self-service tools to an MCP server using `@solvapay/mcp` (batteries-included factory) or `@solvapay/server` (low-level primitives).
 
 This guide is for SDK-based MCP server integrations where you self-host the server and add paywall/auth logic in code.

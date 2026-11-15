@@ -16,7 +16,9 @@ Use webhooks to keep local state in sync with SolvaPay billing events.
 5. Update database and invalidate caches.
 6. Return success quickly, move heavy side effects to async workers.
 
-`verifyWebhook({ body, signature, secret })` takes a **single object**, returns a typed `WebhookEvent`, and **throws** `SolvaPayError` on a missing, malformed, expired, or invalid signature. It is Node-only (`node:crypto`) — not exported from `@solvapay/server/edge`. On Edge / Deno / Workers use the `solvapayWebhook` factory from `@solvapay/server/fetch`.
+Python (`verify_webhook(body=..., signature=..., secret=...)`) and Go (`solvapay.VerifyWebhook(body, signature, secret, time.Time{})`) verify the same header with the same error codes: see [python.md](python.md) and [go.md](go.md). The rest of this page (events, idempotency) applies to every language.
+
+TypeScript: `verifyWebhook({ body, signature, secret })` takes a **single object**, returns a typed `WebhookEvent`, and **throws** `SolvaPayError` on a missing, malformed, expired, or invalid signature. It is Node-only (`node:crypto`) — not exported from `@solvapay/server/edge`. On Edge / Deno / Workers use the `solvapayWebhook` factory from `@solvapay/server/fetch`.
 
 ## Common Events
 

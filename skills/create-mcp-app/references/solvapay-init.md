@@ -18,6 +18,31 @@ cd /path/to/petstore-mcp
 npx -y solvapay@latest init
 ```
 
+### Language
+
+`solvapay init` detects the language from the folder: `go.mod` → Go; `uv.lock`, `poetry.lock`, `pyproject.toml` or `requirements.txt` → Python; `package.json` → TypeScript. Pass `--language ts|python|go` to say it yourself, which agents should always do outside TypeScript:
+
+```bash
+npx -y solvapay@latest init --language python --features mcp
+npx -y solvapay@latest init --language go --features mcp
+```
+
+| Project | What init does about the SDK |
+| --- | --- |
+| TypeScript (`package.json`) | Installs / verifies the `@solvapay/*` packages with exact versions |
+| Python with uv (`uv.lock`; a `pyproject.toml` with no lockfile counts as pip, so run `uv lock` first) | `uv add 'solvapay[<features>]==<version>'` |
+| Python with Poetry (`poetry.lock`) | `poetry add 'solvapay[<features>]==<version>'` |
+| Python with plain pip (`requirements.txt`) | Installs nothing. It prints the `python -m pip install 'solvapay[<features>]==<version>'` line: run it in the project's virtualenv and add the pin to `requirements.txt` yourself |
+| Go (`go.mod`) | `go get github.com/solvapay/solvapay-sdk/go@<version>` (run `go mod tidy` yourself once code imports it) |
+
+Failures to expect, each with a clear message:
+
+- Two languages in one folder (say `package.json` and `go.mod`) and no terminal → init fails asking for `--language`. Ask the user which one the server is in.
+- Empty folder and no terminal → init fails asking for `--language`.
+- Python or Go in an empty folder → init says to run `uv init` or `go mod init <module>` first. The scaffolder does this for you; only a hand-built project needs it.
+
+`--features mcp,agents,web` picks the SDK extras; `--yes` accepts defaults; `--product prd_…` seeds the product (see Gate G10).
+
 The `@latest` suffix re-resolves the registry every run (so cached CLIs never lag behind); `-y` auto-confirms the npx install prompt (required for non-interactive / agent execution).
 
 For agent runs, expect this command to pause for a human browser-auth click. Run it in a background terminal or otherwise avoid streaming the auth spinner into the chat transcript; treat a quiet wait for browser approval as expected, not as a hang.
@@ -37,7 +62,7 @@ The CLI:
   - Non-TTY runs do not pick a product. Pass `--product prd_…`. Without it, init skips product selection, `.env` keeps the placeholder, and deploy fails until `SOLVAPAY_PRODUCT_REF` is set.
   - Non-TTY overwrite of an existing `SOLVAPAY_SECRET_KEY` requires `--yes`. Without it the CLI exits instead of keeping the old key.
   - Writes the chosen ref to `.env`.
-- Installs / verifies `@solvapay/server` and `@solvapay/core` (the template's `package.json` already declares both, so this is mostly a verify step).
+- Installs / verifies the SDK for the project's language (see Language above). In a TypeScript scaffold that is `@solvapay/server` and `@solvapay/core`, which the template already declares; in a Python or Go scaffold the pin is already in `pyproject.toml` / `go.mod`.
 
 ## Gate G10 — product / metering confirmation
 
@@ -51,7 +76,7 @@ For usage-based or metered products, also verify the selected product has the pl
 
 ## What the CLI does NOT do
 
-- Populate `MCP_PUBLIC_BASE_URL`. Scaffold writes `http://localhost:8787`; `deploy.mjs` auto-resolves the live workers.dev URL on first deploy.
+- Populate the public base URL. TypeScript: scaffold writes `MCP_PUBLIC_BASE_URL=http://localhost:8787` and `deploy.mjs` resolves the workers.dev URL on first deploy. Python / Go: set `PUBLIC_BASE_URL` yourself to the URL clients use (tunnel locally, the service URL when deployed).
 - Populate upstream credentials. Scaffold writes `UPSTREAM_API_KEY`, `UPSTREAM_API_HEADERS`, or the `UPSTREAM_OAUTH_*` family from `selections.upstreamAuth`.
 - Create products or plans. If the account has no product, init warns and points to Console at https://app.solvapay.com. If the selected product needs a usage-based metering plan, create or verify that plan outside scaffold before handoff.
 - Deploy anything. After init succeeds, run your mode's deploy step (from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md)).
@@ -80,6 +105,8 @@ If the agent authored `selections.plans` during curate, `scaffold.mjs` pre-fligh
 
 Single worker, single secret slot. There is no `--env production`, no `.env.prod` — the template ships one environment by design.
 
+Python and Go containers: the same two passes, but the key lives in the host's secret store (Secret Manager on Cloud Run, `fly secrets` on Fly.io). Go-live adds the live key there and redeploys; see [hosting/container.md](hosting/container.md).
+
 ## API key scoping
 
 Recommend separate keys per environment and per project, even when one merchant account hosts them:
@@ -90,9 +117,13 @@ Recommend separate keys per environment and per project, even when one merchant 
 
 ## Hand-off
 
-- First-time setup → from-openapi: [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch: [hosting/cloudflare/README.md](hosting/cloudflare/README.md).
+| Language | Next |
+| --- | --- |
+| TypeScript | `npx -y solvapay@latest doctor`, then deploy: from-openapi [from-openapi/deploy.md](from-openapi/deploy.md); from-scratch [hosting/cloudflare/README.md](hosting/cloudflare/README.md) |
+| Python | `npx -y solvapay@latest doctor`, `uv run pytest`, set `PUBLIC_BASE_URL` to your tunnel URL, `uv run python server.py`, `npx -y solvapay@latest verify <url>`; deploy per [hosting/container.md](hosting/container.md) |
+| Go | `npx -y solvapay@latest doctor`, `go test ./...`, set `PUBLIC_BASE_URL` to your tunnel URL, `go run .`, `npx -y solvapay@latest verify <url>`; deploy per [hosting/container.md](hosting/container.md) |
 
 ## Reference
 
-- [packages/cli/src/commands/init.ts](https://github.com/solvapay/solvapay-sdk/blob/main/packages/cli/src/commands/init.ts) — the browser-auth flow and `.env` write.
 - [packages/cli/README.md](https://github.com/solvapay/solvapay-sdk/blob/main/packages/cli/README.md) — public CLI docs.
+- Docs topic `CLI setup` (`/sdks/typescript/setup/cli`), via the Docs MCP chain in SKILL.md.

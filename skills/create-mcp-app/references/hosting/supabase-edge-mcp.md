@@ -1,5 +1,7 @@
 # Supabase Edge Functions — MCP server
 
+> **TypeScript only.** Supabase Edge runs the TypeScript SDK (`@solvapay/mcp/fetch`). Python and Go servers deploy as containers: [container.md](container.md).
+
 Deploy a SolvaPay MCP server on Supabase Edge Functions using `@solvapay/mcp/fetch`. Deno-based; same factory as Cloudflare Workers with `Deno.readTextFile` for widget HTML.
 
 ## Prerequisites

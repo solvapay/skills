@@ -1,0 +1,12 @@
+[project]
+name = "research-mcp"
+version = "0.1.0"
+description = "An existing MCP server on the official MCP Python SDK, with no paywall yet (eval fixture)"
+requires-python = ">=3.10"
+dependencies = [
+  "mcp>=2.3,<3",
+  "uvicorn>=0.32",
+]
+
+[tool.uv]
+package = false

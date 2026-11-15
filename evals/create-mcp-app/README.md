@@ -15,7 +15,15 @@ Eval prompts use:
 
 Set `SCAFFOLDER_SCRIPTS_DIR` to `create-solvapay/scripts/mcp` or install `create-solvapay` locally if resolution fails.
 
-Fixtures: copy from `<skills-repo>/evals/create-mcp-app/fixtures/petstore-mcp/` per eval setup blocks.
+Fixtures: copy per eval setup blocks.
+
+| Fixture | Language | Used by |
+| --- | --- | --- |
+| `fixtures/petstore-mcp/` | TypeScript, scaffolded Workers project | extend / existing-server / deploy cases |
+| `fixtures/research-mcp-python/` | Python, an MCP SDK 2.x `MCPServer` with no paywall | `python-existing-server-paywall` |
+| `fixtures/quotes-mcp-go/` | Go, a `solvapay.NewMCPServer` project never deployed | `go-container-deploy` |
+
+The Python and Go scaffold cases (`python-from-scratch`, `go-from-scratch`) need a `create-solvapay` whose `--help` lists `--language`, plus Python >= 3.10 with uv or Go >= 1.26 on the runner.
 
 ## Dev-mode contract
 

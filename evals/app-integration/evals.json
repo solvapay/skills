@@ -110,6 +110,66 @@
         "SOLVAPAY_SECRET_KEY is configured as a Supabase edge secret, never in VITE_* or .env shipped to the browser",
         "Agent does not install @preview packages or point at api-dev.solvapay.com"
       ]
+    },
+    {
+      "id": 10,
+      "slug": "fastapi-paywall",
+      "prompt": "i have a fastapi app (pyproject.toml, uv). put a solvapay paywall on POST /summarise — users are already authenticated with a Depends(current_user) dependency. return 402 with the checkout link when they need to pay.",
+      "expected_output": "Agent loads solvapay/app-integration, detects Python/FastAPI, reads references/python.md, runs `npx -y solvapay@latest init --language python`, wraps an async function with `@solvapay.payable()`, calls it with `customer_ref=user.id` from the Depends user, and answers `PaywallError` with 402 and `error.gate[\"checkoutUrl\"]`.",
+      "files": [],
+      "assertions": [
+        "Agent loads solvapay/app-integration (not solvapay/create-mcp-app) and reads references/python.md",
+        "Agent runs or tells the user to run `npx -y solvapay@latest init --language python`",
+        "The paid work is an `async` function decorated with `@solvapay.payable()` from `create_solvapay()`",
+        "customer_ref comes from the authenticated user returned by `Depends(current_user)` — not from the request body, a query string or an x-user-id header",
+        "`PaywallError` is caught and answered with HTTP 402 including `checkoutUrl` from `error.gate`",
+        "Agent emits a runnable curl check for 401 (unauthenticated) or 402 and for 200"
+      ]
+    },
+    {
+      "id": 11,
+      "slug": "go-net-http-paywall",
+      "prompt": "go api on net/http (go.mod in repo). add a solvapay paywall to POST /reports. users come from our session cookie via currentUser(r).",
+      "expected_output": "Agent loads solvapay/app-integration, detects Go, reads references/go.md, runs `npx -y solvapay@latest init --language go`, builds `solvapay.NewClient`, `solvapay.NewPaywall` and `solvapay.Payable(...)`, passes `CustomerRef` from currentUser, and maps `*solvapay.PaywallError` to 402 with checkoutUrl.",
+      "files": [],
+      "assertions": [
+        "Agent loads solvapay/app-integration and reads references/go.md",
+        "Agent runs or tells the user to run `npx -y solvapay@latest init --language go`",
+        "The handler uses `solvapay.Payable(paywall, solvapay.PayableOptions{...}, fn)` with a paywall from `solvapay.NewPaywall(client, solvapay.PaywallOptions{})`, and checks the errors at startup",
+        "`PaidCall.CustomerRef` comes from currentUser(r); an unauthenticated request gets 401 before the paid function runs",
+        "A gated call is detected with `errors.As(err, &gated)` on `*solvapay.PaywallError` and answered 402 with `checkoutUrl` from `gated.Gate`",
+        "Agent emits a runnable curl check for the failure path and the happy path"
+      ]
+    },
+    {
+      "id": 12,
+      "slug": "react-on-go-backend",
+      "prompt": "our frontend is react (vite) and the backend is a go net/http service. we want the solvapay react checkout and plan components to work. where do the /api routes come from?",
+      "expected_output": "Agent loads solvapay/app-integration, reads references/react.md and references/go.md, mounts `solvapay.NewWebHandler(solvapay.WebOptions{Client, GetUser, ReturnURL?, CORSOrigins})` under /api/ on the Go server, verifies the user in GetUser from the app's own session/token, and configures SolvaPayProvider's auth adapter to send the app token. No TypeScript backend is added.",
+      "files": [],
+      "assertions": [
+        "Agent loads solvapay/app-integration and reads references/react.md and references/go.md",
+        "The Go server mounts `solvapay.NewWebHandler(solvapay.WebOptions{...})` at `/api/` — the agent does not add an Express or Next.js backend",
+        "`GetUser` verifies the request with the app's own session or token and returns `*solvapay.WebUser`; it never trusts an x-user-id header",
+        "`CORSOrigins` is set to the frontend origin when the frontend is on another origin (or the agent serves /api from the same origin)",
+        "The React side wraps the app in `SolvaPayProvider` with an auth adapter (`getToken`, `getUserId`) or relies on a same-origin session cookie",
+        "SOLVAPAY_SECRET_KEY stays on the Go server and is not put in any VITE_* variable"
+      ]
+    },
+    {
+      "id": 13,
+      "slug": "python-webhooks",
+      "prompt": "starlette app. add a solvapay webhook endpoint that grants access on purchase.created and revokes on purchase.cancelled",
+      "expected_output": "Agent loads solvapay/app-integration, reads references/python.md (Webhooks) and WEBHOOKS.md, adds a POST route that passes `await request.body()` to `verify_webhook(body=..., signature=request.headers.get(\"sv-signature\"), secret=...)`, answers 401 on `SolvaPayError`, branches on `event[\"type\"]`, and reads SOLVAPAY_WEBHOOK_SECRET so a missing value fails loudly.",
+      "files": [],
+      "assertions": [
+        "Agent loads solvapay/app-integration and reads references/python.md",
+        "The route passes the raw body (`await request.body()`) to `verify_webhook` — not `await request.json()` or a re-serialized model",
+        "`verify_webhook` is called with `body=`, `signature=` (the `sv-signature` header) and `secret=` from SOLVAPAY_WEBHOOK_SECRET",
+        "`SolvaPayError` is caught and answered with a 4xx; the agent mentions `webhook_secret_missing` or makes a missing secret fail at startup",
+        "The handler branches on `event[\"type\"]` for purchase.created and purchase.cancelled and returns 200 after handling",
+        "The webhook secret is server-only and not hard-coded"
+      ]
     }
   ]
 }

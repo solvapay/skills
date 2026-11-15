@@ -1,5 +1,7 @@
 # intent-driven — author intent tools yourself
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 > **Recommended when an LLM agent (Cursor/Claude/etc.) is in the loop.** The agent reads `describe.mjs` output, clusters operations into higher-level intents (`manage_pet`, `find_pet`, etc.), and authors `src/tools/<intent>.ts` directly. Terminal-only invocations via `npx -y create-solvapay@latest -- --type mcp` cannot use this mode — they default to `one-to-one` (see [scaffold.md](scaffold.md)).
 
 Optional alternative to one-to-one mode. `scaffold.mjs` only bootstraps the project skeleton; you author `src/tools/<intent>.ts` files directly using the patterns documented in [intent-driven-patterns.md](intent-driven-patterns.md).

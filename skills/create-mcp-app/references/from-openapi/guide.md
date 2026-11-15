@@ -1,5 +1,7 @@
 # OpenAPI → MCP
 
+> **TypeScript only.** OpenAPI mode generates a TypeScript Cloudflare Workers server. `--openapi` with `--language python` or `--language go` fails; for Python or Go, hand-write the tools per [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Generate a SolvaPay-wired Cloudflare Workers MCP server from an OpenAPI document. State-based router — pick the module that matches the user's current situation, not a linear walkthrough.
 
 > Arrived from [../../SKILL.md](../../SKILL.md)? Right place. This guide owns scaffold → init → deploy → verify → test end-to-end; hand-tuning at the end returns to [../tool-design.md](../tool-design.md).
