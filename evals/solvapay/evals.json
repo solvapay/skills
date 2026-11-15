@@ -83,6 +83,32 @@
         "Agent does not route to solvapay/app-integration or solvapay/create-mcp-app",
         "Agent does not implement anything after the handoff"
       ]
+    },
+    {
+      "id": 8,
+      "slug": "router-python-go-surfaces",
+      "prompt": "we have two things: a python mcp server for our research tools and a go net/http api. want solvapay billing on both. which skills?",
+      "expected_output": "Router maps the Python MCP server to solvapay/create-mcp-app and the Go API paywall to solvapay/app-integration, emits the handoff template by skill id, and does not write code.",
+      "files": [],
+      "assertions": [
+        "Agent routes the Python MCP server to `solvapay/create-mcp-app`",
+        "Agent routes the Go net/http API to `solvapay/app-integration`",
+        "Agent routes by namespaced skill id (solvapay/<surface>) — not ../ file paths",
+        "Agent does not write paywall code or run a scaffolder"
+      ]
+    },
+    {
+      "id": 9,
+      "slug": "router-sell-to-agents",
+      "prompt": "we want ai agents to pay us per call with solvapay. not sure what we need",
+      "expected_output": "Router recognises selling to agents (agent payments, preview) as a build-side request, asks which surface is being sold (MCP tools or an HTTP API) or routes by the stated surface, and does not send it to solvapay/pay-with-solvapay.",
+      "files": [],
+      "assertions": [
+        "Agent asks whether the agents call MCP tools or an HTTP API, or routes MCP tools to `solvapay/create-mcp-app` and an API to `solvapay/app-integration`",
+        "Agent does NOT route to `solvapay/pay-with-solvapay` (that skill is for paying, not selling)",
+        "Agent says agent payments are in preview and need enabling on the merchant account, or leaves that to the surface skill without claiming it is generally available",
+        "Agent does not write code"
+      ]
     }
   ]
 }
