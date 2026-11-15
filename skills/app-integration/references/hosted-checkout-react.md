@@ -12,10 +12,10 @@ React-only projects need a backend for SolvaPay secret operations.
 
 ## Procedure
 
-1. Confirm a backend exists (Express, Next API, Supabase Edge, etc.). If none, add one: the Express skeleton below, or [supabase-edge.md](supabase-edge.md).
+1. Confirm a backend exists (Express, Next API, Supabase Edge, a Python or Go service, etc.). If none, add one: the Express skeleton below, or [supabase-edge.md](supabase-edge.md). A Python (Starlette, FastAPI) or Go (`net/http`) backend mounts the SDK's web routes instead of the skeleton: [python.md](python.md), [go.md](go.md). They serve the same `POST /api/create-checkout-session` → `{ checkoutUrl }` and `POST /api/create-customer-session` contract.
 2. Implement backend routes (below).
 3. Keep `SOLVAPAY_SECRET_KEY` server-only.
-4. Frontend: send auth token to backend; redirect to hosted URLs; refresh access after return.
+4. Frontend: send your app's auth token to the backend (the backend verifies it and derives the customer; never send a user id it trusts); redirect to hosted URLs; refresh access after return.
 
 ## Minimal Express backend skeleton
 
