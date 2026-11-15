@@ -107,7 +107,7 @@
         "The agent ran `npm create solvapay` with `--type mcp --no-openapi` (or `pnpm/yarn create solvapay --no-openapi`) — not describe.mjs/scaffold.mjs from the OpenAPI agent path",
         "The project is rooted at `./haiku-mcp/` with `package.json`, `wrangler.jsonc`, and `src/worker.ts` calling `createSolvaPayMcpFetch` (or equivalent fetch-first factory)",
         "`src/tools/generate_haiku.ts` exists and exports `registerGenerateHaiku(ctx, env?)` (per the file-layout convention)",
-        "The scaffolder's placeholder tool (e.g. `helloTool`/`placeholder`/`hello`) is no longer registered — its file is deleted or replaced, and `src/tools/index.ts` does NOT import/call any leftover placeholder register function",
+        "The scaffolder's placeholder tool (e.g. `hello_tool`/`helloTool`/`placeholder`/`hello`) is no longer registered — its file is deleted or replaced, and `src/tools/index.ts` does NOT import/call any leftover placeholder register function",
         "`generate_haiku` is registered via `ctx.registerPayable('generate_haiku', { title, description, schema, handler, annotations? })` — the 2-arg shape, second arg a single config object",
         "The handler returns `c.respond({ lines: [...] }, { text: <narration with render instruction> })` — not raw content arrays, not iframe payloads",
         "The Zod schema validates `topic: z.string()` (required) and `mood: z.enum(['serene','melancholy','playful']).optional()`",
