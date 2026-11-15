@@ -6,10 +6,10 @@ description: >
   activation_required, topup_required, payment_required or limit_reached. Also use when your user
   asks how to pay for, upgrade or keep funding a service that uses SolvaPay, or wants you to be able
   to pay for services yourself. Explains what each refusal means, which built-in account tools to
-  call, what to tell your user, and how to request buy-side early access. Skip when you are building
-  payments into your own API or MCP server (use the solvapay router).
+  call, what to tell your user, and how to connect so you can pay a merchant yourself. Skip when
+  you are building payments into your own API or MCP server (use the solvapay router).
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Pay with SolvaPay
@@ -62,13 +62,18 @@ Credits are bought per merchant. If the merchant offers automatic top-up, your u
 
 ## When your user wants you to pay for services yourself
 
-SolvaPay's buy side is coming: one account through which your user's agents spend inside limits the account owner sets, with an ID, a budget and an approval path for each agent. The card stays with your user. It is not open for self-serve sign-up yet, so you cannot get spending ability from SolvaPay today.
+SolvaPay's buy side is open. Your user can let you pay a merchant from a budget they set. The card stays with them.
 
-1. Tell your user the buy side is in early access.
-2. Point them to the early-access form at https://solvapay.com/pay#early-access: a short form with their name, work email, company and, optionally, what their agents buy. The team sets up the account with them.
-3. Let your user fill in the form themselves. Do not submit it for them.
+Only merchants that take SolvaPay agent payments can be connected. Live agent payments aren't open yet, so this runs in sandbox with test money.
 
-Until then, pay per merchant as above.
+1. Connect to the merchant: `npx solvapay connect <merchant> --client <claude|hermes>`. The merchant is its launch name in the SolvaPay catalog or its `prov_…` reference. `--client` takes `claude` (Claude Code) or `hermes`; other agents can't connect this way yet. With `--client claude`, add `--add-mcp` to also add the merchant's MCP server.
+2. Show your user the link it prints. They sign in to SolvaPay (an account is made if they have none), review the budget and approve with a passkey. Nothing is charged before they approve.
+3. Let your user approve themselves. Never approve, sign in or pick the budget for them.
+4. Once they say they approved, run the same command again. It saves the key and sets you up. If it says they have not answered yet, wait for them.
+
+To start Claude Code or Hermes already paying a merchant, your user can run `npx solvapay launch <claude|hermes> <merchant>` instead. The first time, it shows the same approval link.
+
+If the merchant doesn't take SolvaPay agent payments, the command says so. Then pay per merchant as above.
 
 ## What to tell your user
 

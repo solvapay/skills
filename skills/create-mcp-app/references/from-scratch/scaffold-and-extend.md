@@ -1,4 +1,6 @@
-# Scaffold and extend a hand-written paid MCP server
+# Scaffold and extend a hand-written paid MCP server (TypeScript)
+
+TypeScript only. Python and Go projects add tools as shown in their language file ([../languages/python.md](../languages/python.md), [../languages/go.md](../languages/go.md): Register a paid tool, Free tool).
 
 This guide picks up **after** the scaffolder finishes. It covers orienting on what `npm create solvapay@latest -- --type mcp --no-openapi` produced, replacing the placeholder paid tool, adding more paid tools by hand, and handing off to deploy.
 
@@ -15,31 +17,22 @@ This guide picks up **after** the scaffolder finishes. It covers orienting on wh
 If you haven't scaffolded yet:
 
 ```bash
-npm create solvapay@latest my-mcp -- --type mcp --no-openapi
+npm create solvapay@latest my-mcp -- --type mcp --language ts --no-openapi
 # or: pnpm create solvapay@latest my-mcp -- --type mcp --no-openapi
 # or: yarn create solvapay@latest my-mcp -- --type mcp --no-openapi
 ```
 
-The scaffolder asks for a project name + a tool name (default `helloTool`), then drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
+The scaffolder asks for a project name + a tool name (default `hello_tool`), then drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
 
 ### Pick the tool name in snake_case
 
-Pass the final MCP tool name (snake_case) to `--tool-name`, even though the prompt examples historically used camelCase. The scaffolder uses this value verbatim as both the file name (`src/tools/<tool-name>.ts`) and the `ctx.registerPayable(<tool-name>, ...)` argument. MCP tool names are snake_case by convention (`get_item`, `generate_haiku`, `manage_pet`), and the host UI / LLM grounding both work better when file name, register name, and tool identifier match.
+Pass the final MCP tool name (snake_case) to `--tool-name`. The scaffolder uses it as the file name (`src/tools/<tool-name>.ts`) and the `ctx.registerPayable('<tool-name>', ...)` argument, and derives the `register<ToolName>` function from it (`generate_haiku` gives `registerGenerateHaiku`). MCP tool names are snake_case by convention (`get_item`, `generate_haiku`, `manage_pet`), and the host UI / LLM grounding both work better when file name, register name, and tool identifier match.
 
 ```bash
-# Right — final tool name is generate_haiku
 npm create solvapay@latest haiku-mcp -- --type mcp --no-openapi --tool-name generate_haiku
-
-# Wrong — produces src/tools/generateHaiku.ts and registerPayable('generateHaiku', ...)
-npm create solvapay@latest haiku-mcp -- --type mcp --no-openapi --tool-name generateHaiku
 ```
 
-If you've already scaffolded with a camelCase `--tool-name`, fix it in three places before continuing:
-1. Rename `src/tools/<camelCaseName>.ts` → `src/tools/<snake_case_name>.ts`.
-2. Change the `ctx.registerPayable('<camelCaseName>', { ... })` first argument to `'<snake_case_name>'`.
-3. Update the `import` and `register*()` call in `src/tools/index.ts` to point at the new file path (the exported function name like `registerGenerateHaiku` is fine to keep PascalCase — that's the JS function, not the MCP identifier).
-
-A `grep -rn '<camelCaseName>' src/ scripts/` should return zero hits after the rename.
+The scaffolder still accepts a camelCase name, but then the file and the registered tool name are camelCase too. Pass snake_case, and no rename is needed.
 
 ## What the scaffolder produced
 
@@ -74,7 +67,7 @@ my-mcp/
 
 ## Pre-read
 
-Before writing any tool code, read [../tool-design.md](../tool-design.md). It covers the three response modes, intent composition, annotations, and the rule that payable tools return data for the host to render — not iframes. This is load-bearing for the success of the scaffolded server.
+Before writing any tool code, read [../tool-design.md](../tool-design.md) and [../languages/ts.md](../languages/ts.md). They cover the three response modes, intent composition, annotations, and the rule that payable tools return data for the host to render — not iframes. This is load-bearing for the success of the scaffolded server.
 
 ## Add another paid tool
 
@@ -192,7 +185,6 @@ For the full tool design rules (response modes, narration shape, annotations, na
 
 The scaffolder left a working echo tool inside `src/tools/<toolName>.ts` so the paywall is verifiable on first deploy. Treat it as a starting point:
 
-- **Rename to snake_case if needed.** If `--tool-name` ended up camelCase (e.g. `generateHaiku`), the placeholder file is at `src/tools/generateHaiku.ts` and `ctx.registerPayable` was called with `'generateHaiku'`. Rename the file to its snake_case form (`generate_haiku.ts`), change the `registerPayable` first argument to match, and update the import path in `src/tools/index.ts`. The PascalCase export name (`registerGenerateHaiku`) is the JS function and stays as-is. This is the single most-missed step — see [Pick the tool name in snake_case](#pick-the-tool-name-in-snake_case) above for the full rename checklist.
 - Rename the function and tool name if you picked a generic placeholder during scaffold.
 - Replace the sample `respond({ ok: true, echoed: ... })` body with your real business logic.
 - Replace the placeholder `description` (currently flags itself as a demo echo) with what the LLM needs to decide *when* to invoke this tool. The description is the only signal the model gets.

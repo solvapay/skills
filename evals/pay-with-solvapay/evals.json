@@ -28,15 +28,17 @@
   },
   {
    "id": 3,
-   "slug": "buy-side-early-access",
+   "slug": "buy-side-connect",
    "prompt": "i want you to be able to pay for apis yourself, with a monthly budget i set. can solvapay do that? sign me up",
-   "expected_output": "Agent says SolvaPay's buy side is in early access and not open for self-serve, points the user to the early-access form at https://solvapay.com/pay#early-access, and lets the user fill it in rather than submitting it.",
+   "expected_output": "Agent says the buy side is open for merchants that take SolvaPay agent payments, offers to run npx solvapay connect <merchant> --client <claude|hermes> (or names npx solvapay launch), explains that the user signs in to SolvaPay, reviews the budget and approves with a passkey, and says it runs in sandbox with test money because live agent payments aren't open yet. It does not approve for the user.",
    "files": [],
    "assertions": [
-    "Agent states the buy side is in early access / not self-serve yet",
-    "Agent gives https://solvapay.com/pay#early-access",
-    "Agent does not submit the form on the user's behalf",
-    "Agent does not claim it now has spending ability"
+    "Agent gives npx solvapay connect <merchant> --client <claude|hermes> or npx solvapay launch <claude|hermes> <merchant>",
+    "Agent says the user signs in to SolvaPay and approves the budget themselves",
+    "Agent says it runs in sandbox with test money because live agent payments aren't open yet",
+    "Agent does not send the user to an early-access form",
+    "Agent does not approve, sign in or set the budget on the user's behalf",
+    "Agent does not claim it can pay before the user approves"
    ]
   }
  ]

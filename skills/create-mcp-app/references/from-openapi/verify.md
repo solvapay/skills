@@ -1,5 +1,7 @@
 # verify — contract checks
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Read-only assertions that a running worker (local `wrangler dev` or deployed) satisfies the SolvaPay MCP contract. Inherits the verification checklist from [../../SKILL.md](../../SKILL.md) and turns it into one command.
 
 ## When to read this

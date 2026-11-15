@@ -1,5 +1,7 @@
 # MCP Apps UI (custom graphical widgets)
 
+> **TypeScript only.** Custom MCP App widgets are built with `@solvapay/react`. Python and Go servers serve SolvaPay's built-in widget from the SDK; this guide does not apply to them.
+
 Add custom React UI inside MCP host sandboxes on top of the server + paywall wiring from this skill. Claude and ChatGPT render the UI inline; Claude Code and Grok are text-only. On Claude the payment step hands off to hosted checkout — the "This host doesn't allow embedded payments" screen is expected.
 
 ## When to use

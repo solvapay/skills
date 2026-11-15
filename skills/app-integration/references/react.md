@@ -26,7 +26,17 @@ npm install @solvapay/react
 
 ## Backend Requirement
 
-React client alone is not enough. The integration needs server endpoints that use `@solvapay/server` or `@solvapay/next`.
+React client alone is not enough. The integration needs server endpoints, and the React components are the same whichever language serves them:
+
+| Backend | Serves the routes with | Guide |
+| --- | --- | --- |
+| TypeScript | `@solvapay/server` (`@solvapay/server/fetch` route handlers) or `@solvapay/next` | [express.md](express.md), [nextjs.md](nextjs.md), [supabase-edge.md](supabase-edge.md) |
+| Python (Starlette, FastAPI) | `solvapay.web.routes(solvapay, get_user=...)` | [python.md](python.md) |
+| Go (`net/http`) | `solvapay.NewWebHandler(solvapay.WebOptions{Client, GetUser})` | [go.md](go.md) |
+
+Python and Go answer every route `@solvapay/react` calls (`/api/check-purchase`, `/api/create-payment-intent`, `/api/list-plans`, …) the same way TypeScript does; a shared conformance suite checks them. Your React app does not change.
+
+**Identity comes from a verified token or session.** The backend's `getUser` / `get_user` / `GetUser` verifies the request with your app's own auth and returns the user; that user's id becomes the SolvaPay customer. Nothing the browser sends is identity: an `x-user-id` header is ignored.
 
 ## Backend Contract (Required)
 
@@ -38,7 +48,7 @@ React client alone is not enough. The integration needs server endpoints that us
 ## Frontend Integration Pattern
 
 - Initialize `SolvaPayProvider` at app root. MCP host iframe UI belongs to `solvapay/create-mcp-app`.
-- Ensure auth token is attached to backend API calls.
+- Ensure auth token is attached to backend API calls: `SolvaPayProvider`'s auth adapter (`getToken`, `getUserId`) sends your app's own token, which the backend verifies. With a same-origin session cookie the browser sends it by itself.
 - Use purchase/access hooks to gate premium UI (`usePurchase`, `PurchaseGate`).
 - Trigger redirects using returned hosted URLs.
 

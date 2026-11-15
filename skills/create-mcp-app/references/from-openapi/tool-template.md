@@ -1,5 +1,7 @@
 # Behavioral contract: skill ↔ template
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 What `scaffold.mjs`, `verify.mjs`, and `test.mjs` assume the template at `create-solvapay/templates/mcp/from-openapi/` provides. The template can evolve without breaking the skill as long as this contract holds.
 
 Rationale (why arrow wrapper, why single environment, etc.) lives in [design-notes.md](design-notes.md) — maintainer-only.

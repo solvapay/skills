@@ -1,5 +1,7 @@
 # describe — inspect the OpenAPI spec
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Read-only first step. Run this whenever you (or the user) want to know what the generated worker would look like without writing any files.
 
 ## When to read this

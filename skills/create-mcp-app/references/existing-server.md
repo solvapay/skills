@@ -2,6 +2,10 @@
 
 Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already exists. Low-level wiring is in [mcp-server-wiring.md](mcp-server-wiring.md); this guide audits your server first.
 
+## Python or Go server?
+
+This guide is the TypeScript path. For a Python or Go MCP server, read the **Existing server** section of [languages/python.md](languages/python.md) or [languages/go.md](languages/go.md) (whichever SKILL.md picked), then come back for the audit below and the Verification section. In short: paid tools need the SDK's own server (`create_solvapay_mcp_server` in Python, `solvapay.NewMCPServer` in Go), so the existing tools move onto it. Run `npx -y solvapay@latest init --language python|go` to install the SDK and write `.env`, and verify with `npx -y solvapay@latest verify <url>`.
+
 ## When to read this
 
 - You have an MCP server you control (any runtime, any transport) and want to add a SolvaPay paywall.
@@ -24,7 +28,7 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 ## Prerequisites
 
 - A running MCP server you control, built on the official MCP TypeScript SDK or an MCP-compatible framework.
-- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint. `@solvapay/mcp` peers on `@modelcontextprotocol/server@^2` + `@modelcontextprotocol/core@^2`. Migrate only if the HTTP entry file imports `@modelcontextprotocol/sdk`. A leftover `@modelcontextprotocol/sdk` dependency next to `@modelcontextprotocol/server` is not a migration.
+- Ability to add a dependency (`@solvapay/mcp` + `@solvapay/mcp-core` + `@solvapay/server`) and edit the HTTP entrypoint. Install them at npm's latest. If the project already has `@solvapay/*` packages, run `npx -y solvapay@latest doctor` and run the upgrade command it prints before changing any code: old versions carry bugs that are already fixed. `@solvapay/mcp` peers on `@modelcontextprotocol/server@^2` + `@modelcontextprotocol/core@^2`. Migrate only if the HTTP entry file imports `@modelcontextprotocol/sdk`. A leftover `@modelcontextprotocol/sdk` dependency next to `@modelcontextprotocol/server` is not a migration.
 - SolvaPay account with a secret key (`sk_...`) and a product ref (`prd_...`). If the product doesn't exist yet, pause and ask the user to create one in SolvaPay Console (https://app.solvapay.com).
 
 ## Audit
@@ -40,7 +44,7 @@ Answer these before writing code:
 
 ## Pre-read
 
-Read [tool-design.md](tool-design.md) before wrapping any existing tool. It covers the three response modes, intent composition, the `_meta.ui.resourceUri` rule, and how `registerPayable` handles gate narration automatically — none of which you'll infer from your existing code.
+Read [tool-design.md](tool-design.md) and your language file before wrapping any existing tool. It covers the three response modes, intent composition, the `_meta.ui.resourceUri` rule, and how `registerPayable` handles gate narration automatically — none of which you'll infer from your existing code.
 
 ## File layout convention
 
@@ -163,7 +167,7 @@ Use the checklist from [mcp-server-wiring.md](mcp-server-wiring.md), plus:
 - [ ] Complete audit (runtime, transport, auth, tool count, paywall-today, widget needs)
 - [ ] Read [tool-design.md](tool-design.md)
 - [ ] Pick the right `@solvapay/mcp` subpath
-- [ ] Install deps and follow [mcp-server-wiring.md](mcp-server-wiring.md)
+- [ ] Install deps at npm's latest (or upgrade them, per `npx -y solvapay@latest doctor`) and follow [mcp-server-wiring.md](mcp-server-wiring.md)
 - [ ] Re-register paid tools via `registerPayable` / `payable.mcp`; free-capped via `registerFree`; remove custom gating
 - [ ] Wire `hideToolsByAudience: ['ui']`
 - [ ] Optional: embed the widget for intent tools

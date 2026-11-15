@@ -10,12 +10,12 @@
     "split": "train"
   },
   {
-    "query": "verify solvapay webhook signiture in express",
+    "query": "verify solvapay webhook signature in my starlette app",
     "should_trigger": true,
     "split": "train"
   },
   {
-    "query": "my boss wanna manage billing button in our existing react dashboard can u do that",
+    "query": "let ai agents pay per call for my rest api with solvapay",
     "should_trigger": true,
     "split": "train"
   },
@@ -25,17 +25,17 @@
     "split": "train"
   },
   {
-    "query": "add upgrade page redirects to solvapay checkout",
+    "query": "paywall my fastapi endpoint with the solvapay python sdk asap",
     "should_trigger": true,
     "split": "train"
   },
   {
-    "query": "protect my supabase function with solvapay limits check",
+    "query": "go net/http api needs a solvapay paywall and hosted checkout",
     "should_trigger": true,
     "split": "validation"
   },
   {
-    "query": "i need cancel renewal and reactivate plan wired w solvapay sdk its broken rn",
+    "query": "solvapay react components but our backend is go, where do the /api routes come from",
     "should_trigger": true,
     "split": "validation"
   },
@@ -70,7 +70,7 @@
     "split": "train"
   },
   {
-    "query": "openapi to mcp cloudflare workers",
+    "query": "paid mcp server in python with solvapay",
     "should_trigger": false,
     "split": "train"
   },
@@ -80,7 +80,7 @@
     "split": "train"
   },
   {
-    "query": "add solvapay to existing mcp server dont rescaffold one shot",
+    "query": "add a solvapay paywall to my existing go mcp server dont rescaffold",
     "should_trigger": false,
     "split": "validation"
   },

@@ -1,5 +1,7 @@
 # scaffold — generate the worker
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Destructive step. Takes a curated `selections.json` and produces a Cloudflare Workers MCP project with one tool file per non-skipped operation, SolvaPay paywall wiring on paid tools, and a gitignored `.env`.
 
 ## When to read this

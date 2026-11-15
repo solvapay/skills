@@ -1,5 +1,7 @@
 # `selections.json` schema
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 The contract between the agent (which writes `selections.json`) and `scaffold.mjs` (which reads it). Captured here so both sides agree.
 
 ## Discriminated union on `upstreamAuth.kind`
