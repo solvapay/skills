@@ -1,14 +1,25 @@
 # create-mcp-app scripts
 
-Thin wrappers around the `create-solvapay` scaffolder scripts. Run from the skill directory:
+A toolchain check for every language, and thin wrappers around the `create-solvapay` OpenAPI scaffolder scripts (TypeScript only). Run from the skill directory:
 
 ```bash
+node scripts/check-toolchain.mjs --language python   # or ts, go
 node scripts/describe.mjs path/to/openapi.json
 node scripts/scaffold.mjs path/to/openapi.json ./target --selections /tmp/selections.json
 node scripts/validate-selections.mjs /tmp/selections.json
 ```
 
-All skill scripts support `--help`. Upstream scaffolder scripts (`describe.mjs`, `scaffold.mjs`) also support `--help` when resolved.
+All skill scripts support `--help`.
+
+## Toolchain check
+
+`check-toolchain.mjs --language <ts|python|go>` prints one `ok` / `fail` line per check and exits 1 on any failure:
+
+- `node` — Node.js >= 20 (the SolvaPay CLI needs it in every language).
+- `npm` (ts), `uv` and Python >= 3.10 as uv finds it (python), Go >= 1.26 (go).
+- `cli` — `npx -y create-solvapay@latest --help` lists `--language`. Python and Go fail without it; TypeScript passes and you omit the flag. `--skip-cli` skips this check (offline).
+
+Run it before `npm create solvapay@latest <name> -- --type mcp --language python|go`. Do not scaffold while it fails. Upstream scaffolder scripts (`describe.mjs`, `scaffold.mjs`) also support `--help` when resolved.
 
 ## Agent bootstrap
 
@@ -47,14 +58,14 @@ resolution can pick it ahead of `@latest`.
 
 ## Project-local scripts
 
-After scaffolding (`npm create solvapay@latest -- --type mcp`), these live in the **generated project**:
+After a TypeScript scaffold (`npm create solvapay@latest -- --type mcp`), these live in the **generated project**:
 
 ```bash
 node scripts/verify.mjs http://localhost:8787
 node scripts/test.mjs https://my-worker.example.com --spec path/to/openapi.json
 ```
 
-`verify.mjs` and `test.mjs` are not in this skill directory — they ship inside the scaffolded worker.
+`verify.mjs` and `test.mjs` are not in this skill directory — they ship inside the scaffolded worker. Python and Go projects use the CLI instead: `npx -y solvapay@latest verify <url>`.
 
 ## Source of truth
 

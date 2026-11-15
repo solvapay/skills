@@ -1,4 +1,6 @@
-# Scaffold and extend a hand-written paid MCP server
+# Scaffold and extend a hand-written paid MCP server (TypeScript)
+
+TypeScript only. Python and Go projects add tools as shown in their language file ([../languages/python.md](../languages/python.md), [../languages/go.md](../languages/go.md): Register a paid tool, Free tool).
 
 This guide picks up **after** the scaffolder finishes. It covers orienting on what `npm create solvapay@latest -- --type mcp --no-openapi` produced, replacing the placeholder paid tool, adding more paid tools by hand, and handing off to deploy.
 
@@ -15,7 +17,7 @@ This guide picks up **after** the scaffolder finishes. It covers orienting on wh
 If you haven't scaffolded yet:
 
 ```bash
-npm create solvapay@latest my-mcp -- --type mcp --no-openapi
+npm create solvapay@latest my-mcp -- --type mcp --language ts --no-openapi
 # or: pnpm create solvapay@latest my-mcp -- --type mcp --no-openapi
 # or: yarn create solvapay@latest my-mcp -- --type mcp --no-openapi
 ```
@@ -74,7 +76,7 @@ my-mcp/
 
 ## Pre-read
 
-Before writing any tool code, read [../tool-design.md](../tool-design.md). It covers the three response modes, intent composition, annotations, and the rule that payable tools return data for the host to render — not iframes. This is load-bearing for the success of the scaffolded server.
+Before writing any tool code, read [../tool-design.md](../tool-design.md) and [../languages/ts.md](../languages/ts.md). They cover the three response modes, intent composition, annotations, and the rule that payable tools return data for the host to render — not iframes. This is load-bearing for the success of the scaffolded server.
 
 ## Add another paid tool
 

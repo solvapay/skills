@@ -1,5 +1,7 @@
 # intent-driven patterns — the three templates
 
+> **TypeScript only** (OpenAPI mode). Python and Go have no OpenAPI mode; see [../from-scratch/guide.md](../from-scratch/guide.md).
+
 Code templates for the three intent-tool shapes referenced from [intent-driven.md](intent-driven.md). Read the design context in [intent-driven.md](intent-driven.md) (mode question, clustering heuristics, gate contracts, tier rules) **before** copy-pasting from this file. The contract for `registerPayable` / `c.respond` lives in [../tool-design.md](../tool-design.md) — non-negotiable, regardless of how familiar these templates feel.
 
 ## Upstream auth headers (by `upstreamAuth.kind`)

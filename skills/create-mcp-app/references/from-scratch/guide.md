@@ -1,70 +1,87 @@
 # From scratch — hand-written paid MCP tools
 
-Build a SolvaPay-paywalled MCP server without an OpenAPI spec. The scaffolder lays down a working Cloudflare Workers project with one placeholder paid tool; you replace the placeholder and add more paid tools by hand.
+Build a SolvaPay-paywalled MCP server without an OpenAPI spec, in TypeScript, Python or Go. The scaffolder lays down a working project with a placeholder paid tool (Python and Go also get one free capped tool); you replace the placeholders and add more tools by hand.
 
-> Arrived from [../../SKILL.md](../../SKILL.md)? Right place. If you actually have an OpenAPI / Swagger document, stop and route to [../from-openapi/guide.md](../from-openapi/guide.md) — the spec-first path produces a typed server with less hand-coding. If you have an MCP server that already exists and only want to add a paywall, route to [../existing-server.md](../existing-server.md) instead.
+> Arrived from [../../SKILL.md](../../SKILL.md)? Right place. If you have an OpenAPI / Swagger document and the server is TypeScript, route to [../from-openapi/guide.md](../from-openapi/guide.md). If you have an MCP server that already exists and only want to add a paywall, route to [../existing-server.md](../existing-server.md).
 
-## Agent-driven path (this is you)
+## Scaffold
 
-In Claude Code or Cursor with this skill installed:
+Check the toolchain and the CLI first (from the skill directory):
 
-- **Greenfield, no spec**: say _"Scaffold a paid MCP server, no OpenAPI"_ — the agent runs the scaffolder for you, replaces the placeholder tool with your business logic, and walks through deploy/verify/test.
-- **Already scaffolded, want to add another paid tool**: say _"Add another paid tool to my MCP server"_ — the agent jumps straight to [scaffold-and-extend.md](scaffold-and-extend.md).
+```bash
+node scripts/check-toolchain.mjs --language <ts|python|go>
+```
+
+Do not scaffold while it prints `fail`. Then:
+
+| Language | Command | Produces |
+| --- | --- | --- |
+| TypeScript | `npm create solvapay@latest my-mcp -- --type mcp --language ts --no-openapi --tool-name get_item` | Cloudflare Workers project: `src/worker.ts`, `src/tools/<tool>.ts`, `wrangler.jsonc`, `scripts/deploy.mjs`, `verify.mjs`, `test.mjs` |
+| Python | `npm create solvapay@latest my-mcp -- --type mcp --language python` | uv project: `pyproject.toml`, `server.py`, `tools.py`, `tests/test_tools.py`, `.env.example`, `Dockerfile`, `.github/dependabot.yml` |
+| Go | `npm create solvapay@latest my-mcp -- --type mcp --language go` | Go module: `go.mod`, `main.go`, `tools.go`, `tools_test.go`, `.env.example`, multi-stage `Dockerfile`, `.github/dependabot.yml` |
+
+`npx create-solvapay@latest my-mcp --type mcp --language <l>` is the same command. If the check said the CLI does not list `--language`, drop the flag for TypeScript (it is the default); Python and Go cannot be scaffolded with that CLI.
+
+The CLI runs `solvapay init` at the end (browser sign-in, `.env`). Expect it to pause for a human click; run it where the user can approve, and treat a quiet wait as expected.
 
 ## Human shortcut (terminal users only)
 
-For humans at a terminal:
-
 ```bash
-npm create solvapay@latest my-mcp -- --type mcp --no-openapi
-# or: pnpm create solvapay@latest my-mcp -- --type mcp --no-openapi
-# or: yarn create solvapay@latest my-mcp -- --type mcp --no-openapi
+npm create solvapay@latest my-mcp -- --type mcp --language python
+# or: pnpm create solvapay@latest my-mcp -- --type mcp --language go
 ```
 
-The `@latest` suffix re-resolves the npm registry every run, so the user picks up the freshest scaffolder without clearing the npx cache.
-
-The CLI asks for a project name and a camelCase tool name (default `helloTool`), drops you into a working Cloudflare Workers MCP shell with one placeholder paid tool, the SolvaPay paywall wired up, and `.env` populated by the browser-based `solvapay init` flow. The first deploy works without writing any code.
+The `@latest` suffix re-resolves the npm registry every run, so the user gets the newest scaffolder without clearing the npx cache.
 
 ## Guardrails
 
-See [../../SKILL.md](../../SKILL.md) for the umbrella's guardrails block. All apply to hand-written tools.
+See [../../SKILL.md](../../SKILL.md) for the guardrails block. All apply to hand-written tools.
 
 ## State-based routing
 
 | User state | Route to |
 | --- | --- |
-| I'm about to scaffold a hand-written project | Run the scaffolder above, then [scaffold-and-extend.md](scaffold-and-extend.md) |
-| I just ran the scaffolder, what's in the project? | [scaffold-and-extend.md](scaffold-and-extend.md) |
-| I want to replace the placeholder tool with real business logic | [scaffold-and-extend.md](scaffold-and-extend.md) (Replace the placeholder section) |
-| I want to add another paid tool to a scaffolded project | [scaffold-and-extend.md](scaffold-and-extend.md) (Add another paid tool section) |
-| I'm ready to design tool shapes (response modes, narration, annotations) | [../tool-design.md](../tool-design.md) |
-| I have a local worker and want to wire SolvaPay credentials | [../solvapay-init.md](../solvapay-init.md) |
-| I have credentials and want to deploy | [../hosting/cloudflare/](../hosting/cloudflare/) (Cloudflare default) or [../hosting/alternatives.md](../hosting/alternatives.md) (other hosts) |
+| About to scaffold | The Scaffold section above |
+| TypeScript, just scaffolded, what's in the project? | [scaffold-and-extend.md](scaffold-and-extend.md) |
+| TypeScript, replace the placeholder or add a tool | [scaffold-and-extend.md](scaffold-and-extend.md) |
+| Python or Go, replace the placeholders or add a tool | Your language file: Register a paid tool, Free tool |
+| Designing tool shapes (response modes, narration, annotations) | [../tool-design.md](../tool-design.md) |
+| Wiring SolvaPay credentials | [../solvapay-init.md](../solvapay-init.md) |
+| Deploying | TypeScript: [../hosting/cloudflare/README.md](../hosting/cloudflare/README.md); Python, Go: [../hosting/container.md](../hosting/container.md) |
+| Selling the tools to agents too | [../agent-payments.md](../agent-payments.md) |
 
 ## End-to-end happy path
 
 ```
-npm create solvapay@latest (--no-openapi) → scaffold-and-extend → tool-design (read before authoring) → solvapay-init → deploy → verify → test
+check-toolchain → npm create solvapay (--language) → tool-design + language file → replace placeholders → solvapay init → doctor → tests → run locally + verify → deploy → verify
 ```
-
-`solvapay init`, deploy, verify, and test work the same way as the from-openapi flow — see [../solvapay-init.md](../solvapay-init.md) and [../hosting/cloudflare/](../hosting/cloudflare/) for the shared steps.
 
 ## Pre-read (required)
 
-Read [../tool-design.md](../tool-design.md) before writing any tool code. It covers the three response modes (silent / nudge / gate), intent composition with the recovery tools, annotations, and the rule that payable tools return data for the host to render — not iframes. This is load-bearing.
+Read [../tool-design.md](../tool-design.md) and the one language file SKILL.md picked before writing any tool code. They cover the response modes, intent composition, identity and the rule that paid tools return data for the host to render — not iframes.
+
+## Python and Go placeholder tools
+
+The scaffold registers one paid tool (`register_payable` / `RegisterPayable`) and one free capped tool (`register_free` / `RegisterFree`) so the paywall is verifiable before you write business logic:
+
+- Replace the placeholder handler bodies with real logic, keeping the respond-with-narration shape.
+- Rename the tools to snake_case verbs that say what they do, and rewrite each description: it is the only signal the model gets for when to call the tool.
+- Update the tests (`tests/test_tools.py` / `tools_test.go`) to the new names and run `uv run pytest` / `go test ./...`.
+- Keep the free capped tool only if the product really has a free allowance; otherwise delete it.
 
 ## What's intentionally not here
 
-- Auto-generation from a spec — see [../from-openapi/guide.md](../from-openapi/guide.md).
+- Auto-generation from a spec — see [../from-openapi/guide.md](../from-openapi/guide.md) (TypeScript).
 - Paywalling a server that already exists — see [../existing-server.md](../existing-server.md).
-- Cloudflare-specific deploy steps — see [../hosting/cloudflare/](../hosting/cloudflare/).
+- Deploy steps — see the hosting guides above.
 - Credential bootstrap — see [../solvapay-init.md](../solvapay-init.md).
 
 ## Task progress
 
-- [ ] Run `npm create solvapay@latest <name> -- --type mcp --no-openapi`
-- [ ] Read [../tool-design.md](../tool-design.md)
-- [ ] Follow [scaffold-and-extend.md](scaffold-and-extend.md) to replace the placeholder and add more paid tools
-- [ ] Run [../solvapay-init.md](../solvapay-init.md) to populate credentials
-- [ ] Deploy per [../hosting/cloudflare/](../hosting/cloudflare/)
-- [ ] Verify success + gate paths in sandbox
+- [ ] `node scripts/check-toolchain.mjs --language <l>` passes
+- [ ] Scaffold with `npm create solvapay@latest <name> -- --type mcp --language <l>`
+- [ ] Read [../tool-design.md](../tool-design.md) and the language file
+- [ ] Replace the placeholder tools (TypeScript: [scaffold-and-extend.md](scaffold-and-extend.md))
+- [ ] Run [../solvapay-init.md](../solvapay-init.md) if `.env` is not filled in; confirm the product
+- [ ] `npx -y solvapay@latest doctor`, then the tests
+- [ ] Run locally and verify; deploy; verify again

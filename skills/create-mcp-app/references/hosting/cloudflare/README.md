@@ -1,5 +1,7 @@
 # Cloudflare Workers Deploy (Default, Bulletproof)
 
+> **TypeScript only.** Python and Go servers deploy as containers: [../container.md](../container.md).
+
 End-to-end deploy of a SolvaPay MCP server on Cloudflare Workers — prerequisites through gate smoke test, with troubleshooting. Self-contained: no repo cloning. The file bodies you copy during Step 2 live in two template files (split for length only):
 
 - [widget-templates-config.md](widget-templates-config.md) — `package.json`, `tsconfig.json`, `wrangler.jsonc`, `vite.config.ts`, `mcp-app.html`, `src/assets.d.ts`, `src/worker.ts`.
