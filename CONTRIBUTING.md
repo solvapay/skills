@@ -35,10 +35,14 @@ Evals: the harness sets `EVAL_DEV_MODE=1` to append `dev_mode_suffix` from `eval
 
 `npm run dev:link` symlinks every skill into `~/.agents/skills/<name>` (with a `~/.claude/skills/<name>` mirror); `npm run dev:unlink` restores the previous state. See the README.
 
+## Language references
+
+A skill that supports several languages keeps one `references/languages/<ts|python|go>.md` per language, and its SKILL.md tells the agent to read exactly one. The files share the same `##` headings in the same order (checked by `npm run validate`), so an agent finds the same answer in the same place whatever the language. Python and Go code comes from the SDK repo's `python/docs`, `go/docs` and examples; never write a Python or Go call that is not in the SDK.
+
 ## Checks before a PR
 
 ```bash
-npm run validate          # skills-reference validate on every skill
+npm run validate          # skills-reference validate on every skill, then the language-heading check
 ```
 
 Trigger-query files stay balanced (8–10 should-trigger, same number should-not) and every output eval asserts skill ids (`solvapay/<surface>`), never `../` paths.

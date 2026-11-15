@@ -10,13 +10,15 @@ Agent skills for SolvaPay, on both sides of a payment: adding SolvaPay to a proj
 | --- | --- |
 | `solvapay` | Router — disambiguates vague intent and points at the right surface skill |
 | `solvapay/pay-with-solvapay` | The paying side: what a SolvaPay paywall response means (402, `paywallReason`), the account tools on SolvaPay MCP servers, top-up and auto-recharge, and buy-side early access for agents that should pay for services themselves |
-| `solvapay/create-mcp-app` | Create or scaffold a paid MCP server on Cloudflare Workers (from OpenAPI or hand-written) |
-| `solvapay/app-integration` | Hosted checkout and customer portal, paywalls, usage, webhooks, and billing UI for an existing TypeScript / JavaScript app, API or website (Next.js, React, Express, Supabase Edge, Vite + Supabase). Formerly `sdk-integration`; also absorbs the retired `website-checkout` and `lovable-checkout` skills — `--skill website-checkout` and `--skill lovable-checkout` no longer resolve; install `--skill app-integration`. |
+| `solvapay/create-mcp-app` | Create or scaffold a paid MCP server in TypeScript (Cloudflare Workers; from OpenAPI or hand-written), Python or Go (containers; hand-written), add a paywall to an existing one, or sell its tools to agents |
+| `solvapay/app-integration` | Hosted checkout and customer portal, paywalls, usage, webhooks, and billing UI for an existing app, API or website (Next.js, React, Express, Supabase Edge, Vite + Supabase, FastAPI / Starlette, Go `net/http`), and selling API calls to agents. Formerly `sdk-integration`; also absorbs the retired `website-checkout` and `lovable-checkout` skills — `--skill website-checkout` and `--skill lovable-checkout` no longer resolve; install `--skill app-integration`. |
 
 ## What can it do?
 
 - "Scaffold a paid MCP server from this OpenAPI spec" → `solvapay/create-mcp-app`
 - "Add SolvaPay paywall to my Express API" → `solvapay/app-integration`
+- "Build a paid MCP server in Python" / "in Go" → `solvapay/create-mcp-app`
+- "Paywall my FastAPI endpoint" / "my Go `net/http` API" → `solvapay/app-integration`
 - "Add usage metering to my MCP server" → `solvapay/create-mcp-app`
 - "Add hosted checkout to my Next.js site" → `solvapay/app-integration`
 - "Add checkout to my Vite + Supabase (Lovable) app" → `solvapay/app-integration`
@@ -90,7 +92,7 @@ To validate every skill against the [agentskills.io spec](https://agentskills.io
 npm run validate
 ```
 
-This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md` (router + two flat surface skills).
+This runs `npx skills-reference validate` on every directory under `skills/` that contains a `SKILL.md`, then `scripts/check-language-headings.mjs`, which fails when the `##` headings of a skill's `references/languages/*.md` files differ.
 
 ## Releases and the discovery index
 
@@ -133,12 +135,12 @@ skills/
 │   └── SKILL.md
 ├── create-mcp-app/                 # routing id: solvapay/create-mcp-app
 │   ├── SKILL.md
-│   ├── scripts/
-│   └── references/
+│   ├── scripts/                    # incl. check-toolchain.mjs
+│   └── references/                 # incl. languages/{ts,python,go}.md, hosting/container.md
 └── app-integration/                # routing id: solvapay/app-integration
     ├── SKILL.md
     ├── scripts/
-    └── references/                 # incl. hosted-checkout-nextjs.md, hosted-checkout-react.md
+    └── references/                 # incl. hosted-checkout-*.md, python.md, go.md, agent-payments.md
 ```
 
 Routing ids use the `solvapay/<surface>` namespace for handoffs. Each directory's `name` frontmatter matches the folder (e.g. `create-mcp-app`); `npx skills add --skill` uses that flat name.
