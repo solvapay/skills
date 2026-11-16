@@ -4,7 +4,7 @@ Add SolvaPay paywall + intent tools + OAuth bridge to an MCP server that already
 
 ## Python or Go server?
 
-This guide is the TypeScript path. For a Python or Go MCP server, read the **Existing server** section of [languages/python.md](languages/python.md) or [languages/go.md](languages/go.md) (whichever SKILL.md picked), then come back for the audit below and the Verification section. In short: paid tools need the SDK's own server (`create_solvapay_mcp_server` in Python, `solvapay.NewMCPServer` in Go), so the existing tools move onto it. Run `npx -y solvapay@latest init --language python|go` to install the SDK and write `.env`, and verify with `npx -y solvapay@latest verify <url>`.
+This guide is the TypeScript path. For a Python or Go MCP server, read the **Existing server** section of [languages/python.md](languages/python.md) or [languages/go.md](languages/go.md) (whichever SKILL.md picked), then come back for the audit below and the Verification section. In short: paid tools need the SDK's own server (`create_solvapay_mcp_server` in Python, `solvapay.NewMCPServer` in Go), so the existing tools move onto it. Run `npx -y solvapay@latest init --language python|go --features mcp` to install the SDK and write `.env`, and verify with `npx -y solvapay@latest verify <url>`.
 
 ## When to read this
 
