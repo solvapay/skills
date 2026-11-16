@@ -33,6 +33,7 @@ Pick the variant that matches the context.
 | --- | --- | --- |
 | **Top-of-funnel** (README hero, marketing) | `npx skills add solvapay/skills` | Opens a multi-select prompt across all 4 skills. Best for human discovery. |
 | **Quickstart / "install everything"** | `npx skills add solvapay/skills --all -y` | Installs all 4 to every detected agent, no prompts. Optional convenience. |
+| **Claude Code (docs quick starts)** | `npx skills add solvapay/skills -a claude-code -y` | Installs to `.claude/skills/`. Name the agent when nothing can be detected (a new machine, an agent running the command): the fallback, `.agents/skills/`, isn't loaded by Claude Code. |
 | **Surface-specific** (e.g. a docs page for one product) | `npx skills add solvapay/skills --skill create-mcp-app -y` | Install just one skill. Routing id is `solvapay/<surface>`; CLI `--skill` uses the flat folder name. |
 | **Power user / CI** | `npx skills add solvapay/skills --all -g -y` | Non-interactive global install. |
 
