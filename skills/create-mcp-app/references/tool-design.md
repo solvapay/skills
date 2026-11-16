@@ -76,7 +76,7 @@ The highest-cost mix-up: **free-capped is not "free with no auth".** Unidentifie
 - Paid and free-capped tools always need a customer. The SDK takes it from the bearer token SolvaPay verified, never from a tool argument.
 - **TypeScript**: an uncounted tool registered on the underlying server skips identity.
 - **Python and Go**: every request to `/mcp` needs a verified bearer token, so even uncounted tools are only reachable by a signed-in customer.
-- `get_customer_ref` in Python and `GetCustomerRef` in Go change which customer a call is billed to on a server that already has SolvaPay sign-in. They do not let a server keep its own sign-in on `/mcp`: only TypeScript has an external authorization server mode (see [mcp-server-wiring.md](mcp-server-wiring.md)). Never feed either an unverified value.
+- `get_customer_ref` in Python and `GetCustomerRef` in Go change which customer a call is billed to on a server that already has SolvaPay sign-in. They do not let a server keep its own sign-in on `/mcp`: no SolvaPay SDK accepts another issuer's tokens there. Never feed either an unverified value.
 
 ## Hide transport tools from text hosts
 
