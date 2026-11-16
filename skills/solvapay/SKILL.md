@@ -118,7 +118,7 @@ Default if still ambiguous: greenfield MCP in code → `solvapay/create-mcp-app`
 | `solvapay/app-integration` | Hosted checkout + customer portal, paywalls, usage, webhooks, billing UI and selling API calls to agents in an existing app, API or website (TypeScript, Python, Go backends) |
 | `solvapay/pay-with-solvapay` | The paying side: SolvaPay paywall responses, account tools, top-up and connecting an agent to pay |
 
-Install if missing: `npx skills add solvapay/skills --skill <flat-name> -y` (e.g. `create-mcp-app` for `solvapay/create-mcp-app`).
+Install if missing: `npx skills add solvapay/skills --skill <flat-name> -a <agent> -y` (e.g. `create-mcp-app` for `solvapay/create-mcp-app`; `-a claude-code` in Claude Code). Always pass `-a`: without it, an agent the CLI can't detect gets `.agents/skills/`, which Claude Code does not load.
 
 Managed MCP has no skill — use the [Managed MCP exit](#managed-mcp-exit) instead.
 
@@ -134,7 +134,7 @@ Managed MCP has no skill — use the [Managed MCP exit](#managed-mcp-exit) inste
 ## Routing handoff
 - **Routing id:** solvapay/<surface>
 - **Why:** [one sentence tied to user intent]
-- **Install if missing:** `npx skills add solvapay/skills --skill <flat-name> -y`
+- **Install if missing:** `npx skills add solvapay/skills --skill <flat-name> -a <agent> -y`
 - **Next:** Load solvapay/<surface> SKILL.md and follow its instructions.
 ```
 
