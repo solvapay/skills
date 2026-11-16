@@ -9,7 +9,7 @@ description: >
   references/existing-server.md and do not rescaffold. Skip for web checkout pages and web/API
   paywalls with no MCP server (`solvapay/app-integration`).
 metadata:
-  version: "2.0.0"
+  version: "2.0.1"
 compatibility: >
   TypeScript: Node.js >= 22 and npm, Cloudflare Workers by default (other hosts in
   references/hosting/alternatives.md). Python: Python >= 3.10 and uv. Go: Go >= 1.26. Python and

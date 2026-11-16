@@ -174,7 +174,8 @@ Paid tools need the SDK's own server, `create_solvapay_mcp_server`: it adds Solv
 
 - **Server on the official MCP Python SDK 2.x** (`mcp.server.mcpserver.MCPServer`): move the tools onto `create_solvapay_mcp_server(...)`. Paid tools become `register_payable`, capped ones `register_free`, and uncounted ones stay `@mcp.server.tool(...)` on the new server's `.server`. Serve `mcp.http_app()` instead of your old app, or mount your other routes next to it.
 - **Server on MCP SDK 1.x (`FastMCP`) or the separate `fastmcp` package**: `solvapay[mcp]` needs `mcp>=2.3,<3`, where `FastMCP` became `MCPServer`. Move the tools as above; there is no adapter.
-- The lower-level `solvapay.mcp.register_payable_tool(server, name, solvapay=..., handler=..., product=...)` takes any `MCPServer`, but without the SolvaPay sign-in the call has no verified customer and is refused unless you pass `get_customer_ref` from your own verified auth, and the `account` tool the paywall names is missing. Use it only when you already verify customers yourself and say so in the handoff.
+- **Server with its own sign-in** (its own OAuth or token check on `/mcp`): SolvaPay sign-in replaces it on `/mcp`. Python has no external authorization server mode, so a server cannot keep accepting its own tokens and sell paid tools. Do not offer that as an option. Tell the user that their MCP customers will sign in through SolvaPay, and that their identity service stays in place for everything outside `/mcp`.
+- Do not use the lower-level `solvapay.mcp.register_payable_tool` to keep an existing server or its sign-in. It adds no SolvaPay sign-in and no `account` / `activate_plan` tools, so a customer who meets the paywall has no way to pay.
 
 ## Keep the SDK current
 
