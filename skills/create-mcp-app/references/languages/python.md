@@ -14,7 +14,7 @@ uv sync
 
 The scaffold is a uv project: `pyproject.toml` (`solvapay[mcp]` pinned exactly, `uvicorn`, `python-dotenv`; dev group `pytest`), `server.py`, `tools.py`, `tests/test_tools.py`, `.env.example`, `Dockerfile`, `.github/dependabot.yml`. Python is from-scratch only: `--openapi` with `--language python` fails.
 
-Adding SolvaPay to an existing uv or Poetry project: run `npx -y solvapay@latest init --language python --features mcp`. It writes `.env` and installs an exact pin with `uv add` or `poetry add`. With plain pip it only prints the `python -m pip install 'solvapay[mcp]==<version>'` line for you to run.
+Adding SolvaPay to an existing uv or Poetry project: run `npx -y solvapay@latest init --language python --features mcp`. It writes `.env` (with `PORT` and `PUBLIC_BASE_URL` when they're missing) and installs an exact pin with `uv add` or `poetry add`. With plain pip it only prints the `python -m pip install 'solvapay[mcp]==<version>'` line for you to run. It stops before sign-in, with nothing written, when the project can't take `mcp` 2.x yet: `mcp` locked below 2, a requirement that rules out 2.3, `fastapi-mcp`, or code importing `mcp.server.fastmcp` or `fastapi_mcp`. See Existing server.
 
 ## Imports
 
@@ -50,6 +50,7 @@ mcp = create_solvapay_mcp_server(
     solvapay=create_solvapay(),
     public_base_url=os.environ["PUBLIC_BASE_URL"],  # the URL MCP clients use
     name="research",
+    hide_tools_by_audience=["ui"],  # keep the widget's own tools out of tools/list
 )
 register_tools(mcp)
 app = mcp.http_app()  # MCP endpoint /mcp, plus the OAuth routes
@@ -173,8 +174,66 @@ As a container: [../hosting/container.md](../hosting/container.md). The scaffold
 Paid tools need the SDK's own server, `create_solvapay_mcp_server`: it adds SolvaPay sign-in on `/mcp`, the OAuth routes and the `account` / `activate_plan` tools that every paywall message names.
 
 - **Server on the official MCP Python SDK 2.x** (`mcp.server.mcpserver.MCPServer`): move the tools onto `create_solvapay_mcp_server(...)`. Paid tools become `register_payable`, capped ones `register_free`, and uncounted ones stay `@mcp.server.tool(...)` on the new server's `.server`. Serve `mcp.http_app()` instead of your old app, or mount your other routes next to it.
-- **Server on MCP SDK 1.x (`FastMCP`) or the separate `fastmcp` package**: `solvapay[mcp]` needs `mcp>=2.3,<3`, where `FastMCP` became `MCPServer`. Move the tools as above; there is no adapter.
+- **Server on MCP SDK 1.x (`from mcp.server.fastmcp import FastMCP`)**: `solvapay[mcp]` needs `mcp>=2.3,<3`, where `FastMCP` became `MCPServer`. Installing it would upgrade `mcp` under your server and stop it starting, so `init --features mcp` refuses to run until you migrate. Migrate first with the MCP SDK's guide (`https://py.sdk.modelcontextprotocol.io/v2/migration/`), then move the tools as above. Beyond the import, `mcp` 2.x renames other APIs a larger server may use, such as snake_case annotation fields.
+- **Server on the separate `fastmcp` package**: it installs alongside `mcp` 2.3, but its `FastMCP` is not an `MCPServer` and there is no adapter. `init` warns and carries on. Move the tools onto `create_solvapay_mcp_server` as above; fastmcp's middleware, `Context`, server composition and auth providers don't come with them.
+- **FastAPI with `fastapi-mcp`**: `fastapi-mcp` runs only on `mcp` 1.x and has no 2.x release, so `init` stops while it is in the project. Remove it, write each generated tool by hand as a `register_payable` handler that calls your route function, and serve FastAPI next to the MCP server as below. Your REST routes keep working unchanged.
 - The lower-level `solvapay.mcp.register_payable_tool(server, name, solvapay=..., handler=..., product=...)` takes any `MCPServer`, but without the SolvaPay sign-in the call has no verified customer and is refused unless you pass `get_customer_ref` from your own verified auth, and the `account` tool the paywall names is missing. Use it only when you already verify customers yourself and say so in the handoff.
+
+### FastAPI next to the MCP server
+
+Serve one ASGI app that holds both. The SolvaPay app goes outside, with FastAPI mounted inside it, last, so `/mcp` and the OAuth routes match first:
+
+```python
+# server.py
+import os
+
+from solvapay import create_solvapay
+from solvapay.mcp import ResponseContext, create_solvapay_mcp_server
+from solvapay.mcp.response import ResponseResult
+
+from main import api, read_item  # your existing FastAPI app and one of its route functions
+
+mcp = create_solvapay_mcp_server(
+    solvapay=create_solvapay(),
+    public_base_url=os.environ["PUBLIC_BASE_URL"],
+    name="items",
+    hide_tools_by_audience=["ui"],
+)
+
+
+async def get_item(item_id: int, ctx: ResponseContext) -> ResponseResult:
+    return ctx.respond(read_item(item_id))  # the route function, called directly
+
+
+mcp.register_payable("get_item", handler=get_item, description="Read one item.")
+
+app = mcp.http_app()
+app.mount("/", api)
+```
+
+Starlette doesn't run a mounted app's lifespan. If your FastAPI app has its own lifespan or startup handlers, keep FastAPI outside and start SolvaPay's inside it:
+
+```python
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+
+mcp_app = mcp.http_app()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # your own startup here
+    async with mcp_app.router.lifespan_context(mcp_app):  # the MCP session manager
+        yield
+
+
+api = FastAPI(lifespan=lifespan)
+# ... your routes ...
+api.mount("/", mcp_app)  # last, so your routes match first
+```
+
+Never mount `mcp.http_app()` inside FastAPI without that lifespan (`api.mount("/", mcp.http_app())` on its own). The MCP session manager never starts, and every call to `/mcp` fails with a 500: `RuntimeError: Task group is not initialized`.
 
 ## Keep the SDK current
 
@@ -189,6 +248,7 @@ It reads the `solvapay` pin from `uv.lock`, `poetry.lock` or `requirements.txt`,
 - `PUBLIC_BASE_URL` must be exactly the URL clients connect to, without `/mcp`. It is the OAuth issuer (sign-in fails on a mismatch) and the DNS-rebinding allow-list: a request through any other host gets `421`. Restart after the tunnel URL changes.
 - Every request to `/mcp` needs a bearer token SolvaPay verifies. There is no anonymous tool and no anonymous bucket; a tool argument is never trusted as the customer.
 - `create_solvapay_mcp_server` needs a product (`SOLVAPAY_PRODUCT_REF` or `product_ref=`), or it raises `missing_product`.
+- `get_customer_ref=` on `create_solvapay_mcp_server` sets the customer for the built-in tools only (`account`, `activate_plan`, the widget's tools). A paid or free tool takes the signed-in customer unless you pass `get_customer_ref=` to its own `register_payable` / `register_free`. If you resolve customers yourself, pass the same function in both places; otherwise your tools refuse the call as having no signed-in customer.
 - `from mcp.server.fastmcp import FastMCP` fails on `mcp` 2.x. Import `MCPServer` from `mcp.server.mcpserver` if you need the type.
 - Annotation fields are snake_case on `mcp` 2.x: `ToolAnnotations(idempotent_hint=True)`, not `idempotentHint`.
-- The widget's six transport tools are hidden from the model through `_meta.ui.visibility`. Pass `hide_tools_by_audience=["ui"]` to `create_solvapay_mcp_server` for hosts that list them anyway.
+- The widget's six transport tools are hidden from the model through `_meta.ui.visibility`, but some hosts list them anyway. Always pass `hide_tools_by_audience=["ui"]` to `create_solvapay_mcp_server`, as the scaffold does: without it `tools/list` shows them and `verify` fails. ChatGPT still gets the full list, since its widget can only call listed tools.
