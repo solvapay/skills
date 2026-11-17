@@ -40,9 +40,10 @@ func main() {
 		log.Fatal(err)
 	}
 	server, err := solvapay.NewMCPServer(solvapay.MCPServerOptions{
-		Client:        client,
-		PublicBaseURL: os.Getenv("PUBLIC_BASE_URL"), // the URL MCP clients use
-		Name:          "research",
+		Client:              client,
+		PublicBaseURL:       os.Getenv("PUBLIC_BASE_URL"), // the URL MCP clients use
+		Name:                "research",
+		HideToolsByAudience: []string{"ui"}, // keep the widget's own tools out of tools/list
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -189,4 +190,4 @@ It reads the `github.com/solvapay/solvapay-sdk/go` requirement from `go.mod`, co
 - `NewMCPServer` fails without `Client`, `PublicBaseURL` or a product. Check the error; do not start a server that has none.
 - `RespondOptions.Text` is a `*string`: take the address of a variable.
 - `RegisterPayable` and `RegisterFree` return an error (a bad schema, a mismatched free limit). Fail startup on it.
-- The widget's six transport tools are hidden from the model through `_meta.ui.visibility`. Set `HideToolsByAudience: []string{"ui"}` for hosts that list them anyway.
+- The widget's six transport tools are hidden from the model through `_meta.ui.visibility`, but some hosts list them anyway. Always set `HideToolsByAudience: []string{"ui"}`, as the scaffold does: without it `tools/list` shows them and `verify` fails. ChatGPT still gets the full list, since its widget can only call listed tools.
