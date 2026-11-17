@@ -172,6 +172,7 @@ Paid tools need the SDK's own server, `solvapay.NewMCPServer`: `RegisterPayable`
 
 - **Server on the official MCP Go SDK** (`github.com/modelcontextprotocol/go-sdk`): build a `NewMCPServer`, move paid tools to `RegisterPayable` / `RegisterFree`, and re-add the uncounted ones with `mcp.AddTool(server.Server(), ...)`. Serve `server.Handler()`; mount your other routes next to it on your own `http.ServeMux`.
 - **Server on another Go MCP library**: move the tools as above; there is no adapter.
+- **Server with its own sign-in** (its own OAuth or token check on `/mcp`): SolvaPay sign-in replaces it on `/mcp`. No SolvaPay SDK accepts another issuer's tokens on `/mcp`, so a server cannot keep its own sign-in there and sell paid tools to its signed-in customers. Do not offer that as an option. Tell the user that their MCP customers will sign in through SolvaPay, and that their identity service stays in place for everything outside `/mcp`.
 - `solvapay.Payable(paywall, options, fn)` gates a plain function for a customer ref you pass in. It works inside any handler, but gives you no SolvaPay sign-in and no `account` tool, which the paywall message names. Use it only for an HTTP API (see `solvapay/app-integration`), not to paywall MCP tools.
 
 ## Keep the SDK current
