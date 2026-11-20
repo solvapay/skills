@@ -33,6 +33,12 @@ Purchase lifecycle:
 - `purchase.expired`
 - `purchase.plan_changed`
 
+Customers:
+
+- `customer.created`
+- `customer.updated`
+- `customer.deleted`
+
 Payments and checkout:
 
 - `payment.succeeded`
@@ -112,6 +118,13 @@ app.post(
 | `payment.succeeded` | record payment and clear payment retry flags |
 | `payment.failed` | mark account at risk and notify customer |
 | `checkout_session.completed` | refresh access after hosted checkout |
+| `customer.created` | link the SolvaPay customer to your user (match on `externalRef`) |
+| `customer.updated` | refresh the stored name, email or status |
+| `customer.deleted` | unlink the SolvaPay customer from your user |
+
+## Matching Events to Your Users
+
+Customer events carry `externalRef` in `data.object`: your own user ID, the one you passed when the customer was created or updated (see [env-and-init.md](env-and-init.md)). Every `purchase.*` event carries `customerExternalRef`, the same value for the purchase's customer; `customer` is still the SolvaPay `cus_…` reference. Key handlers on these to find your user without a lookup or an email match. Both are `null` when no `externalRef` was set. Use a stable, opaque ID as `externalRef`, never an email address, since it appears in webhook payloads.
 
 ## Reactivation and Plan Switching Events
 
