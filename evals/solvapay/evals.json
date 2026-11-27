@@ -26,14 +26,16 @@
     },
     {
       "id": 3,
-      "slug": "router-managed-mcp",
+      "slug": "router-no-code-mcp",
       "prompt": "monetize my mcp server with a hosted no-code proxy — just paste the server url and gate tools without code",
-      "expected_output": "Agent routes to Managed MCP (console path), names the surface, points at provider console and docs (/no-code-mcp/overview or quick-start), and does not scaffold code or hand off to solvapay/create-mcp-app.",
+      "expected_output": "Agent routes to solvapay/create-mcp-app on its existing-server path (paywall added to the server the user already runs, no rescaffold), says in one line that Managed MCP takes no new servers, and stops after the handoff.",
       "files": [],
       "assertions": [
-        "Agent names Managed MCP as the surface (not MCP Pay, Hosted MCP, or a deprecated proxy SKU)",
-        "Agent points at the provider console and/or no-code-mcp docs — not solvapay/create-mcp-app",
-        "Agent does not mention MCP Pay or start scaffolding a Cloudflare Workers MCP server"
+        "Handoff target is solvapay/create-mcp-app and names its existing-server path",
+        "Agent does not route to Managed MCP or tell the user to set up a Managed MCP product in the console",
+        "Agent does not point at the /no-code-mcp docs",
+        "Agent does not mention MCP Pay or give an end-of-service date for Managed MCP",
+        "Agent does not scaffold a new server or write paywall code after the handoff"
       ]
     },
     {

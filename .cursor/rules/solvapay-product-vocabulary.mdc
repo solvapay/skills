@@ -1,5 +1,5 @@
 ---
-description: SolvaPay product vocabulary -- deprecated terms not to use
+description: SolvaPay product vocabulary -- retired and retiring terms not to use
 alwaysApply: true
 ---
 
@@ -7,9 +7,10 @@ alwaysApply: true
 
 ## Deprecated terms
 
-Do not mention the following SolvaPay product names in plans, skills, docs, marketing copy, code comments, anchor articles, trademark lists, roadmaps, or any user-facing artifact:
+Do not mention the following SolvaPay product names in plans, skills, docs, marketing copy, code comments, anchor articles, trademark lists, roadmaps, or any user-facing artifact, except where an entry below allows it:
 
-- **MCP Pay** -- retired product name. The live product is **Managed MCP**. Do not propose features, upsell paths, routing, or any new mentions of the old name.
+- **MCP Pay** -- retired product name. Do not propose features, upsell paths, routing, or any new mentions of the old name.
+- **Managed MCP** -- retiring product (the console proxy that paywalled a pasted MCP server URL). It takes no new servers or products; existing servers keep running until an end of service that is not yet decided, so never state a date. Do not propose it, route to it, or point at its `/no-code-mcp` docs. Two mentions stay allowed: describing how existing Managed MCP servers answer the paying side (`skills/pay-with-solvapay`), and one line saying Managed MCP takes no new servers when a user asks for it.
 
 ## When you encounter existing mentions
 
@@ -18,11 +19,11 @@ Do not mention the following SolvaPay product names in plans, skills, docs, mark
 
 ## What to suggest instead
 
-When a user's intent matches no-code MCP monetization (paste a server URL, gate tools without code, console setup), route to **Managed MCP** — the provider console path with docs at `/no-code-mcp/overview` and `/no-code-mcp/quick-start`. When they want to write MCP paywall code (greenfield worker, OpenAPI→MCP, existing server, factory wrap), route to `solvapay/create-mcp-app` (or the `create-solvapay` package). When they want paywalls, usage, webhooks, or billing UI in an existing app or API with no MCP server, route to `solvapay/app-integration`.
+Any MCP server monetization goes to `solvapay/create-mcp-app` (or the `create-solvapay` package): greenfield worker, OpenAPI→MCP, existing server, factory wrap. A no-code request (paste a server URL, gate tools without code, console setup) goes there too, on its existing-server path, which adds the paywall to the server the user already runs. When they want paywalls, usage, webhooks, or billing UI in an existing app or API with no MCP server, route to `solvapay/app-integration`.
 
 ## Canonical product type names
 
-The no-code MCP product type is **Managed MCP** (never Hosted MCP, No-code, or MCP Pay). The code-based type is **SDK**. The canonical product field is `isManagedMcp`; `isMcpPay` remains a deprecated wire alias (accepted on input, emitted on output) for compatibility. Customer-facing surfaces say **MCP server** — the provider's integration method is not the customer's concern.
+New products are just **products**, connected with the SDK. Existing products of the retiring no-code type are still called **Managed MCP** (never Hosted MCP, No-code, or MCP Pay), and still carry the field `isManagedMcp` (`isMcpPay` is its deprecated wire alias); mention them only to describe existing products. Customer-facing surfaces say **MCP server** — the provider's integration method is not the customer's concern.
 
 ## Canonical name
 
