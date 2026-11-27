@@ -11,7 +11,7 @@ description: >
   `pyproject.toml`) and Go (`net/http`, `go.mod`) backends. Skip for any MCP server work (new or
   existing — use `solvapay/create-mcp-app`).
 metadata:
-  version: "1.3.0"
+  version: "1.3.1"
 compatibility: >
   Node.js >= 22 (the SolvaPay CLI, in every language). Supports
   Next.js, React, Express, Supabase Edge Functions, Python >= 3.10 (Starlette, FastAPI) and
@@ -131,7 +131,6 @@ If multiple match, ask which runtime is primary. If the request is only "add che
 ## When NOT to use this skill
 
 - Any MCP server (new or existing, including a factory wrap) → `solvapay/create-mcp-app`
-- Monetizing an MCP server without code (paste a server URL in the console) → Managed MCP; for the API bootstrap of an existing Managed MCP product see [references/mcp-product-console.md](references/mcp-product-console.md)
 
 ## Scripts
 
@@ -158,5 +157,4 @@ If multiple match, ask which runtime is primary. If the request is only "add che
 - Selling API calls to agents (preview): [references/agent-payments.md](references/agent-payments.md)
 - Operations: [references/operations.md](references/operations.md)
 - Env / init: [references/env-and-init.md](references/env-and-init.md)
-- Managed MCP API (bootstrap / configure plans on an existing Managed MCP product): [references/mcp-product-console.md](references/mcp-product-console.md)
 - Webhooks: [references/WEBHOOKS.md](references/WEBHOOKS.md)

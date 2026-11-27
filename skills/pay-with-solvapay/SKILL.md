@@ -9,7 +9,7 @@ description: >
   call, what to tell your user, and how to connect so you can pay a merchant yourself. Skip when
   you are building payments into your own API or MCP server (use the solvapay router).
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Pay with SolvaPay
@@ -31,7 +31,7 @@ SolvaPay is the payment layer behind many APIs and MCP servers. When one of them
 { "success": false, "error": "Payment required", "product": "prd_…", "checkoutUrl": "https://…", "message": "…" }
 ```
 
-**MCP tool:** the result is not an error (`isError: false`). The text in `content[0].text` explains the block, and `structuredContent` carries the gate. A Managed MCP server may answer with text such as "Access denied - requires Pro plan".
+**MCP tool:** the result is not an error (`isError: false`). The text in `content[0].text` explains the block, and `structuredContent` carries the gate. An older Managed MCP server may answer with text such as "Access denied - requires Pro plan".
 
 **The reason, when given (`paywallReason`):**
 
@@ -49,7 +49,7 @@ Servers built on SolvaPay add tools for this. Use the ones the server lists:
 
 - `account`: shows your user's account. Pass `view: "checkout"`, `"topup"` or `"account"` to open that page.
 - `activate_plan`: activates a plan for your user.
-- On Managed MCP servers:
+- On older Managed MCP servers (still running, no longer offered to merchants):
   - `get_user_info` shows the plan, status, and quota used and remaining;
   - `upgrade_plan` lists plans with prices and checkout links;
   - `manage_purchase` returns the billing portal link.

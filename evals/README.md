@@ -40,8 +40,8 @@ Guides: [optimizing descriptions](https://agentskills.io/skill-creation/optimizi
 | --- | --- | --- |
 | Ambiguous onboarding | `solvapay` router | Any surface with clear stack + task |
 | Code-based MCP — `create-mcp-app` owns all of it (OpenAPI, scratch, existing server, factory wrap, `npm create solvapay --type mcp`) | `solvapay/create-mcp-app` | `app-integration`, checkout skills |
-| REST/web paywall, usage, webhooks, account UI, hosted checkout + return URL, customer portal (no MCP server) | `solvapay/app-integration` | `create-mcp-app`, Managed MCP (no code) |
-| Managed MCP (no code, paste server URL) | `solvapay` router → Managed MCP exit | `create-mcp-app`, `app-integration` (unless API bootstrap on existing product) |
+| REST/web paywall, usage, webhooks, account UI, hosted checkout + return URL, customer portal (no MCP server) | `solvapay/app-integration` | `create-mcp-app` |
+| No-code MCP request (paste server URL, gate tools without code) | `solvapay` router → `solvapay/create-mcp-app` (existing-server path); Managed MCP takes no new servers | `app-integration`, `pay-with-solvapay`; never Managed MCP or the `/no-code-mcp` docs |
 | Paying side: a SolvaPay paywall refused the agent's call, top-up or upgrade at a merchant, connecting an agent to pay | `solvapay/pay-with-solvapay` | `app-integration`, `create-mcp-app` (those build paywalls; this one gets past them) |
 
 ## Output evals (`evals.json`)
